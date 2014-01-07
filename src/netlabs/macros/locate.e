@@ -74,69 +74,18 @@ const
 compile endif
 
 ; ---------------------------------------------------------------------------
-definit
-   universal search_len
-   universal nepmd_hini
-   universal lastchangeargs
-   universal lastsearchargs
-   if lastchangeargs = '' then  -- after an EPM window opened, all universal vars were set to empty
-      -- Query args for the case, when a 'changenext' is executed
-      -- before a 'change'. So, it's possible to open a new EPM window and
-      -- repeat the last change action there.
-      KeyPath = '\NEPMD\User\Search\LastChangeArgs'  -- get it from NEPMD.INI
-      lastchangeargs = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   endif
-   if lastsearchargs = '' then  -- after an EPM window opened, all universal vars were set to empty
-      KeyPath = '\NEPMD\User\Search\LastSearchArgs'  -- get it from NEPMD.INI
-      lastsearchargs = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   endif
-   search_len = 5     -- Initialize to anything, to prevent possible "Invalid number argument"
-
 defmodify             -- This stops the modification dialog for grep output "files"  -- JBS
-   if leftstr(.filename, 17) = '.Output from grep' then
+   if leftstr( .filename, 17) = '.Output from grep' then
       .modify = 0
       .autosave = 0
    endif
 
 ; ---------------------------------------------------------------------------
-; Syntax: locate !<search_string>[!<user_options>]
-;         The first char will be taken as delimitter, in this case '!'.
-;
-; New: Without args, a FindNext will be executed.
-;
-; Added a new search option: 'U'. This will replace any occurance of
-; 'T' and 'B' in default_search_options for this locate command.
-;
-; Moved from STDCMDS.E
-; Note:  this DEFC also gets executed by the slash ('/') command and by the
-; search dialog. The search dialog adds option 'D'.
-defc RepeatFind, L, Locate
+defproc ProcessSearchOptions( user_options)
    universal default_search_options
-   universal search_len
-   universal lastsearchargs
-   universal lastchangeargs
-   universal lastsearchpos
-   universal nepmd_hini
-
-   fFindNext = 0  -- differ an initial find command from a (repeated)
-                  -- FindNext command.
-   PreviousSearchArgs = lastsearchargs  -- save old value to determine later
-                                        -- if it has to be rewritten to ini.
-   parse arg args
-   args = strip( args, 'L')
-   if args = '' then  -- If no args, query args
-      fFindNext = 1  -- then it must be a FindNext
-      args = lastsearchargs
-      -- Process the parsing of args again to recognize a possible change of
-      -- default_search_options in the meantime.
-   endif
-
-   delim = substr( args, 1, 1)  -- get 1st delimiter
-   parse value args with (delim)search_string(delim)user_options
-   user_options = strip( user_options, 'T', delim)
 
    -- Set default_options to uppercase
-   default_options = upcase(default_search_options)
+   default_options = upcase( default_search_options)
 
    -- Switch to All if Mark is default and no text marked, but don't disable
    -- 'M' from user_options to make it work as expected.
@@ -144,11 +93,10 @@ defc RepeatFind, L, Locate
       -- Remove 'M' from default_options
       do forever
          pv = verify( default_options, 'M', 'M')  -- 2nd arg is charlist to find
-         if pv then
-            default_options = delstr( default_options, pv, 1)
-         else
+         if pv = 0 then
             leave
          endif
+         default_options = delstr( default_options, pv, 1)
       enddo
    endif
 
@@ -157,14 +105,15 @@ defc RepeatFind, L, Locate
    -- to avoid confusion, because searchdlg will call either defc locate
    -- or defc change. These commands will add default_search_options,
    -- even T or B, while the user would think, he hasn't selected them.
-   if pos( 'D', upcase(user_options)) then  -- if called from SearchDlg
+   -- TODO: Better set checkboxes when opening the dialog or when changing
+   --       default options.
+   if pos( 'D', upcase( user_options)) then  -- if called from SearchDlg
       do forever
          pv = verify( upcase(default_options), 'TB', 'M')
-         if pv then
-            default_options = delstr( default_options, pv, 1)
-         else
+         if pv = 0 then
             leave
          endif
+         default_options = delstr( default_options, pv, 1)
       enddo
    endif
 
@@ -175,241 +124,18 @@ defc RepeatFind, L, Locate
       -- Remove 'U' from user_options
       do forever
          pv = verify( upcase(user_options), 'U', 'M')
-         if pv then
-            user_options = delstr( user_options, pv, 1)
-         else
+         if pv = 0 then
             leave
          endif
+         user_options = delstr( user_options, pv, 1)
       enddo
       -- Remove 'T' and 'B' from default_options
       do forever
          pv = verify( default_options, 'TB', 'M')
-         if pv then
-            default_options = delstr( default_options, pv, 1)
-         else
+         if pv = 0 then
             leave
          endif
-      enddo
-   endif
-
-   -- Build search_options. The last option wins.
-   -- Insert default_search_options just before supplied options (if any)
-   -- so the supplied options will take precedence.
-   search_options = upcase(default_options''user_options)
-
-   -- Remove multiple and excluding options and spaces (not required)
-   ExcludeList = '+- FR BT AM EC GXW'    -- for every word in this list: every char excludes each other
-   -- Other options: '* K ^ N D'
-   rest = search_options
-   search_options = ''
-   do while rest <> ''
-      parse value rest with next 2 rest  -- parse 1 char of rest
-      -- Remove all spaces
-      if next = ' ' then
-         iterate
-      elseif pos( next, rest) = 0 then   -- if not found in rest
-         -- Find excluding options
-         ExcludeWrd = ''
-         do w = 1 to words(ExcludeList)
-            wrd = word( ExcludeList, w)
-            if pos( next, wrd) then
-               ExcludeWrd = wrd          -- ExcludeWrd = word of ExcludeList where next belongs to
-               leave
-            endif
-         enddo
-         if not verify( rest, ExcludeWrd, 'M') then    -- if rest doesn't contain chars of ExcludeWrd
-            search_options = search_options''next      -- append next
-         endif
-      endif
-   enddo
-
-   -- Build list of search args with options, last option wins.
-   SearchArgs = delim''search_string''delim''search_options
-
-   if fFindNext = 0 then
-      -- Save these args for the case, when a 'findnext' is executed
-      -- before a 'locate'. So, it's possible to open a new EPM window and
-      -- repeat the last locate action there.
-      -- Omit default_search_options from the saved string and let a findnext
-      -- re-determine default_search_options. User may have changed it in the
-      -- meantime.
-      lastsearchargs = delim''search_string''delim''user_options  -- save it in a universal var
-      if lastsearchargs = PreviousSearchArgs then
-         fFindNext = 1
-      else
-         KeyPath = '\NEPMD\User\Search\LastSearchArgs'  -- save it in NEPMD.INI
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath, lastsearchargs)
-
-         -- Reset also lastchangeargs
-         lastchangeargs = ''
-         KeyPath = '\NEPMD\User\Search\LastChangeArgs'  -- save it in NEPMD.INI
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath, lastchangeargs)
-      endif
-   endif
-
-   getfileid fid
-   -- Remove 'T' and 'B' temporarily if this is a FindNext in the same file
-   -- as for the last find and if only next string should be found
-   parse value (lastsearchpos) with SearchLine SearchCol SearchLen SearchFid SearchMode
-   if fid = SearchFid then
-      if (fFindNext = 1) then
-
-         -- Remove 'T' and 'B'
-         do forever
-            pv = verify( search_options, 'TB', 'M')
-            if pv then
-               search_options = delstr( search_options, pv, 1)
-            else
-               leave
-            endif
-         enddo
-
-         -- Build new SearchArgs
-         SearchArgs = delim''search_string''delim''search_options
-
-         if SearchLine SearchCol = .line .col then
-            if PreviousSearchArgs = lastsearchargs then
-               -- Move cursor to not find the just changed string again
-               Foreward = lastpos( 'F', search_options) > lastpos( 'R', search_options)
-               Downward = lastpos( '+', search_options) > lastpos( '-', search_options)
-               if Foreward then
-                  next = .col + SearchLen
-                  if next > length( textline(.line)) then
-                     if Downward & .line < .last then
-                        down
-                     elseif not Downward & .line > 1 then
-                        up
-                     endif
-                     .col = 1
-                  else
-                     .col = next
-                  endif
-               else
-                  next = .col - SearchLen
-                  if next < 0 then
-                     if Downward & .line < .last then
-                        down
-                     elseif not Downward & .line > 1 then
-                        up
-                     endif
-                     .col = length( textline(.line))
-                  else
-                     .col = next
-                  endif
-               endif
-            endif
-         endif
-      endif
-   endif
-
-   -- Set universal var for hilite.
-   -- It will be recalled internally by getpminfo(EPMINFO_LSLENGTH).
-   search_len = length(search_string)
-   prevpos = .line .col
-
-   display -8  -- suppress writing to MsgBox
-   'xcom l 'SearchArgs
-   lrc = rc
-   display 8
-
-   if rc = 0 then  -- if found
-      -- Save last searched pos, file and search mode
-      lastsearchpos = .line .col length( search_string) fid 'l'
-      call highlight_match()
-   endif
-
-   rc = lrc  -- does hightlight_match change rc?
-
-; ---------------------------------------------------------------------------
-; Moved from STDCMDS.E
-defc RepeatChange, C, Change
-   universal default_search_options
-   universal search_len
-   universal lastchangeargs
-   universal lastsearchargs
-   universal lastsearchpos
-   universal nepmd_hini
-   universal stay  -- if 1, then restore pos even after a successful change
-
-   call NextCmdAltersText()
-   call psave_pos(savepos)
-
-   fChangeNext = 0  -- differ an initial change command from a (repeated)
-                    -- ChangeNext command.
-   PreviousChangeArgs = lastchangeargs  -- save old value to determine later
-   PreviousSearchArgs = lastsearchargs  -- if it has to be rewritten to ini.
-   args = strip( arg(1), 'L')
-
-   if args = '' then   -- If no args, query lastchangeargs
-      fChangeNext = 1  -- then it must be a ChangeNext
-      args = lastchangeargs
-      -- Process the parsing of args again to recognize a possible change of
-      -- default_search_options in the meantime.
-   endif
-
-   delim = substr( args, 1, 1)  -- get 1st delimiter
-   p2 = pos( delim, args, 2)    -- check 2nd delimiter of 2 or 3
-   if not p2 then
-      sayerror NO_REP__MSG
-      return
-   endif
-   parse value args with (delim)search_string(delim)replace_string(delim)user_options
-   user_options = strip( user_options, 'T', delim)
-
-   -- Set default_options to uppercase
-   default_options = upcase(default_search_options)
-
-   -- Switch to All if Mark is default and no text marked, but don't disable
-   -- 'M' from user_options to make it work as expected.
-   if not FileIsMarked() then  -- if current file is not marked
-      -- Remove 'M' from default_options
-      do forever
-         pv = verify( default_options, 'M', 'M')  -- 2nd arg is charlist to find
-         if pv then
-            default_options = delstr( default_options, pv, 1)
-         else
-            leave
-         endif
-      enddo
-   endif
-
-   -- Remove 'T' and 'B' from default_options, because searchdlg won't
-   -- set these checkboxes. Other options are recognized. This is useful
-   -- to avoid confusion, because searchdlg will call either defc locate
-   -- or defc change. These commands will add default_search_options,
-   -- even T or B, while the user would think, he hasn't selected them.
-   if pos( 'D', upcase(user_options)) then  -- if called from SearchDlg
-      do forever
-         pv = verify( upcase(default_options), 'TB', 'M')
-         if pv then
-            default_options = delstr( default_options, pv, 1)
-         else
-            leave
-         endif
-      enddo
-   endif
-
-   -- Remove 'T', 'B' and 'U' from default_options if the new option 'U' is
-   -- used. This new option can be added to tell the locate command to remove
-   -- 'T' and 'B'. E.g. the 'All' cmd doesn't work with B' or 'T'.
-   if pos( 'U', upcase(user_options)) then  -- if 'U' is used
-      -- Remove 'U' from user_options
-      do forever
-         pv = verify( upcase(user_options), 'U', 'M')
-         if pv then
-            user_options = delstr( user_options, pv, 1)
-         else
-            leave
-         endif
-      enddo
-      -- Remove 'T' and 'B' from default_options
-      do forever
-         pv = verify( default_options, 'TB', 'M')
-         if pv then
-            default_options = delstr( default_options, pv, 1)
-         else
-            leave
-         endif
+         default_options = delstr( default_options, pv, 1)
       enddo
    endif
 
@@ -420,7 +146,7 @@ defc RepeatChange, C, Change
 
    -- Append 'N' to give a message how many changes, if 'Q' not specified
    -- and if all should be changed.
-   if pos( '*', search_options) &  -- if called from SearchDlg
+   if pos( '*', search_options) &  -- if e.g. called from SearchDlg
       not pos( 'Q', search_options) then
       search_options = search_options'N'
    endif
@@ -451,81 +177,414 @@ defc RepeatChange, C, Change
       endif
    enddo
 
-   ChangeArgs = delim''search_string''delim''replace_string''delim''search_options
+   return search_options
 
-   if fChangeNext = 0 then
-      -- Save search args without default_search_options to respect a possible
-      -- change in the meantime, maybe by the user
-      lastchangeargs = delim''search_string''delim''replace_string''delim''user_options
-      -- Save these args for the case, when a 'changenext' is executed
-      -- before a 'change'. So, it's possible to open a new EPM window and
-      -- repeat the last change action there.
-      if lastchangeargs <> PreviousChangeArgs then
-         KeyPath = '\NEPMD\User\Search\LastChangeArgs'  -- save it in NEPMD.INI
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath, lastchangeargs)
+; ---------------------------------------------------------------------------
+defproc ProsessSearchPos( search_options, PreviousSearchOptions,
+                          search_string, PreviousSearchString,
+                          fid, SearchMode)
+   universal lastsearchpos
+
+   parse value lastsearchpos with LastLine LastCol LastFid LastSearchLen LastSearchMode
+   fForeward = lastpos( 'F', search_options) > lastpos( 'R', search_options)
+   fDownward = lastpos( '+', search_options) > lastpos( '-', search_options)
+
+   -- Determine a FindNext if only the search direction was changed
+   fFindNext = 0
+   do i = 1 to 1
+      -- Remove FR+- from previous and next search options
+      PrevOpts = PreviousSearchOptions
+      do forever
+         pv = verify( PrevOpts, 'FR+-', 'M')
+         if pv = 0 then
+            leave
+         endif
+         PrevOpts = delstr( PrevOpts, pv, 1)
+      enddo
+      NextOpts = search_options
+      do forever
+         pv = verify( NextOpts, 'FR+-', 'M')
+         if pv = 0 then
+            leave
+         endif
+         NextOpts = delstr( NextOpts, pv, 1)
+      enddo
+
+      if fid <> LastFid then
+         leave
+      endif
+      if LastLine LastCol <> .line .col then
+         leave
+      endif
+      if PreviousSearchString <> search_string then
+         leave
+      endif
+      if PrevOpts <> NextOpts then
+         leave
+      endif
+
+      fFindNext = 1
+   enddo
+
+   fMoveCursor = 0
+
+   -- Handle FindNext specially
+   if fFindNext then
+
+      -- Remove 'T' and 'B' for the search execution (not from LastSearchArgs)
+      do forever
+         pv = verify( search_options, 'TB', 'M')
+         if pv = 0 then
+            leave
+         endif
+         search_options = delstr( search_options, pv, 1)
+      enddo
+
+      -- Move cursor to not find the just found string again
+      fMoveCursor = 1
+   endif
+
+   -- Bug in xcom l: reverse search finds also string right of cursor
+   if not fForeward then
+      fMoveCursor = 1
+   endif
+
+   -- Change should process the string at cursor. The cursor pos may result
+   -- from a previous locate.
+   -- If there is no string to change at the cursor, it processes the next
+   -- string. For that no cursor move is required.
+   if SearchMode = 'c' then
+      fMoveCursor = 0
+   endif
+
+   --dprintf( 'fMoveCursor = 'fMoveCursor', fFindNext = 'fFindNext)
+
+   fSearch = 1
+   -- Move cursor to not find the string at cursor (again)
+   if fMoveCursor then
+      if LastSearchLen = '' then
+         LastSearchLen = 0
+      endif
+      if fForeward then  -- must be a FindNext
+         -- Foreward: move amount of LastSearchLen right
+         next = .col + LastSearchLen
+         if next > length( textline(.line)) + 1 then
+            if fDownward then
+               if .line < .last then
+                  down
+                  .col = 1
+               else
+                  fSearch = 0  -- can't move down at the bottom
+               endif
+            else
+               if .line > 1 then
+                  up
+                  .col = 1
+               else
+                  fSearch = 0  -- can't move up at the top
+               endif
+            endif
+         else
+            .col = next
+         endif
+      else
+         -- Backward: move 1 left
+         next = .col - 1
+         if next < 1 then
+            if fDownward then
+               if .line < .last then
+                  down
+                  .col = min( length( textline(.line)) + 1, MAXCOL)
+               else
+                  fSearch = 0  -- can't move down at the bottom
+               endif
+            else
+               if .line > 1 then
+                  up
+                  .col = min( length( textline(.line)) + 1, MAXCOL)
+               else
+                  fSearch = 0  -- can't move up at the top
+               endif
+            endif
+         else
+            .col = next
+         endif
       endif
    endif
 
-   -- Set lastsearchargs as well, to use first Ctrl+F and then Ctrl+C for to
-   -- operate on the same search_string. Even a ChangeNext should synchronize it.
-   lastsearchargs = delim''search_string''delim''user_options
-   if lastsearchargs <> PreviousSearchArgs then
-      KeyPath = '\NEPMD\User\Search\LastSearchArgs'  -- save it in NEPMD.INI
-      call NepmdWriteConfigValue( nepmd_hini, KeyPath, lastsearchargs)
+   if not fSearch then
+      return -1
+   else
+      return search_options
    endif
+
+; ---------------------------------------------------------------------------
+; LastSearchArgs and LastChangeArgs are no longer universals. To make them
+; global across all EPM windows, they are saved in NEPMD.INI only.
+; ---------------------------------------------------------------------------
+defproc GetLastSearchArgs
+   universal nepmd_hini
+   KeyPathSearch = '\NEPMD\User\Search\LastSearchArgs'
+   LastSearchArgs = NepmdQueryConfigValue( nepmd_hini, KeyPathSearch)
+   return LastSearchArgs
+
+; ---------------------------------------------------------------------------
+defproc GetLastChangeArgs
+   universal nepmd_hini
+   KeyPathChange = '\NEPMD\User\Search\LastChangeArgs'
+   LastChangeArgs = NepmdQueryConfigValue( nepmd_hini, KeyPathChange)
+   return LastChangeArgs
+
+; ---------------------------------------------------------------------------
+defproc SetLastSearchArgs
+   universal nepmd_hini
+   KeyPathSearch = '\NEPMD\User\Search\LastSearchArgs'
+   LastSearchArgs = arg(1)
+   rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathSearch, LastSearchArgs)
+   return
+
+; ---------------------------------------------------------------------------
+defproc SetLastChangeArgs
+   universal nepmd_hini
+   KeyPathChange = '\NEPMD\User\Search\LastChangeArgs'
+   LastChangeArgs = arg(1)
+   rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathChange, LastChangeArgs)
+   return
+
+; ---------------------------------------------------------------------------
+; Syntax: locate !<search_string>[!<user_options>]
+;         The first char will be taken as delimitter, in this case '!'.
+;
+; New: Without args, a FindNext will be executed.
+;
+; Added a new search option: 'U'. This will replace any occurance of
+; 'T' and 'B' in default_search_options for this locate command.
+;
+; Moved from STDCMDS.E
+; Note:  this DEFC also gets executed by the slash ('/') command and by the
+; search dialog. The search dialog adds option 'D'.
+defc RepeatFind, L, Locate
+   universal default_search_options
+   universal lastsearchpos
+
+   sayerror 0  -- delete previous message from messageline
+   LastSearchArgs = GetLastSearchArgs()
+
+   args = strip( arg(1), 'L')
+   if args = '' then  -- If no args, query args
+      args = LastSearchArgs
+      -- Process the parsing of args again to recognize a possible change of
+      -- default_search_options in the meantime.
+   endif
+
+   delim = substr( args, 1, 1)  -- get 1st delimiter
+   parse value args with (delim)search_string(delim)user_options
+   user_options = strip( user_options, 'T', delim)
+
+   PreviousSearchArgs = LastSearchArgs  -- save old value to determine later
+                                        -- if it has to be rewritten to ini.
+   pdelim = substr( PreviousSearchArgs, 1, 1)  -- get 1st delimiter
+   parse value PreviousSearchArgs with (pdelim)PreviousSearchString(pdelim)PreviousSearchOptions
+
+   LastChangeArgs = GetLastChangeArgs()
+   cdelim = substr( LastChangeArgs, 1, 1)  -- get 1st delimiter
+   parse value LastChangeArgs with (cdelim)cSearchString(cdelim)cReplaceString(cdelim)cSearchOptions
 
    getfileid fid
-   -- Remove 'T' and 'B' temporarily if this is a ChangeNext in the same file
-   -- as for the last change and if only next found string should be changed
-   parse value (lastsearchpos) with SearchLine SearchCol SearchLen SearchFid SearchMode
-   if fid = SearchFid then
-      if (fChangeNext = 1 & not pos( '*', search_options)) |
-         (lastsearchargs = previoussearchargs) then
 
-         -- Remove 'T' and 'B'
-         do forever
-            pv = verify( search_options, 'TB', 'M')
-            if pv then
-               search_options = delstr( search_options, pv, 1)
-            else
-               leave
-            endif
-         enddo
+   -- Prepend default options and normalize search options
+   search_options = ProcessSearchOptions( user_options)
 
-         -- Build new ChangeArgs
-         ChangeArgs = delim''search_string''delim''replace_string''delim''search_options
+   -- Build list of search args with options, last option wins.
+   -- Save the universal var here. Later ProsessSearchPos changes
+   -- search_options if required.
+   SearchArgs = delim''search_string''delim''search_options
+   --dprintf( '--- SearchArgs = 'SearchArgs', arg(1) = 'arg(1))
+   --dprintf( 'PreviousSearchArgs = 'PreviousSearchArgs)
+
+   -- Save last args
+   call SetLastSearchArgs( SearchArgs)
+   if search_string <> cSearchString then
+      -- Reset LastChangeArgs if search has changed
+      --dprintf( 'Reset LastChangeArgs')
+      call SetLastChangeArgs( '')
+   endif
+
+   -- The rest is similar for both 'locate' and 'change'
+
+   -- Pos from before the search and maybe move
+   startline = .line
+   startcol  = .col
+   call psave_pos( savedpos)
+   SearchMode = 'l'
+
+   -- Maybe move cursor and remove T and B search options for a FindNext
+   search_options = ProsessSearchPos( search_options, PreviousSearchOptions,
+                                      search_string, PreviousSearchString,
+                                      fid, SearchMode)
+   fSearch = 1
+   if search_options = -1 then
+      -- Omit search at the top or at the bottom
+      fSearch = 0
+   else
+      -- search_options may be changed by ProsessSearchPos
+      SearchArgs = delim''search_string''delim''search_options
+   endif
+
+   if fSearch then
+      display -8  -- suppress writing to MsgBox
+      'xcom l 'SearchArgs
+      lrc = rc
+      display 8
+
+      -- Restore pos if not found (required?)
+      if lrc <> 0 then
+         -- Go to pos before the search, e.g. stop at previous found string
+         call prestore_pos( savedpos)
       endif
    endif
 
-   -- Set universal var for hilite, maybe for findnext.
-   -- It will be recalled internally by getpminfo(EPMINFO_LSLENGTH).
-   search_len = length( replace_string)
+   -- Give error message if search was omited
+   if not fSearch then
+      lrc = -273  -- String not found
+      display -8  -- suppress writing to MsgBox
+      sayerror sayerrortext( lrc)  -- The same as: 'SayError -273'
+      display 8
+   endif
 
-;     /* Put this lines back in if you want the M choice to force */
-;     /* the cursor to the start of the mark.                    */
-;    if verify( upcase(user_options), 'M', 'M' ) then
-;       call checkmark()  -- ??? returns (0|1)
-;       call pbegin_mark()  /* mark specified - make sure at top of mark */
-;    endif
+   -- Highlight it and maybe scroll to cursor pos
+   if lrc = 0 then
+      -- SearchLen will be queried by getpminfo( EPMINFO_LSLENGTH)
+      call highlight_match()  -- scrolls always
+   else
+      .line = .line           -- maybe scroll to ensure that cursor is visible
+   endif
 
-   display -8
-   -- Execute the change command with args from arg(1); if empty, with args from
-   -- the last change command. default_search_options are added.
-   'xcom c 'ChangeArgs
-   display 8
+   -- Save last searched pos, file and search mode
+   thissearchpos = .line .col fid length( search_string) 'l'
+   --dprintf( 'thissearchpos = 'thissearchpos', lastsearchpos = 'lastsearchpos)
+   lastsearchpos = thissearchpos
 
-   if rc = 0 then  -- if found
-      -- Save last searched pos, file and search mode
-      lastsearchpos = .line .col length( replace_string) fid 'c'
-      --call highlight_match()  -- gives wrong col
-      call highlight_match( .line .col search_len)
+   rc = lrc  -- does hightlight_match change rc?
+
+; ---------------------------------------------------------------------------
+; Moved from STDCMDS.E
+defc RepeatChange, C, Change
+   universal default_search_options
+;   universal search_len
+   universal lastsearchpos
+   universal stay  -- if 1, then restore pos even after a successful change
+
+   sayerror 0  -- delete previous message from messageline
+   LastChangeArgs = GetLastChangeArgs()
+   LastSearchArgs = GetLastSearchArgs()
+
+   args = strip( arg(1), 'L')
+   if args = '' then   -- If no args, query lastchangeargs
+      args = LastChangeArgs
+      -- Process the parsing of args again to recognize a possible change of
+      -- default_search_options in the meantime.
+   endif
+
+   delim = substr( args, 1, 1)  -- get 1st delimiter
+   p2 = pos( delim, args, 2)    -- check 2nd delimiter of 2 or 3
+   if not p2 then
+      sayerror NO_REP__MSG  -- 'No replacement string specified'
+      return
+   endif
+   parse value args with (delim)search_string(delim)replace_string(delim)user_options
+   user_options = strip( user_options, 'T', delim)
+
+   PreviousChangeArgs = LastChangeArgs  -- save old value to determine later
+   PreviousSearchArgs = LastSearchArgs  -- if it has to be rewritten to ini.
+   pdelim = substr( PreviousChangeArgs, 1, 1)  -- get 1st delimiter
+   parse value PreviousChangeArgs with (pdelim)PreviousSearchString(pdelim)PreviousReplaceString(pdelim)PreviousSearchOptions
+
+   getfileid fid
+
+   -- Prepend default options and normalize search options
+   search_options = ProcessSearchOptions( user_options)
+
+   -- Build list of change args with options, last option wins.
+   -- Save the universal var here. Later ProsessSearchPos changes
+   -- search_options if required.
+   ChangeArgs = delim''search_string''delim''replace_string''delim''search_options
+   -- Set LastSearchArgs as well, to use first Ctrl+F and then Ctrl+C for to
+   -- operate on the same search_string. Even a ChangeNext should synchronize it.
+   SearchArgs = delim''search_string''delim''search_options
+   --dprintf( '--- ChangeArgs = 'ChangeArgs', arg(1) = 'arg(1))
+   --dprintf( 'PreviousChangeArgs = 'PreviousChangeArgs', PreviousSearchArgs = 'PreviousSearchArgs)
+
+   -- Save last args
+   call SetLastChangeArgs( ChangeArgs)
+   call SetLastSearchArgs( SearchArgs)
+
+   -- Pos from before the search and maybe move
+   startline = .line
+   startcol  = .col
+   call psave_pos( savedpos)
+   SearchMode = 'c'
+
+   -- Remove T and B search options for a FindNext
+   search_options = ProsessSearchPos( search_options, PreviousSearchOptions,
+                                      search_string, PreviousSearchString,
+                                      fid, SearchMode)
+
+   fSearch = 1
+   if search_options = -1 then  -- never true for 'change'
+      -- Omit search at the top or at the bottom
+      fSearch = 0
+   else
+      -- search_options may be changed by ProsessSearchPos
+      ChangeArgs = delim''search_string''delim''replace_string''delim''search_options
+   endif
+
+
+   if fSearch then
+      display -8
+      'xcom c 'ChangeArgs
+      lrc = rc
+      display 8
+
+      -- Restore pos if not found (required?)
+      if lrc <> 0 then
+         -- Go to pos before the search, e.g. stop at previous found string
+         call prestore_pos( savedpos)
+      endif
+   endif
+
+   -- Give error message if search was omitted
+   if not fSearch then  -- fSearch is always 1 for 'change'
+      lrc = -273  -- String not found
+      display -8  -- suppress writing to MsgBox
+      sayerror sayerrortext( lrc)  -- The same as: 'SayError -273'
+      display 8
+   endif
+
+   -- Highlight it and maybe scroll to cursor pos
+   if lrc = 0 then
+      --call highlight_match()  -- gives wrong value
+      -- SearchLen can be queried for a Search action by getpminfo( EPMINFO_LSLENGTH).
+      -- But getpminfo( EPMINFO_LSLENGTH) gives the value for the search string,
+      -- not for the change string.
+      -- Therefore estimate its value here to submit it as arg to highlight_match().
+      -- This likely gives a wrong result for a grep search.
+      SearchLen = length( replace_string)
+      call highlight_match( .line .col SearchLen)
+
       -- Restore pos after change command if stay = 1
       if stay then
-         call prestore_pos( savepos)
+         call prestore_pos( savedpos)
       endif
-   else            -- if not found
-      call prestore_pos( savepos)  -- required for 'B' or 'T'
+   else
+      .line = .line           -- maybe scroll to ensure that cursor is visible
+      'HighlightCursor'
    endif
+
+   -- Save last searched pos, file and search mode
+   thissearchpos = .line .col fid length( replace_string) 'c'
+   --dprintf( 'thissearchpos = 'thissearchpos', lastsearchpos = 'lastsearchpos)
+   lastsearchpos = thissearchpos
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDPROCS.E
@@ -537,6 +596,7 @@ defproc highlight_match
    if rc then  -- if not found; rc was set from last 'c'|'l'|repeat_find
       return
    endif
+   savedrc = rc
 
    -- Optionally try to scroll to a fixed position on screen.
    -- This must come before drawing the circle.
@@ -563,6 +623,8 @@ defproc highlight_match
       col + len - 1,
       LOCATE_CIRCLE_COLOR1,
       LOCATE_CIRCLE_COLOR2
+
+   rc = savedrc
    return
 
 ; ---------------------------------------------------------------------------
@@ -636,11 +698,10 @@ defc SearchDlg
 ; ---------------------------------------------------------------------------
 ; Returns '+' or '-'.
 defproc GetSearchDirection
-   universal lastsearchargs
    universal default_search_options
    ret = '+'
 
-   args = lastsearchargs
+   args = GetLastSearchArgs()
    s_delim = substr( args, 1, 1)  -- get 1st delimiter
    parse value args with (s_delim)s_search_string(s_delim)s_user_options
    s_user_options = strip( s_user_options, 'T', s_delim)
@@ -673,11 +734,11 @@ defproc GetSearchDirection
 ;    Toggles the search direction (options +F or -R) without any
 ;    following locate action.
 ;    Doesn't produce an error msg anymore if oldsearch = empty.
+; This has no effect on the settings of the Search dialog.
 defc ToggleSearchDirection
-   universal lastsearchargs
    universal default_search_options
 
-   args = lastsearchargs
+   args = GetLastSearchArgs()
    s_delim = substr( args, 1, 1)  -- get 1st delimiter
    parse value args with (s_delim)s_search_string(s_delim)s_user_options
    s_user_options = strip( s_user_options, 'T', s_delim)
@@ -688,40 +749,36 @@ defc ToggleSearchDirection
 
    -- Append +F or -R
    if Minuspos > Pluspos then  -- in searchoptions: the last option wins
-      'SearchDirection F'
-      sayerror 'Changed search direction to: forward.'
+      'SearchDirection +'
+      'SayHint Changed search direction to: forward.'
    else
-      'SearchDirection R'
-      sayerror 'Changed search direction to: backward.'
+      'SearchDirection -'
+      'SayHint Changed search direction to: backward.'
    endif
 
 ; ---------------------------------------------------------------------------
 ; Set SearchDirection to foreward (arg = 'F' or '+') or backward (arg = 'R'
 ; or '-').
 defc SearchDirection
-   universal lastsearchargs
-   universal lastchangeargs
    universal default_search_options
 
-   if arg(1) = '' then
+   Direction = upcase( arg(1))
+   if Direction = '' then
       return
-   endif
-   if arg(1) = '+' then
-      Direction = 'F'
-   elseif arg(1) = '-' then
-      Direction = 'R'
-   else
-      Direction = upcase( arg(1))
+   elseif Direction = 'F' then
+      Direction = '+'
+   elseif Direction = 'R' then
+      Direction = '-'
    endif
 
-   args = lastsearchargs
-   s_delim = substr( args, 1, 1)  -- get 1st delimiter
-   parse value args with (s_delim)s_search_string(s_delim)s_user_options
+   LastSearchArgs = GetLastSearchArgs()
+   s_delim = substr( LastSearchArgs, 1, 1)  -- get 1st delimiter
+   parse value LastSearchArgs with (s_delim)s_search_string(s_delim)s_user_options
    s_user_options = strip( s_user_options, 'T', s_delim)
 
-   args = lastchangeargs
-   c_delim = substr( args, 1, 1)  -- get 1st delimiter
-   parse value args with (c_delim)c_search_string(c_delim)c_replace_string(c_delim)c_user_options
+   LastChangeArgs = GetLastChangeArgs()
+   c_delim = substr( LastChangeArgs, 1, 1)  -- get 1st delimiter
+   parse value LastChangeArgs with (c_delim)c_search_string(c_delim)c_replace_string(c_delim)c_user_options
    c_user_options = strip( c_user_options, 'T', c_delim)
 
    -- Remove every ( |+|-|F|R) from user_options
@@ -744,221 +801,235 @@ defc SearchDirection
    enddo
 
    -- Append +F or -R
-   if Direction = 'F' then
+   if Direction = '+' then
       s_user_options = s_user_options'+F'
       c_user_options = c_user_options'+F'
-   elseif Direction = 'R' then
+   elseif Direction = '-' then
       s_user_options = s_user_options'-R'
       c_user_options = c_user_options'-R'
    endif
-   lastsearchargs = s_delim''s_search_string''s_delim''s_user_options
-   lastchangeargs = c_delim''c_search_string''c_delim''c_replace_string''c_delim''c_user_options
+
+   SearchArgs = s_delim''s_search_string''s_delim''s_user_options
+   ChangeArgs = c_delim''c_search_string''c_delim''c_replace_string''c_delim''c_user_options
+   -- Write new value only if old value was set
+   if LastSearchArgs <> '' & s_delim <> '' then
+      parse value LastSearchArgs with (s_delim)SearchString(s_delim)SearchOptions
+      if SearchOptions <> '' then
+         call SetLastSearchArgs( SearchArgs)
+      endif
+   endif
+   if LastChangeArgs <> '' & c_delim <> '' then
+      parse value LastChangeArgs with (c_delim)SearchString(c_delim)ReplaceString(c_delim)SearchOptions
+      if SearchOptions <> '' then
+         call SetLastChangeArgs( ChangeArgs)
+      endif
+   endif
 
 ; ---------------------------------------------------------------------------
 defc FindNext
-   'SearchDirection F'
+   'SearchDirection +'
    'RepeatFind'
 
 ; ---------------------------------------------------------------------------
 defc FindPrev
-   'SearchDirection R'
+   'SearchDirection -'
    'RepeatFind'
 
 ; ---------------------------------------------------------------------------
 defc ChangeFindNext
-   'SearchDirection F'
+   'SearchDirection +'
    'RepeatChange'
    'RepeatFind'
 
 ; ---------------------------------------------------------------------------
 defc ChangeFindPrev
-   'SearchDirection R'
+   'SearchDirection -'
    'RepeatChange'
    'RepeatFind'
 
 ; ---------------------------------------------------------------------------
-; From EPMSMP\GLOBFIND.E
 defc RepeatFindAllFiles, RingFind
-   -- Remember our current file so we don't search forever.
-   -- (Sometimes doesn't work.)
-   getfileid StartFileID
 
-   -- get current search direction
-   getsearch cursearch
-   parse value cursearch with . c_or_l search
-   delim = leftstr( search, 1 )
-   parse value cursearch with searchcmd (delim)searchstring(delim)searchoptions(delim)
-   if searchoptions = '' then
-      parse value cursearch with searchcmd (delim)searchstring(delim)searchoptions
-   endif
-   Minuspos = lastpos( '-', searchoptions )
-   Pluspos  = lastpos( '+', searchoptions )
+   LastSearchArgs = GetLastSearchArgs()
+   delim = substr( LastSearchArgs, 1, 1)  -- get 1st delimiter
+   parse value LastSearchArgs with (delim)search_string(delim)user_options
+   user_options = strip( user_options, 'T', delim)
+
+   -- Get current search direction
+   Minuspos = lastpos( '-', user_options)
+   Pluspos  = lastpos( '+', user_options)
    if Minuspos > Pluspos then
-      Forward = 0
+      fForward = 0
    else
-      Forward = 1
+      fForward = 1
    endif
 
-   -- First repeat-find in current file in case we don't have to move.
-   'RepeatFind'  -- if first search since start, get lastsearchargs from ini
-   if rc = 0 then  -- if found
-      return rc
+   -- Always search in entire files, not in mark
+   if pos( 'M', user_options) > 0 | pos( 'A', user_options) = 0 then
+      -- Remove 'M' from user_options
+      do forever
+         pv = verify( upcase( user_options), 'M', 'M')
+         if pv = 0 then
+            leave
+         endif
+         s_user_options = delstr( user_options, pv, 1)
+      enddo
+      -- Append 'A'
+      user_options = user_options'A'
+      call SetLastSearchArgs( delim''search_string''delim''user_options)
    endif
-   fileid = StartFileID
-   loop
-      if Forward = 1 then
+
+   -- Get LastSearchArgs from ini, remove 'T' and 'B' options
+   'RepeatFind'
+
+   if rc = 0 then
+      -- Next occurrence found in current file
+      return
+   endif
+
+   -- Not found in current file: search in other files
+   getfileid fid
+   startfid = fid
+   do forever
+
+      -- Next file
+      if fForward = 1 then
          nextfile
       else
          prevfile
       endif
-      getfileid fileid
-      activatefile fileid
-      -- Include this refresh if you like to see each file as it's
-      -- searched.  Causes too much screen flashing for my taste,
-      --refresh
+      getfileid fid
+      activatefile fid
 
-      -- Start from top of file, save current posn in case no match.
-      call psave_pos(save_pos)
-      if Forward = 1 then
+      call psave_pos( savedpos)
+      -- Start from top of file
+      if fForward = 1 then
          top
-         .col=1
+         .col = 1
       else
          bottom
          endline
       endif
-      -- 'postme FindNext'  -- doesn't work
-;      display -8
-;      repeat_find  -- would start from top again if T is in default_search_options
-;      display 8
+
+      -- Get LastSearchArgs from ini, remove 'T' and 'B' options
       'RepeatFind'
-      if rc = 0 then  -- if found
-         refresh
-         --'postme highlightmatch'  -- postme required
-         'HighlightMatch'  -- postme not required, command instead of proc makes it
-         if fileid = StartFileID then
+
+      if rc = 0 then
+         -- Found
+         'HookAdd selectonce postme postme HighlightMatch'  -- additionally required to highlight after file switching
+         if fid = startfid then
             'SayHint String only found in this file.'
          else
             sayerror 0  -- flush the message
          endif
          leave
       else
-         -- no match in file - restore file location
-         call prestore_pos(save_pos)
+         -- Not found
+         call prestore_pos( savedpos)
+         if fid = startfid then
+            'SayError String not found in any file of the ring.'
+            leave
+         else
+            -- Search next file
+         endif
       endif
-      if fileid = StartFileID then
-         'SayHint String not found in any file of the ring.'
-         leave
-      endif
-   endloop
-   activatefile fileid
+
+   enddo
+   activatefile fid
 
 ; ---------------------------------------------------------------------------
-; From EPMSMP\GLOBCHNG.E
 defc RepeatChangeAllFiles, RingChange
-;                                --<-------------------------------  todo: rewrite
-   universal lastchangeargs
-   universal default_search_options
    universal stay
 
-   args = strip( arg(1), 'L')
-   if args = '' then  -- If no args, query lastchangeargs
-      args = lastchangeargs
-      -- Process the parsing of args again to recognize a possible change of
-      -- default_search_options in the meantime.
-   endif
+   LastChangeArgs = GetLastChangeArgs()
+   delim = substr( LastChangeArgs, 1, 1)  -- get 1st delimiter
+   parse value LastChangeArgs with (delim)search_string(delim)replace_string(delim)user_options
+   user_options = strip( user_options, 'T', delim)
+   SavedOptions = user_options
 
-   /* Insert default_search_options just before supplied options (if any)    */
-   /* so the supplied options will take precedence.                          */
-   user_options = ''
-   delim = substr( args, 1, 1 )
-   p = pos( delim, args, 2 )   /* find last delimiter of 2 or 3 */
-   if p then
-      p = pos( delim, args, p + 1 )   /* find last delimiter of 2 or 3 */
-      if p > 0 then
-         user_options = substr( args, p + 1 )
-         args = substr(args, 1, p - 1 )
-      endif
-----
-      search_len = p - 2
-----
+   -- Get current search direction
+   Minuspos = lastpos( '-', user_options)
+   Pluspos  = lastpos( '+', user_options)
+   if Minuspos > Pluspos then
+      fForward = 0
    else
-----      sayerror '--test-- delim = |'delim'|, args = |'args'|, p = |'p'|'; stop
-      sayerror NO_REP__MSG
-      return
+      fForward = 1
    endif
-   if verify( upcase(default_search_options), 'M', 'M' ) then
-      user_options = 'A'user_options
-   endif
-   args = args''delim''default_search_options''user_options
-   backwards = 0
-   p1 = lastpos( '-', default_search_options''user_options )
-   if p1 then
-      if p1 > lastpos( '+', default_search_options''user_options ) then
-         backwards = 1
-      endif
-   endif
-   rev = 0  -- changed to rev, because reverse is a statement
-   p1 = lastpos( 'R', upcase(default_search_options''user_options) )
-   if p1 then
-      if p1 > lastpos( 'F', upcase(default_search_options''user_options) ) then
-         rev = 1
-      endif
-   endif
-----
-   p1 = pos('*', default_search_options''user_options)
-   if p1 = 0 then
-      args = args'*'
-   endif
-----
 
+   -- Always search in entire files, not in mark
+   if pos( 'M', user_options) > 0 | pos( 'A', user_options) = 0 then
+      -- Remove 'M' from user_options
+      do forever
+         pv = verify( upcase( user_options), 'M', 'M')
+         if pv = 0 then
+            leave
+         endif
+         user_options = delstr( user_options, pv, 1)
+      enddo
+      -- Append 'A'
+      user_options = user_options'A'
+   endif
 
-   /* Remember our current file so we don't search forever.  */
-   getfileid StartFileID
-   change_count = 0
+   -- Replace all occurrences, not only next
+   if pos( '*', user_options) = 0 then
+      -- Append '*'
+      user_options = user_options'*'
+   endif
 
-   loop
-      /* Include this refresh if you like to see each file as it's */
-      /* searched.  Causes too much screen flashing for my taste,  */
-;;       refresh
+   -- Write LastChangeArgs to ini
+   if user_options <> SavedOptions then
+      call SetLastChangeArgs( delim''search_string''delim''replace_string''delim''user_options)
+   endif
 
-      /* Start from top of file, save current posn in case no match. */
-      call psave_pos(save_pos)
-      if backwards then
+   getfileid fid
+   startfid = fid
+   ChangeCount = 0
+   do forever
+
+      call psave_pos( savedpos)
+      -- Start from top of file
+      if fForward = 1 then
+         top
+         .col = 1
+      else
          bottom
-         if rev then
-            end_line
-         else
-            begin_line
-         endif
-      else
-         0
+         endline
       endif
-      display -8
-      'xcom c' args
-      display 8
+
+      -- Get LastChangeArgs from ini, remove 'T' and 'B' options
+      'RepeatChange'
+
       if rc = 0 then
-         change_count = change_count + 1
-         'ResetDateTimeModified'  -- required?
-         'RefreshInfoLine MODIFIED'
+         -- Found
+         ChangeCount = ChangeCount + 1
          if stay then
-            call prestore_pos(save_pos)
+            call prestore_pos( savedpos)
          endif
       else
-         /* no match in file - restore file location */
-         call prestore_pos(save_pos)
+         -- Not found
+         call prestore_pos( savedpos)
       endif
-      nextfile
-      getfileid fileid
-      if fileid = StartFileID then
+
+      -- Next file
+      if fForward = 1 then
+         nextfile
+      else
+         prevfile
+      endif
+
+      getfileid fid
+      if fid = startfid then
          leave
       endif
-   endloop
-   if change_count = 1 then
+
+   enddo
+
+   if ChangeCount = 1 then
       files = 'file.'
    else
       files = 'files.'
    endif
-   'SayHint String changed in' change_count files
+   'SayHint String changed in' ChangeCount files
 
 ; ---------------------------------------------------------------------------
 defc FindNextAllFiles
@@ -968,18 +1039,6 @@ defc FindNextAllFiles
 ; ---------------------------------------------------------------------------
 defc FindPrevAllFiles
    'SearchDirection R'
-   'RepeatFindAllFiles'
-
-; ---------------------------------------------------------------------------
-defc ChangeFindNextAllFiles
-   'SearchDirection F'
-   'RepeatChangeAllFiles'
-   'RepeatFindAllFiles'
-
-; ---------------------------------------------------------------------------
-defc ChangeFindPrevAllFiles
-   'SearchDirection R'
-   'RepeatChangeAllFiles'
    'RepeatFindAllFiles'
 
 ; ---------------------------------------------------------------------------
@@ -997,6 +1056,8 @@ defc FindMark
       if searchstring <> '' then
          'l '\1''searchstring
       endif
+   else
+      sayerror -280  -- Text not marked
    endif
 
 ; ---------------------------------------------------------------------------
@@ -1020,7 +1081,7 @@ defc FindWord
       'l '\1''searchstring
       lrc = rc
    endif
-   if rc <> 0 then
+   if lrc <> 0 then
       .col = startcol
    endif
 
@@ -1100,11 +1161,12 @@ defproc find_token( var startcol, var endcol)  -- find a token around the cursor
 
 ; ---------------------------------------------------------------------------
 defc ShowSearch
-   universal lastsearchargs
-   universal lastchangeargs
    getsearch cursearch
-   sayerror 'Last search = ['cursearch'], last search args = ['lastsearchargs']' ||
-            ', last change args = ['lastchangeargs']'
+
+   Next = 'Last search = ['cursearch'], last search args = ['GetLastSearchArgs()']' ||
+          ', last change args = ['GetLastChangeArgs()']'
+   'SayHint' Next
+   dprintf( Next)
 
 ; ---------------------------------------------------------------------------
 defc SetScrollAfterLocate
