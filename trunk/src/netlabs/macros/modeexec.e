@@ -295,7 +295,7 @@ defc ProcessLoadSettings
    getfileid fid
    if isnum(calling_fid) then
       if calling_fid <> fid then
-         call NepmdPmPrintf( 'No load settings processed. File not on top anymore:' ||
+         dprintf( 'No load settings processed. File not on top anymore:' ||
                              ' 'calling_fid.filename', current: 'fid.filename)
          return
       endif
@@ -371,7 +371,7 @@ defc ProcessSelectSettings
       enddo
       UsedFileSettings = strip(UsedFileSettings)
    endif
-;   call NepmdPmPrintf('UsedFileSettings = 'UsedFileSettings)
+   --dprintf( 'UsedFileSettings = 'UsedFileSettings)
 
    -- Execute mode-specific settings
    -- Using the standard definition for HookExecute, extended with a check, if
@@ -391,7 +391,7 @@ defc ProcessSelectSettings
          wrd = substr( wrd, 4)  -- strip 'Set'
       endif
       if not wordpos( upcase(wrd), upcase(UsedFileSettings)) then
-;         call NepmdPmPrintf('MODE: 'Cmd' -- '.filename)
+         dprintf( 'MODEEXEC', 'MODE: 'Cmd' -- '.filename)
          Cmd  -- execute command
          UsedModeSettings = UsedModeSettings wrd
       endif
@@ -406,7 +406,7 @@ defc ProcessSelectSettings
       wrd = word( UsedFileSettings, w)
       SettingsValue = GetAVar(lowcase( wrd)'.'fid)
       Cmd = 'Set'wrd SettingsValue
-;      call NepmdPmPrintf('FILE: 'Cmd' -- '.filename)
+      dprintf( 'MODEEXEC', 'FILE: 'Cmd' -- '.filename)
       Cmd  -- execute command
    enddo
 
@@ -415,12 +415,12 @@ defc ProcessSelectSettings
    -- increases performance, because only those settings are changed.
    CurSettings = strip(UsedModeSettings' 'UsedFileSettings)
    LastSettings = GetAVar('lastusedsettings')
-;   call NepmdPmPrintf('lastsettings = 'LastSettings)
+   --dprintf( 'lastsettings = 'LastSettings)
    do w = 1 to words(LastSettings)
       wrd = word( LastSettings, w)
       if wordpos( upcase(wrd), upcase(CurSettings)) = 0 then
          Cmd = 'Set'wrd 'DEFAULT'  -- execute select setting with 'DEFAULT'
-;         call NepmdPmPrintf('RESET: 'Cmd' -- '.filename)
+         dprintf( 'MODEEXEC', 'RESET: 'Cmd' -- '.filename)
          Cmd  -- execute command
       endif
    enddo
@@ -513,9 +513,9 @@ defc ModeExecute, ModeExec
    endif
 
    if loadstate = 0 then  -- after afterload
-      dprintf( 'MODEEXECUTE', 'loadstate = 'loadstate', calling RingRefreshSettings' arg(1))
+      dprintf( 'MODEEXEC', 'loadstate = 'loadstate', calling RingRefreshSettings' arg(1))
 compile if MODEEXEC_PROCESS_RING
-;      call NepmdPmPrintf( 'ModeExecute: RingRefreshSetting 'arg(1)' for '.filename)
+      --dprintf( 'MODEEXEC', 'RingRefreshSetting 'arg(1)' for '.filename)
       'RingRefreshSetting' arg(1)
       -- Todo for SetCodingStyle:
       --    o  Loop through all files only once, not once per subsetting.
@@ -525,7 +525,7 @@ compile if MODEEXEC_PROCESS_RING
       -- several times.
 compile else
       if Mode = GetMode() then
-;         call NepmdPmPrintf( 'ModeExecute: 'arg(1)' for '.filename)
+         --dprintf( 'MODEEXEC', arg(1)' for '.filename)
          Cmd Args
       endif
 compile endif
@@ -872,7 +872,7 @@ defc SetMargins  -- defc margins exist
          'margins NOEA' arg1  -- set EPM.MARGINS
       endif
    else
-      --call NepmdPmPrintf( 'Margins not set: '.filename)
+      --dprintf( 'Margins not set: '.filename)
    endif
 
    -- Save the value in an array var, to determine 'DEFAULT' state later
@@ -935,7 +935,7 @@ defc SetTabs  -- defc tabs exist
          'tabs NOEA' arg1  -- set EPM.TABS
       endif
    else
-      --call NepmdPmPrintf( 'Tabs not set: '.filename)
+      --dprintf( 'Tabs not set: '.filename)
    endif
 
    -- Save the value in an array var, to determine 'DEFAULT' state later
