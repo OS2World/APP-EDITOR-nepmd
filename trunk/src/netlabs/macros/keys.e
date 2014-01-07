@@ -2933,6 +2933,7 @@ defc ProcessEscape
    universal ESCAPE_KEY
    universal alt_R_active
    universal recordingstate
+   universal MouseMarkingStarted
    sayerror 0
    if recordingstate = 'R' then
       'CancelRecordKeys'
@@ -2940,6 +2941,12 @@ defc ProcessEscape
       'setmessageline '\0
       'toggleframe 2 'alt_R_active  -- restore status of messageline
       alt_R_active = ''
+   elseif MouseMarkingStarted <> '' then
+      -- Just cancel the mark action (internally defined) and don't open
+      -- commandline. The unmarking will happen just at releasing MB 2,
+      -- not immediately. To unmark the text immediately, another PM window
+      -- has to be shown, like the commandline window.
+      'MH_cancel_mark'
    elseif ESCAPE_KEY then
       'commandline'
    endif
