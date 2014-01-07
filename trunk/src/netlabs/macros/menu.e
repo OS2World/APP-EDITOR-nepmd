@@ -23,63 +23,6 @@
 ; Most defs moved from STDCTRL.E.
 
 /*
-ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
-³ what's it called: dupmark                                                  ³
-³                                                                            ³
-³ what does it do : This command is used when a Mark menu item is selected   ³
-³                                                                            ³
-ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
-*/
-defc DupMark
-   mt = upcase(arg(1))
-   if     mt = 'M' then
-      call NextCmdAltersText()
-;     if marktype() then
-         call pmove_mark()
-;     else                 -- If no mark, look in Shared Text buffer
-;       'GetSharBuff'      -- See clipbrd.e for details
-;     endif
-   elseif mt = 'C' then
-      call NextCmdAltersText()
-      if marktype() then
-         call pcopy_mark()
-      else                 -- If no mark, look in Shared Text buffer
-         'GetSharBuff'     -- See clipbrd.e for details
-      endif
-   elseif mt = 'O' then
-      call NextCmdAltersText()
-      if marktype() then
-         call pcommon_adjust_overlay('O')
-      else                 -- If no mark, look in Shared Text buffer
-         'GetSharBuff O'   -- See clipbrd.e for details
-      endif
-   elseif mt = 'A' then
-      call NextCmdAltersText()
-      call pcommon_adjust_overlay('A')
-   elseif mt = 'U' then
-      unmark
-      'ClearSharBuff'
-   elseif mt = 'U2' then  -- Unmark w/o clearing buffer, for drag/drop
-      unmark
-   elseif mt = 'D' then  -- Normal delete mark
-      'Copy2DMBuff'        -- See clipbrd.e for details
-      call NextCmdAltersText()
-      call pdelete_mark()
-      'ClearSharBuff'
-   elseif mt = 'D2' then  -- special for drag/drop; only deletes mark w/o touching buffers
-      call NextCmdAltersText()
-      call pdelete_mark()
-   elseif mt = 'P' then    -- Print marked area
-      call checkmark()     -- verify there is a marked area in the current file, else stop,
-;compile if ENHANCED_PRINT_SUPPORT  -- DUPMARK P is only called if no enhanced print support
-;      printer = get_printer()
-;      if printer<>'' then 'print' printer; endif
-;compile else
-      'print'              -- then print it.
-;compile endif
-   endif
-
-/*
 ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»
 º MENU support.                                                              º
 º      EPM's menu support is achieved through the use of the MENU manager.   º
@@ -183,7 +126,7 @@ defc ChangeMenu
 defc RefreshMenu
    universal defaultmenu
    deletemenu defaultmenu
-   'loaddefaultmenu'
+   'LoadDefaultMenu'
    call showmenu_activemenu()
 
 ; ---------------------------------------------------------------------------
@@ -346,7 +289,7 @@ defc ProcessMenuSelect
 
 --------------------------------------------------------------
       if isadefproc( 'GetMenuHelp') then
-         -- GetMenuHelpString queries array var value, set by SetMenuHelpString
+         -- GetMenuHelp queries array var value, set by SetMenuHelp.
          -- The array must be deleted when the menu is unlinked (or linked again).
 --------------------------------------------------------------
          helpstr = GetMenuHelp( activemenu, menuid)
