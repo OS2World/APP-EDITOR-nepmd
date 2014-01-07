@@ -1569,7 +1569,7 @@ if GetAddKeyDefs() = '' then
                                    \1'Repeat previous Locate command for all files in the ring',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_globalchangenext', i);
-   buildmenuitem menuname, mid, i, 'Repeat c~hange in all files'MenuAccelString( 'RepeatChangeAllFiles'),  -- Repeat change in all files
+   buildmenuitem menuname, mid, i, 'Repeat chang~e in all files'MenuAccelString( 'RepeatChangeAllFiles'),  -- Repeat change in all files
                                    'RepeatChangeAllFiles' ||
                                    \1'Repeat previous Change command for all files in the ring',
                                    MIS_TEXT, 0
@@ -1577,7 +1577,7 @@ if GetAddKeyDefs() = '' then
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_searchbackwards', i);
+   i = i + 1; call SetAVar( 'mid_searchbackward', i);
    buildmenuitem menuname, mid, i, 'Backwar~d'MenuAccelString( 'ToggleSearchDirection'),           -- Backward
                                    'toggle_search_backward' ||
                                    \1'Toggle back/forward for next locate/change commands',
@@ -1620,14 +1620,9 @@ else
                                    \1'Repeat find for all files in the ring, backward',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_globalchangenext', i);
-   buildmenuitem menuname, mid, i, 'Change, then find ne~xt in all files'MenuAccelString( 'ChangeFindNextAllFiles'),  -- Change, then find next in all files
-                                   'ChangeFindNextAllFiles' ||
-                                   \1'Change, then repeat find for all files, foreward',
-                                   MIS_TEXT, 0
-   i = i + 1; call SetAVar( 'mid_globalchangeprev', i);
-   buildmenuitem menuname, mid, i, 'Change, then find pre~vious in all files'MenuAccelString( 'ChangeFindPrevAllFiles'),  -- Change, then find prev. in all files
-                                   'ChangeFindPrevAllFiles' ||
-                                   \1'Change, then repeat find for all files, backward',
+   buildmenuitem menuname, mid, i, 'Repeat chang~e in all files'MenuAccelString( 'RepeatChangeAllFiles'),  -- Repeat change in all files
+                                   'RepeatChangeAllFiles' ||
+                                   \1'Repeat previous Change command for all files in the ring',
                                    MIS_TEXT, 0
    -- end cuakeys
 endif
@@ -3490,21 +3485,27 @@ defc menuinit_recordkeys
 
 ; ------------------------------------ Search -------------------------------
 defc menuinit_search
-   universal lastchangeargs
-   getsearch strng
-   parse value strng with . c .       -- blank, 'c', or 'l'
-;   SetMenuAttribute( GetAVar('mid_findnext'),         MIA_DISABLED, c <> '')               -- Find next OK if not blank
-;   SetMenuAttribute( GetAVar('mid_changenext'),       MIA_DISABLED, lastchangeargs <> '')  -- Change next only if 'c'
-;   SetMenuAttribute( GetAVar('mid_globalfindnext'),   MIA_DISABLED, c <> '')               -- Global find next OK if not blank
-;   SetMenuAttribute( GetAVar('mid_globalchangenext'), MIA_DISABLED, lastchangeargs <> '')  -- Global change next only if 'c'
-;   SetMenuAttribute( GetAVar('mid_toggledirection'),  MIA_DISABLED, c <> '')               -- Toggle direction OK if not blank
+   LastChangeArgs = GetLastChangeArgs()
+   delim = \1
+   parse value LastChangeArgs with (delim)SearchString(delim)ReplaceString(delim)SearchOptions
+   LastSearchArgs = GetLastSearchArgs()
+
+   SetMenuAttribute( GetAVar('mid_findnext'),         MIA_DISABLED, LastSearchArgs <> '')
+   SetMenuAttribute( GetAVar('mid_changenext'),       MIA_DISABLED, ReplaceString <> '')
+   SetMenuAttribute( GetAVar('mid_globalfindnext'),   MIA_DISABLED, LastSearchArgs <> '')
+   SetMenuAttribute( GetAVar('mid_globalchangenext'), MIA_DISABLED, ReplaceString <> '')
+   if GetAddKeyDefs() = '' then  -- stdkeys
+      -- Menu for CUA keys doesn't have a Backward item
+      on = (GetSearchDirection() = '-')
+      SetMenuAttribute( GetAVar('mid_searchbackward'), MIA_CHECKED, not on)
+   else  -- cuakeys
+      -- Menu for std keys doesn't have the following items
+      SetMenuAttribute( GetAVar('mid_findprev'),       MIA_DISABLED, LastSearchArgs <> '')
+      SetMenuAttribute( GetAVar('mid_changeprev'),     MIA_DISABLED, ReplaceString <> '')
+      SetMenuAttribute( GetAVar('mid_globalfindprev'), MIA_DISABLED, LastSearchArgs <> '')
+   endif
    on = FileIsMarked()
    SetMenuAttribute( GetAVar('mid_findmark'), MIA_DISABLED, on)
-   -- Menu for CUA keys doesn't have a Backward item
-   if GetAddKeyDefs() = '' then
-      on = (GetSearchDirection() = '-')
-      SetMenuAttribute( GetAVar('mid_searchbackwards'), MIA_CHECKED, not on)
-   endif
 
 defc menuinit_goto
    on = FileIsMarked()
@@ -4326,7 +4327,7 @@ defc toggle_two_spaces
 defc toggle_search_backward
    'ToggleSearchDirection'
    on = (GetSearchDirection() = '-')
-   SetMenuAttribute( GetAVar('mid_searchbackwards'), MIA_CHECKED, not on)
+   SetMenuAttribute( GetAVar('mid_searchbackward'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
 defc toggle_highlight
