@@ -148,7 +148,11 @@ compile endif
 ; Note: An .EX file, that defines a keyset, can't be unlinked, when this
 ; keyset is in use.
 
+; ---------------------------------------------------------------------------
 /***
+; The following is defined in STDCNF.E and is processed during definit of
+; EPM.E.
+
 ; This defines the standard keyset. It's important to use the option 'clear'.
 ; Otherwise otherkeys won't process the standard letters, numbers and chars.
 defkeys edit_keys new clear
@@ -185,6 +189,24 @@ def a_0 'ExecKeyCmd a_0'
 ; Space is defined with ExecKeyCmd. That means that it executes the
 ; command that is stored by DefKey( Space, cmd) as an array var.
 def space 'ExecKeyCmd space'
+
+; Cusor keys:
+; When processed as accel keys, cursor key messages sent by another app
+; are ignored. This happens if AMouse is configured to send keyboard
+; messages instead of scroll window messages.
+def down  'ExecKeyCmd down'
+def up    'ExecKeyCmd up'
+def left  'ExecKeyCmd left'
+def right 'ExecKeyCmd right'
+
+; Processing the keys above in the 'otherkeys' command would work, but
+; their scancode may vary with different keyboard layouts. The E toolkit
+; key names (used after 'def') handle that.
+
+; Add more keys here that have to be processed as standard E toolkit keys
+; or can't be processed as accelerator keys. The cursor keys above are
+; defined as both. When being processed, the accel def wins. To ignore
+; the accel def, a key must be added to the 'etkkeys' array var above.
 
 def otherkeys
    'otherkeys'

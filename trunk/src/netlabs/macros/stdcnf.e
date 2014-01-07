@@ -272,6 +272,24 @@ def a_0 'ExecKeyCmd a_0'
 ; command that is stored by DefKey( Space, cmd) as an array var.
 def space 'ExecKeyCmd space'
 
+; Cusor keys:
+; When processed as accel keys, cursor key messages send by another app
+; are ignored. This happens if AMouse is configured to send keyboard
+; messages instead of scroll window messages.
+def down  'ExecKeyCmd down'
+def up    'ExecKeyCmd up'
+def left  'ExecKeyCmd left'
+def right 'ExecKeyCmd right'
+
+; Processing the keys above in the 'otherkeys' command would work, but
+; their scancode may vary with different keyboard layouts. The E toolkit
+; key names (used after 'def') handle that.
+
+; Add more keys here that have to be processed as standard E toolkit keys
+; or can't be processed as accelerator keys. The cursor keys above are
+; defined as both. When being processed, the accel def wins. To ignore
+; the accel def, a key must be added to the 'etkkeys' array var above.
+
 def otherkeys
    'otherkeys'
 
@@ -631,7 +649,7 @@ compile endif
 
 
 ; ===========================================================================
-; Part 3: Define commands here for the dynalink feature
+; Part 4: Define commands here for the dynalink feature
 ; ===========================================================================
 ; That avoids a link or even an include.
 ; In contrast to the implicite linking, the linked EX file remains linked
