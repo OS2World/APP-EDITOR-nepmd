@@ -19,13 +19,6 @@
 *
 ****************************************************************************/
 
-/*
-Todo:
-- move DClick on URL code to alt_1.e
-- what about 'mailto://' recognized by Mozilla mail (just a bug or valid?)
-  ('mailto:' is valid.)
-*/
-
 ; The additions are, on the "no mark" pop-up menu, Mark Sentence
 ; and Mark Paragraph; on the "inside mark" pop-up, Extend Sentence
 ; Mark and Extend Paragraph Mark; and new mouse click actions:
@@ -42,13 +35,6 @@ Todo:
 ;
 ; Larry Margolis, margoli@ibm.net
 ; http://groups.google.com/groups?hl=de&lr=&ie=UTF-8&selm=5957rh%241buc%242%40news-s01.ca.us.ibm.net&rnum=9
-
-; Link of MOUSE.E not possible anymore, maybe since v. 6.03.
-compile if defined(MOUSE_SUPPORT)
- compile if MOUSE_SUPPORT = 'LINK'
-   *** MOUSE.E can not be linked anymore. Set MOUSE_SUPPORT = 1.
- compile endif
-compile endif
 
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
 include 'stdconst.e'

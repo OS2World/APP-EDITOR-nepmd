@@ -213,7 +213,7 @@ compile if not defined(WANT_CUA_MARKING)
    WANT_CUA_MARKING = 'SWITCH'
 compile endif
 compile if not defined(MOUSE_SUPPORT)
-   MOUSE_SUPPORT = 1
+   MOUSE_SUPPORT = 'LINK'
 compile endif
 compile if not defined(ENHANCED_ENTER_KEYS)
    ENHANCED_ENTER_KEYS = 1

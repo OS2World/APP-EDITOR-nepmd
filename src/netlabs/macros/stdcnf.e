@@ -205,6 +205,10 @@ compile if not defined(WORD_MARK_TYPE)
    WORD_MARK_TYPE = 'CHAR'
 compile endif
 
+compile if not defined(EPM_POINTER)
+   EPM_POINTER = TEXT_POINTER      -- GPI version gets text pointer
+compile endif
+
 ;include 'obsolete.e' -- define obsolete consts for compatibility
 
 include NLS_LANGUAGE'.e'
@@ -272,7 +276,7 @@ def a_0 'ExecKeyCmd a_0'
 ; command that is stored by DefKey( Space, cmd) as an array var.
 def space 'ExecKeyCmd space'
 
-; Cusor keys:
+; Cursor keys:
 ; When processed as accel keys, cursor key messages send by another app
 ; are ignored. This happens if AMouse is configured to send keyboard
 ; messages instead of scroll window messages.
@@ -433,6 +437,9 @@ compile endif
 ;  (Can only be linked after the array "array.EPM" was created.)
    'linkverify modeexec.ex'  -- must be either included (in EPM.E) or linked before the menu
    'linkverify modecnf.ex'   -- may be linked anywhere, but before processing defmain
+
+;  Link the mouse defs ------------------------------------------------------
+   'linkverify mouse'
 
 ;  Link the menu ------------------------------------------------------------
 ;  toggleframe and togglecontrol must be defined early in definit or before.
