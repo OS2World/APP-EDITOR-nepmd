@@ -265,17 +265,17 @@ compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
    accel_len = (3+length(ALT_KEY__MSG))*(not CUA_MENU_ACCEL)
 compile endif
 compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'D' & EDIT_ACCEL__L<>'D' & VIEW_ACCEL__L<>'D' & SELECTED_ACCEL__L<>'D' & HELP_ACCEL__L<>'D' & $maybe_ring_accel 'D' & $maybe_actions_accel 'D')
-      buildmenuitem menuname, 2, 240, DELETE_MENU__MSG\9 || ALT_KEY__MSG'+D',   'DUPMARK D'DELETE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DELETE, 0)
+      buildmenuitem menuname, 2, 240, DELETE_MENU__MSG\9 || ALT_KEY__MSG'+D',   'DeleteMark'DELETE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DELETE, 0)
 compile elseif BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
-      buildmenuitem menuname, 2, 240, DELETE_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+D', accel_len),   'DUPMARK D'DELETE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DELETE, 0)
+      buildmenuitem menuname, 2, 240, DELETE_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+D', accel_len),   'DeleteMark'DELETE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DELETE, 0)
 compile else
-      buildmenuitem menuname, 2, 240, DELETE_MENU__MSG,   'DUPMARK D'DELETE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DELETE, 0)
+      buildmenuitem menuname, 2, 240, DELETE_MENU__MSG,   'DeleteMark'DELETE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DELETE, 0)
 compile endif
       buildmenuitem menuname, 2, 245, \0,                               '',          4, 0
 ;      buildmenuitem menuname, 2, 250, SELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+/',     'select_all'SELECT_ALL_MENUP__MSG, 0, mpfrom2short(HP_EDIT_SELECTALL, 0)
 ; added Ctrl+A
       buildmenuitem menuname, 2, 250, SELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+/ | 'CTRL_KEY__MSG'+A',     'select_all'SELECT_ALL_MENUP__MSG, 0, mpfrom2short(HP_EDIT_SELECTALL, 0)
-      buildmenuitem menuname, 2, 251, DESELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+\',   'DUPMARK U'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DESELECTALL, 0)
+      buildmenuitem menuname, 2, 251, DESELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+\',   'UnMark'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DESELECTALL, 0)
 compile if SPELL_SUPPORT
  compile if CHECK_FOR_LEXAM
    if LEXAM_is_available then
@@ -353,32 +353,32 @@ compile endif
       buildmenuitem menuname, 4, 400, STYLE_MENU__MSG\9 || CTRL_KEY__MSG'+Y',        'fontlist'STYLE_MENUP__MSG,    0, mpfrom2short(HP_OPTIONS_STYLE, 0)
       buildmenuitem menuname, 4, 405, \0,                       '',          4, 0
 compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'C' & EDIT_ACCEL__L<>'C' & VIEW_ACCEL__L<>'C' & SELECTED_ACCEL__L<>'C' & HELP_ACCEL__L<>'C' & $maybe_ring_accel 'C' & $maybe_actions_accel 'C')
-      buildmenuitem menuname, 4, 410, COPY_MRK_MENU__MSG\9 || ALT_KEY__MSG'+C',     'DUPMARK C'COPY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPYMARK, 0)
+      buildmenuitem menuname, 4, 410, COPY_MRK_MENU__MSG\9 || ALT_KEY__MSG'+C',     'CopyMark'COPY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPYMARK, 0)
 compile elseif BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
-      buildmenuitem menuname, 4, 410, COPY_MRK_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+C', accel_len),     'DUPMARK C'COPY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPYMARK, 0)
+      buildmenuitem menuname, 4, 410, COPY_MRK_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+C', accel_len),     'CopyMark'COPY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPYMARK, 0)
 compile else
-      buildmenuitem menuname, 4, 410, COPY_MRK_MENU__MSG,              'DUPMARK C'COPY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPYMARK, 0)
+      buildmenuitem menuname, 4, 410, COPY_MRK_MENU__MSG,              'CopyMark'COPY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPYMARK, 0)
 compile endif
 compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'M' & EDIT_ACCEL__L<>'M' & VIEW_ACCEL__L<>'M' & SELECTED_ACCEL__L<>'M' & HELP_ACCEL__L<>'M' & $maybe_ring_accel 'M' & $maybe_actions_accel 'M')
-      buildmenuitem menuname, 4, 415, MOVE_MRK_MENU__MSG\9 || ALT_KEY__MSG'+M',     'DUPMARK M'MOVE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_MOVE, 0)
+      buildmenuitem menuname, 4, 415, MOVE_MRK_MENU__MSG\9 || ALT_KEY__MSG'+M',     'MoveMark'MOVE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_MOVE, 0)
 compile elseif BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
-      buildmenuitem menuname, 4, 415, MOVE_MRK_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+M', accel_len),     'DUPMARK M'MOVE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_MOVE, 0)
+      buildmenuitem menuname, 4, 415, MOVE_MRK_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+M', accel_len),     'MoveMark'MOVE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_MOVE, 0)
 compile else
-      buildmenuitem menuname, 4, 415, MOVE_MRK_MENU__MSG,     'DUPMARK M'MOVE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_MOVE, 0)
+      buildmenuitem menuname, 4, 415, MOVE_MRK_MENU__MSG,     'MoveMark'MOVE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_MOVE, 0)
 compile endif
 compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'O' & EDIT_ACCEL__L<>'O' & VIEW_ACCEL__L<>'O' & SELECTED_ACCEL__L<>'O' & HELP_ACCEL__L<>'O' & $maybe_ring_accel 'O' & $maybe_actions_accel 'O')
-      buildmenuitem menuname, 4, 420, OVERLAY_MRK_MENU__MSG\9 || ALT_KEY__MSG'+O',  'DUPMARK O'OVERLAY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_OVERLAY, 0)
+      buildmenuitem menuname, 4, 420, OVERLAY_MRK_MENU__MSG\9 || ALT_KEY__MSG'+O',  'OverlayMark'OVERLAY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_OVERLAY, 0)
 compile elseif BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
-      buildmenuitem menuname, 4, 420, OVERLAY_MRK_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+O', accel_len),  'DUPMARK O'OVERLAY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_OVERLAY, 0)
+      buildmenuitem menuname, 4, 420, OVERLAY_MRK_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+O', accel_len),  'OverlayMark'OVERLAY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_OVERLAY, 0)
 compile else
-      buildmenuitem menuname, 4, 420, OVERLAY_MRK_MENU__MSG,  'DUPMARK O'OVERLAY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_OVERLAY, 0)
+      buildmenuitem menuname, 4, 420, OVERLAY_MRK_MENU__MSG,  'OverlayMark'OVERLAY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_OVERLAY, 0)
 compile endif
 compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'A' & EDIT_ACCEL__L<>'A' & VIEW_ACCEL__L<>'A' & SELECTED_ACCEL__L<>'A' & HELP_ACCEL__L<>'A' & $maybe_ring_accel 'A' & $maybe_actions_accel 'A')
-      buildmenuitem menuname, 4, 425, ADJUST_MRK_MENU__MSG\9 || ALT_KEY__MSG'+A',   'DUPMARK A'ADJUST_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_ADJUST, 0)
+      buildmenuitem menuname, 4, 425, ADJUST_MRK_MENU__MSG\9 || ALT_KEY__MSG'+A',   'AdjustMark'ADJUST_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_ADJUST, 0)
 compile elseif BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
-      buildmenuitem menuname, 4, 425, ADJUST_MRK_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+A', accel_len),   'DUPMARK A'ADJUST_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_ADJUST, 0)
+      buildmenuitem menuname, 4, 425, ADJUST_MRK_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+A', accel_len),   'AdjustMark'ADJUST_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_ADJUST, 0)
 compile else
-      buildmenuitem menuname, 4, 425, ADJUST_MRK_MENU__MSG,   'DUPMARK A'ADJUST_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_ADJUST, 0)
+      buildmenuitem menuname, 4, 425, ADJUST_MRK_MENU__MSG,   'AdjustMark'ADJUST_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_ADJUST, 0)
 compile endif
 compile if WANT_STACK_CMDS
  compile if WANT_STACK_CMDS = 'SWITCH'
@@ -396,7 +396,7 @@ compile endif
 compile if ENHANCED_PRINT_SUPPORT
       buildmenuitem menuname, 4, 450, PRINT_MENU__MSG'...',          'PRINTDLG M'ENHPRT_MARK_MENUP__MSG,0, mpfrom2short(HP_EDIT_ENHPRINT, 0)
 compile else
-      buildmenuitem menuname, 4, 450, PRINT_MENU__MSG,               'DUPMARK P'PRT_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_PRINT, 0)
+      buildmenuitem menuname, 4, 450, PRINT_MENU__MSG,               'PrintDlg M'PRT_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_PRINT, 0)
 compile endif
 
 
@@ -620,11 +620,10 @@ compile endif
 
 
 defc menuinit_300               ------------- Menu id 300 -- Search -----------------------
-   universal lastchangeargs
    getsearch strng
    parse value strng with . c .       -- blank, 'c', or 'l'
    SetMenuAttribute( 303, 16384, c<>'')  -- Find Next OK if not blank
-   SetMenuAttribute( 304, 16384, lastchangeargs<>'')  -- Change Next only if 'c'
+   SetMenuAttribute( 304, 16384, GetLastChangeArgs()<>'')  -- Change Next only if 'c'
 
 
 
