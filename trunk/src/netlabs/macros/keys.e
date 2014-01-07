@@ -190,7 +190,7 @@ def a_0 'ExecKeyCmd a_0'
 ; command that is stored by DefKey( Space, cmd) as an array var.
 def space 'ExecKeyCmd space'
 
-; Cusor keys:
+; Cursor keys:
 ; When processed as accel keys, cursor key messages sent by another app
 ; are ignored. This happens if AMouse is configured to send keyboard
 ; messages instead of scroll window messages.
@@ -213,6 +213,18 @@ def otherkeys
 ***/
 
 ; ---------------------------------------------------------------------------
+; This is used to separate standard char keys from modifier keys
+; (Ctrl/Alt/Sh) and virtual keys.
+; Does this work on DBCS systems?
+defproc IsSingleKey
+   k = arg(1)
+   fSingle = 0
+   if length( k) = 1 then
+      fSingle = 1
+   endif
+   return fSingle
+
+; ---------------------------------------------------------------------------
 ; Executes only executekey lastkey() and debugging. Can be used by every
 ; newly defined keyset.
 ; This should process all standard letters (lowercase and uppercase), numbers
@@ -221,7 +233,7 @@ def otherkeys
 ; combinations and to ease the definition of undo and key recording.
 defc otherkeys
    k = lastkey()
-   if length( k) = 1 then
+   if IsSingleKey( k) then
       call SaveKeyCmd( k)
    endif
    --executekey k
@@ -245,6 +257,140 @@ defc ExecKeyCmd
       k = lastkey()
       call Process_Key( k)
    endif
+
+; ---------------------------------------------------------------------------
+; This ignores modifier key combinations. Therefore it can be used for single
+; chars only.
+defproc Process_Key( char)
+   universal cua_marking_switch
+
+   if IsSingleKey( char) & char <> \0 then
+
+      call Process_Keys( char)
+
+   endif
+
+; ---------------------------------------------------------------------------
+; This types one or multiple chars. It handles replacing a marked area while
+; CUA marking is active.
+defproc Process_Keys( chars)
+   universal cua_marking_switch
+
+   fInsert = insert_state()
+   fMarked = 0
+   fInsertToggled = 0
+   if cua_marking_switch then
+      fMarked = (process_mark_like_cua() = 1)
+      if not fInsert & fMarked then
+         -- Turn on insert mode because the key should replace
+         -- the mark, not the character after the mark.
+         insert_toggle
+         fInsertToggled = 1
+      endif
+   endif
+
+   keyin chars
+
+   if fInsertToggled then
+      insert_toggle
+   endif
+
+; ---------------------------------------------------------------------------
+; An easier to remember synonym for Process_Keys.
+defproc TypeChars( chars)
+   call Process_Keys( chars)
+
+; ---------------------------------------------------------------------------
+; Defined as command for use in key definition files.
+defc TypeChars
+   call Process_Keys( arg(1))
+
+; ---------------------------------------------------------------------------
+; This takes ascii values of one or multiple chars. Multiple chars can be
+; separated by '\'. An leading '\' is optional.
+; Example: TypeAscChars \0\170 gives a null char followed by a not char.
+defc TypeAscChars
+   Rest = strip( arg(1))
+   Chars = ''
+   do while Rest <> ''
+      if leftstr( Rest, 1) <> '\' then
+         Rest = '\'Rest
+      endif
+      parse value Rest with '\'Num'\'Rest
+      Num = strip( Num)
+      Rest = strip( Rest)
+
+      if IsNum( Num) and Num < 256 then
+         Chars = Chars''chr( Num)
+      else
+         -- Maybe give an error msg here or ignore this one
+         Chars = Chars''Num
+      endif
+   enddo
+   call Process_Keys( Chars)
+
+; ---------------------------------------------------------------------------
+; executekey can only execute single keys. For strings containing multiple
+; keys, keyin can be used.
+defc DoKey
+   --sayerror 'dokey: k = 'arg(1)
+   executekey Resolve_Key(arg(1))
+
+; ---------------------------------------------------------------------------
+defc ExecuteKey
+   executekey arg(1)
+
+; ---------------------------------------------------------------------------
+defc Keyin
+   if arg(1) = '' then
+      keyin ' '
+   else
+      keyin arg(1)
+   endif
+
+; ---------------------------------------------------------------------------
+; In E3 and EOS2, we can use a_X to enter the value of any key.  In EPM,
+; we can't, so the following routine is used by KEY and LOOPKEY to convert
+; from an ASCII key name to the internal value.  It handles shift or alt +
+; any letter, or a function key (optionally, with any shift prefix).  LAM
+
+; suffix for virtual keys
+;    hex dec
+;    02  2   without prefix
+;    0a  10  Sh
+;    12  18  Ctrl
+;    22  34  Alt
+;
+; suffix for letters
+;    hex dec
+;    10  16  Ctrl
+;    20  32  Alt
+;
+defproc Resolve_Key( k)
+   kl = lowcase( k)
+   suffix = \2                            -- For unshifted function keys
+   if length( k) >= 3 & pos( substr( k, 2, 1), '_-+') then
+      if length( k) > 3 then
+         if substr( kl, 3, 1) = 'f' then  -- Shifted function key
+            suffix = substr( \10\34\18, pos( leftstr( kl, 1), 'sac'), 1)  -- Set suffix,
+            kl = substr( kl, 3)              -- strip shift prefix, and more later...
+         elseif wordpos( substr( kl, 3), 'left up right down') then
+            suffix = substr( \10\34\18, pos( leftstr( kl, 1), 'sac'), 1)  -- Set suffix,
+            kl = substr( kl, 3)              -- strip shift prefix, and more later...
+         else                             -- Something we don't handle...
+            sayerror 'Resolve_key:' sayerrortext(-328)
+            rc = -328
+         endif
+      else                                -- alt+letter or ctrl+letter
+         k = substr( kl, 3, 1) || substr(' ', pos( leftstr( kl, 1), 'ac'), 1)
+      endif
+   endif
+   if leftstr( kl, 1) = 'f' & isnum( substr( kl, 2)) then
+      k = chr( substr( kl, 2) + 31) || suffix
+   elseif wordpos( kl, 'left up right down') then
+      k = chr( wordpos( kl, 'left up right down') + 20) || suffix
+   endif
+   return k
 
 ; ---------------------------------------------------------------------------
 ; An accelerator key issues a WM_COMMAND message, which is processed by the
@@ -307,7 +453,7 @@ defproc DefKey( KeyString, Cmd)
    -- Handle deactivated 'block Alt+letter keys from jumping to menu bar'
    -- Note: These keys and F10 can't be recorded, they are handled by PM.
    --       There exists no ETK procs to activate the menu.
-   if length( String) = 1 then
+   if IsSingleKey( String) then
       if cua_menu_accel then
          if Flags = AF_ALT & wordpos( String, upcase( GetAVar('usedmenuaccelerators'))) then
             return
@@ -340,7 +486,7 @@ defproc DefKey( KeyString, Cmd)
       return
    endif
 
-   if length( String) = 1 then
+   if IsSingleKey( String) then
       Flags = Flags + AF_CHAR
       if Flags bitand AF_SHIFT then
          Key = asc( upcase( String))
@@ -405,14 +551,14 @@ defc DefKey
    call DefKey( KeyString, Cmd, Options)
 
 ; ---------------------------------------------------------------------------
-; Syntax:  UnDefKey( KeyString)
+; Syntax: UnDefKey( KeyString)
 defproc UnDefKey( KeyString)
    universal activeaccel
 
    AccelId = GetAVar( 'keyid.'KeyString)
    if AccelId <> '' then
       -- Define Ctrl+Alt (= nothing) for this id
-      -- Don't change the array var to allow for redining this id again
+      -- Don't change the array var to allow for redefining this id again
       buildacceltable activeaccel, '', AF_CONTROL+AF_VIRTUALKEY, VK_ALT, AccelId
    else
       -- No error message if key was not defined before
@@ -460,10 +606,13 @@ defproc GetAFFlags( var Flags, var String, var KeyString)
       Flags = Flags + AF_SHIFT
       KeyString = KeyString's_'
    endif
-   if length( String) > 1 then
-      KeyString = KeyString''GetVKName( String)
-   elseif length( String) > 0 then
+   VK = GetVKName( String)
+   if VK = '' then
+      -- If not defined as virtual key, change KeyString to lowercase.
+      -- This allows to use these procs for mouse definitions as well.
       KeyString = KeyString''lowcase( String)
+   else
+      KeyString = KeyString''VK
    endif
 
 ; ---------------------------------------------------------------------------
@@ -827,17 +976,19 @@ defc DefAccel, DefKeyset
    SavedAccel = activeaccel
    Keyset = Name
    activeaccel = Keyset
+   --dprintf( 'DefKeyset: Name = 'Name', List = 'List', SavedAccel = 'SavedAccel)
 
    -- The BlockAlt key subset needn't to be added to the 'keysets' array var
    'BlockAltKeys'
 
-   -- Parse keyset definition list and get resolved list of KeysetCmds
+   -- Parse keyset definition list and get resolved list of KeysetCmds.
    -- Keyset command defs have 'Keys' appended. In the following, the
    -- term 'keyset cmd' means the command without 'Keys'. The same applies
    -- for the array vars, were the string without 'Keys' is used, too.
    KeysetCmds = ''
    do w = 1 to words( List)
       ThisKeyset = word( List, w)
+      --dprintf( 'DefKeyset: ThisKeyset = 'ThisKeyset)
       -- Allow for specifying a keyset name instead of a list of keyset defs
       -- (e.g. 'stdvalue' instead of 'std cua')
       if rightstr( ThisKeyset, 5) = 'value' and length( ThisKeyset) > 5 then
@@ -845,18 +996,16 @@ defc DefAccel, DefKeyset
          SubList = GetAVar( 'keyset.'SubName)
          do s = 1 to words( SubList)
             ThisSubKeyset = word( SubList, s)
-            -- Check if keyset cmd (with 'Keys' appended) exists
-            if isadefc( ThisSubKeyset'Keys') then
-               KeysetCmds = KeysetCmds ThisSubKeyset
-            endif
+            KeysetCmds = KeysetCmds ThisSubKeyset
          enddo
-      -- Check if keyset cmd (with 'Keys' appended) exists
-      elseif isadefc( ThisKeyset'Keys') then
+      else
          KeysetCmds = KeysetCmds ThisKeyset
       endif
    enddo
    KeysetCmds = strip( KeysetCmds)
-   -- Remove doubled entries, keep last of doubled ones
+
+   -- Remove doubled and undefined entries
+   -- Try to link KeysetCmds if not defined
    Next = ''
    Rest = KeysetCmds
    do forever
@@ -866,31 +1015,40 @@ defc DefAccel, DefKeyset
       parse value Rest with ThisKeyset Rest
       ThisKeyset = strip( ThisKeyset)
       Rest = strip( Rest)
-      if not wordpos( ThisKeyset, Rest) then
-         Next = Next ThisKeyset
+      if wordpos( ThisKeyset, Rest) then
+         iterate
       endif
+      -- Check if ThisKeyset'keys' is defined as defc and
+      -- maybe link ThisKeyset'keys'
+      fIsDefined = KeysetCmdExists( ThisKeyset)
+      -- Append ThisKeyset only if defined
+      if not fIsDefined then
+         iterate
+      endif
+      Next = Next ThisKeyset
    enddo
    KeysetCmds = strip( Next)
 
    if KeysetCmds <> '' then
-       -- Change array vars for this keyset name
-       PrevKeysetCmds = GetAVar( 'keyset.'Name)
-       if PrevKeysetCmds <> KeysetCmds then
-         -- For all keyset commands
+      -- Change array vars for this keyset name
+      PrevKeysetCmds = GetAVar( 'keyset.'Name)
+      --dprintf( 'DefKeySet: PrevKeysetCmds = 'PrevKeysetCmds)
+      if PrevKeysetCmds <> KeysetCmds then
+         -- For all previous keyset commands
          do k = 1 to words( PrevKeysetCmds)
             ThisKeyset = word( PrevKeysetCmds, k)
             -- Remove keyset name from array var for this keyset cmd
             DelAVar( 'keysetcmd.'ThisKeyset, Name)
          enddo
-       endif
+      endif
+
+      --dprintf( 'DefKeySet: Name = 'Name', KeysetCmds = 'KeysetCmds)
 
       -- Set array vars for this keyset name
       AddAVar( 'keysets', Name)
       SetAVar( 'keyset.'Name, KeysetCmds)
 
-      --dprintf( 'DefKeySet called for: 'Name' = 'KeysetCmds)
-
-      -- For all keyset commands
+      -- Set array var for each keyset command and execute it
       do k = 1 to words( KeysetCmds)
          ThisKeyset = word( KeysetCmds, k)
          -- Add keyset name to array var for this keyset cmd
@@ -898,9 +1056,58 @@ defc DefAccel, DefKeyset
          -- Execute keyset cmd (with 'Keys' appended)
          ThisKeyset'Keys'
       enddo
+
+      -- For Name = 'std' write also AddKeyDefs
+      if Name = 'std' then
+         AddKeyDefs = word( KeysetCmds, 2)  -- empty for 'std' = 'std'
+         KeyPathSelected = '\NEPMD\User\Keys\AddKeyDefs\Selected'
+         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathSelected, AddKeyDefs)
+      endif
+
    endif
 
    activeaccel = SavedAccel
+
+; ---------------------------------------------------------------------------
+defproc KeysetCmdExists( ThisKeyset)
+   fIsDefined = 0
+
+   do i = 1 to 1
+      -- Check if Keyset cmd exists
+      if isadefc( ThisKeyset'Keys') then
+         fIsDefined = 1
+         leave
+      endif
+
+      -- Check if .EX file exists
+      findfile ExFile, ThisKeyset'Keys.ex', 'EPMPATH'
+      if rc then
+         leave
+      endif
+
+      -- Check if .EX file is linked
+      linkedrc = linked( ThisKeyset'Keys.ex')
+      if linkedrc >= 0  then
+         leave
+      endif
+
+      -- Link .EX file
+      'Link quiet' ThisKeyset'Keys'
+      --dprintf( 'KeysetCmdExists: Keyset "'ThisKeyset'Keys" linked, rc = 'rc)
+
+      -- Check rc from Link if .EX file is linked
+      if rc < 0  then
+         leave
+      endif
+
+      -- Check if Keyset cmd exists
+      if isadefc( ThisKeyset'Keys') then
+         fIsDefined = 1
+         leave
+      endif
+   enddo
+
+   return fIsDefined
 
 ; ---------------------------------------------------------------------------
 ; Block Alt and/or AltGr from switching to the menu
@@ -978,50 +1185,69 @@ defc LoadAccel
 
 ; ---------------------------------------------------------------------------
 ; SetKeyset: defined in MODEEXEC.E, contains mode-specific part, calls:
-; SetKeyset2: switches keyset.
+; SetKeyset2: switches keyset and maybe defines it.
+; Syntax: SetKeyset <keyset_name> [<list_of_keyset_defs>]
+; Examples:
+;    SetKeyset std                 switch to keyset 'std'
+;    SetKeyset std std cua         define and switch to keyset 'std' = StdKeys and CuaKeys
+;    SetKeyset std std             define and switch to keyset 'std' = StdKeys
+;    SetKeyset rexx stdvalue rexx  define and switch to keyset 'rexx' = value of 'std' and RexxKeys
+;    SetKeyset rexx                switch to keyset 'rexx'
 defc SetKeyset2
    universal activeaccel
-   parse arg Name KeyDefs
+   universal nepmd_hini
+   universal menuloaded
+
+   --dprintf( 'SetKeyset2: args = 'arg(1))
+   parse arg Name KeysetCmds
    Name = lowcase( strip( Name))
    -- Default accel table name = 'std' (standard EPM uses 'defaccel')
    if Name = '' | Name = 'default' then
       Name = 'std'
    endif
-   KeyDefs = lowcase( strip( KeyDefs))
+   KeysetCmds = lowcase( strip( KeysetCmds))
 
-   -- Maybe define keyset, if not already done
+   KeyPathSelected = '\NEPMD\User\Keys\AddKeyDefs\Selected'
+   AddKeyDefs = NepmdQueryConfigValue( nepmd_hini, KeyPathSelected)
    DefinedKeysets = GetAVar( 'keysets')
-   fKeysetChanged = 0
-   PrevKeyDefs = strip( GetAVar( 'keyset.'Name))
-   if KeyDefs = '' then
-      if PrevKeyDefs = '' then
-         NextKeyDefs = Name
+   PrevKeysetCmds = strip( GetAVar( 'keyset.'Name))
+
+   if KeysetCmds = '' then
+      -- Switch to keyset
+      if PrevKeysetCmds = '' then
+         if Name = 'std' then
+            NextKeysetCmds = strip( strip( Name AddKeyDefs))
+         else
+            NextKeysetCmds = strip( strip( 'std' AddKeyDefs) Name)
+         endif
       else
-         NextKeyDefs = PrevKeyDefs
+         NextKeysetCmds = PrevKeysetCmds
       endif
    else
-      NextKeyDefs = KeyDefs
+      -- Define keyset
+      NextKeysetCmds = KeysetCmds
    endif
 
-   --dprintf( 'SetKeyset2: DefinedKeysets = "'DefinedKeysets'", PrevKeyDefs = "'PrevKeyDefs'", NextKeyDefs = "'NextKeyDefs'"')
+   fDefineKeyset = 0
+   fSwitchKeyset = 0
    if wordpos( Name, DefinedKeysets) = 0 then
-      fKeysetChanged = 1
-   elseif NextKeyDefs <> PrevKeyDefs then
-      fKeysetChanged = 1
-   endif
-   if fKeysetChanged = 1 then
-      --dprintf( 'SetKeyset2: "DefKeyset' Name KeyDefs'" called')
-      'DefKeyset' Name KeyDefs
+      fDefineKeyset = 1
+   elseif NextKeysetCmds <> PrevKeysetCmds then
+      fDefineKeyset = 1
+   elseif activeaccel <> Name then
+      fSwitchKeyset = 1
    endif
 
-   if fKeysetChanged | activeaccel <> Name then
-      fRefreshMenu = 1
-   else
-      fRefreshMenu = 0
+   --dprintf( 'SetKeyset2: DefinedKeysets = "'DefinedKeysets'", PrevKeysetCmds = "'PrevKeysetCmds'", NextKeysetCmds = "'NextKeysetCmds'", fDefineKeyset = 'fDefineKeyset', fSwitchKeyset = 'fSwitchKeyset)
+
+   if fDefineKeyset then
+      --dprintf( 'SetKeyset2: "DefKeyset' strip( Name NextKeysetCmds)'" executed')
+      'DefKeyset' strip( Name NextKeysetCmds)
    endif
 
-   --dprintf( 'Keyset = 'Name', KeyDefs = 'KeyDefs', Previous: activeaccel = 'activeaccel' = 'GetAVar( 'keyset.'activeaccel)', .filename = '.filename)
-   --dprintf( 'SetKeyset2: Name = 'Name', activeaccel = 'activeaccel', fKeysetChanged = 'fKeysetChanged', PrevKeyDefs = 'PrevKeyDefs', NextKeyDefs = 'NextKeyDefs)
+   if not fDefineKeyset & not fSwitchKeyset then
+      return
+   endif
 
    -- Activate keyset: accelerator keys
    activeaccel = Name
@@ -1035,27 +1261,24 @@ defc SetKeyset2
       SetAVar( 'keydef.'KeyString, EtkKeyDef)
    enddo
 
-   if fRefreshMenu then
+   -- Get list of required *Keys cmds to redefine keyset
+   KeysetCmds = GetAVar( 'keyset.'Name, KeysetCmds)
 
-      if not fKeysetChanged then  -- not required if DefKeyset was called above
-         -- Get list of required *Keys cmds to redefine keyset
-         KeysetCmds = GetAVar( 'keyset.'Name, KeysetCmds)
+   -- Redefine menu accel strings
+   do k = 1 to words( KeysetCmds)
+      ThisKeyset = word( KeysetCmds, k)
+      -- Execute keyset cmd (with 'Keys' appended)
+      ThisKeyset'Keys'
+   enddo
 
-         -- Redefine menu accel strings
-         do k = 1 to words( KeysetCmds)
-            ThisKeyset = word( KeysetCmds, k)
-            -- Execute keyset cmd (with 'Keys' appended)
-            ThisKeyset'Keys'
-         enddo
+   --dprintf( 'SetKeyset2: Keyset cmds executed: 'Name' = 'KeysetCmds)
 
-         --dprintf( '  Refresh called for: 'Name' = 'KeysetCmds)
-      endif
-
-      -- Rebuild menu
-      if isadefc( 'RefreshMenu') then
+   -- Rebuild menu
+   if isadefc( 'RefreshMenu') then
+      if menuloaded <> '' then
          'RefreshMenu'
       endif
-
+      --dprintf( 'SetKeyset2: executed RefreshMenu')
    endif
 
 ; ---------------------------------------------------------------------------
@@ -1070,12 +1293,10 @@ defc ReloadKeyset
    -- Redef key defs
    'SetKeyset2' activeaccel KeyDefs
 
-   'LinkKeyDefs'
-
 ; ---------------------------------------------------------------------------
 defc DeleteAccel, DelKeyset
    universal activeaccel
-   if arg(1) = '' then
+   if arg(1) = '' | lowcase( arg(1)) = 'defaccel' then
       Name = activeaccel
    else
       Name = arg(1)
@@ -1095,208 +1316,128 @@ defc DeleteAccel, DelKeyset
    DropAVar( 'keyset.'Name)
 
 ; ---------------------------------------------------------------------------
-; executekey can only execute single keys. For strings containing multiple
-; keys, keyin can be used.
-defc DoKey
-   --sayerror 'dokey: k = 'arg(1)
-   executekey Resolve_Key(arg(1))
-
-; ---------------------------------------------------------------------------
-defc ExecuteKey
-   executekey arg(1)
-
-; ---------------------------------------------------------------------------
-defc Keyin
-   if arg(1) = '' then
-      keyin ' '
-   else
-      keyin arg(1)
-   endif
-
-; ---------------------------------------------------------------------------
-; In E3 and EOS2, we can use a_X to enter the value of any key.  In EPM,
-; we can't, so the following routine is used by KEY and LOOPKEY to convert
-; from an ASCII key name to the internal value.  It handles shift or alt +
-; any letter, or a function key (optionally, with any shift prefix).  LAM
-
-; suffix for virtual keys
-;    hex dec
-;    02  2   without prefix
-;    0a  10  Sh
-;    12  18  Ctrl
-;    22  34  Alt
-;
-; suffix for letters
-;    hex dec
-;    10  16  Ctrl
-;    20  32  Alt
-;
-defproc Resolve_Key( k)
-   kl = lowcase( k)
-   suffix = \2                            -- For unshifted function keys
-   if length( k) >= 3 & pos( substr( k, 2, 1), '_-+') then
-      if length( k) > 3 then
-         if substr( kl, 3, 1) = 'f' then  -- Shifted function key
-            suffix = substr( \10\34\18, pos( leftstr( kl, 1), 'sac'), 1)  -- Set suffix,
-            kl = substr( kl, 3)              -- strip shift prefix, and more later...
-         elseif wordpos( substr( kl, 3), 'left up right down') then
-            suffix = substr( \10\34\18, pos( leftstr( kl, 1), 'sac'), 1)  -- Set suffix,
-            kl = substr( kl, 3)              -- strip shift prefix, and more later...
-         else                             -- Something we don't handle...
-            sayerror 'Resolve_key:' sayerrortext(-328)
-            rc = -328
-         endif
-      else                                -- alt+letter or ctrl+letter
-         k = substr( kl, 3, 1) || substr(' ', pos( leftstr( kl, 1), 'ac'), 1)
-      endif
-   endif
-   if leftstr( kl, 1) = 'f' & isnum( substr( kl, 2)) then
-      k = chr( substr( kl, 2) + 31) || suffix
-   elseif wordpos( kl, 'left up right down') then
-      k = chr( wordpos( kl, 'left up right down') + 20) || suffix
-   endif
-   return k
-
-; ---------------------------------------------------------------------------
-; This ignores modifier key combinations. Therefore it can be used for single
-; chars only.
-defproc Process_Key( char)
-   universal cua_marking_switch
-
-   if length( char) = 1 & char <> \0 then
-
-      call Process_Keys( char)
-
-   endif
-
-; ---------------------------------------------------------------------------
-; This types one or multiple chars. It handles replacing a marked area while
-; CUA marking is active.
-defproc Process_Keys( chars)
-   universal cua_marking_switch
-
-   fInsert = insert_state()
-   fMarked = 0
-   fInsertToggled = 0
-   if cua_marking_switch then
-      fMarked = (process_mark_like_cua() = 1)
-      if not fInsert & fMarked then
-         -- Turn on insert mode because the key should replace
-         -- the mark, not the character after the mark.
-         insert_toggle
-         fInsertToggled = 1
-      endif
-   endif
-
-   keyin chars
-
-   if fInsertToggled then
-      insert_toggle
-   endif
-
-; ---------------------------------------------------------------------------
-; An easier to remember synonym for Process_Keys.
-defproc TypeChars( chars)
-   call Process_Keys( chars)
-
-; ---------------------------------------------------------------------------
-; Defined as command for use in key definition files.
-defc TypeChars
-   call Process_Keys( arg(1))
-
-; ---------------------------------------------------------------------------
-; This takes ascii values of one or multiple chars. Multiple chars can be
-; separated by '\'. An leading '\' is optional.
-; Example: TypeAscChars \0\170 gives a null char followed by a not char.
-defc TypeAscChars
-   Rest = strip( arg(1))
-   Chars = ''
-   do while Rest <> ''
-      if leftstr( Rest, 1) <> '\' then
-         Rest = '\'Rest
-      endif
-      parse value Rest with '\'Num'\'Rest
-      Num = strip( Num)
-      Rest = strip( Rest)
-
-      if IsNum( Num) and Num < 256 then
-         Chars = Chars''chr( Num)
-      else
-         -- Maybe give an error msg here or ignore this one
-         Chars = Chars''Num
-      endif
-   enddo
-   call Process_Keys( Chars)
-
-; ---------------------------------------------------------------------------
-; Ensure that default entry is present in NEPMD.INI
+; Ensure that default entry is present in AddKeyDefsList
 definit
    universal nepmd_hini
-   DefaultNameList = lowcase( 'cuakeys')  -- only basenames
+   DefaultNameList = lowcase( 'cua')  -- only basenames without 'keys'
 
-   KeyPath = '\NEPMD\User\Keys\AddKeyDefs\List'
-   KeyDefs = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   KeyPathList     = '\NEPMD\User\Keys\AddKeyDefs\List'
+   KeyPathSelected = '\NEPMD\User\Keys\AddKeyDefs\Selected'
+   AddKeyDefsList = NepmdQueryConfigValue( nepmd_hini, KeyPathList)
+   CurAddKeyDefs  = NepmdQueryConfigValue( nepmd_hini, KeyPathSelected)
 
-   NewKeyDefs = ''
+   -- Remove 'keys' from CurAddKeyDefs
+   if rightstr( CurAddKeyDefs, 4) = 'keys' then
+      parse value CurAddKeyDefs with CurAddKeyDefs'keys'
+      --dprintf( 'definit: Write to NEPMD.INI: CurAddKeyDefs = 'CurAddKeyDefs)
+      rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathSelected, CurAddKeyDefs)
+   endif
+
+   -- Remove 'keys' from every word of AddKeyDefsList
+   List = ''
+   do w = 1 to words( AddKeyDefsList)
+      Next = word( AddKeyDefsList, w)
+      parse value Next with Next'keys'
+      List = strip( List Next)
+   enddo
+   if AddKeyDefsList <> List then
+      rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathList, List)
+   endif
+
+   -- Maybe add every item of DefaultNameList to AddKeyDefsList
+   List = AddKeyDefsList
    do w = 1 to words( DefaultNameList)
       ThisName = word( DefaultNameList, w)
-      if not wordpos( ThisName, Keydefs) then
-         NewKeyDefs = NewKeyDefs ThisName
+      if not wordpos( ThisName, List) then
+         List = strip( List ThisName)
       endif
    enddo
-   NewKeyDefs = strip( NewKeyDefs)
-
-   if NewKeyDefs <> '' then
-      NepmdWriteConfigValue( nepmd_hini, KeyPath, KeyDefs NewKeyDefs)
+   if List <> AddKeyDefsList then
+      rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathList, List)
    endif
 
 ; ---------------------------------------------------------------------------
-defc LinkKeyDefs
+; Also called in NEWMENU.E.
+defproc GetAddKeyDefs
    universal nepmd_hini
-   None = '-none-'
-   fLinked = 0
-
-   KeyPath = '\NEPMD\User\Keys\AddKeyDefs\Selected'
-   Current = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   --dprintf( 'LinkKeyDefs: previous = 'GetAVar( 'keyset.'activeaccel)', current = 'Current)
-   if Current <> None & Current <> '' then
-      'Link quiet 'Current
-      do i = 1 to 1
-         -- On success
-         if rc >= 0 then
-            fLinked = 1
-         else
-            -- Search .E file and maybe recompile it
-            'Relink' Current'.e'
-            if rc >= 0 then
-               fLinked = 1
-            else
-               -- Remove from NEPMD.INI on link error
-               rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath, None)
-               sayerror 'Additional key defs file "'Current'.ex" could not be found.'
-            endif
-         endif
-         if fLinked then
-            -- Extend std keyset
-            parse value lowcase( Current) with Name'keys'  -- strip 'keys'
-            'SetKeyset std stdvalue' Name
-         endif
-      enddo
-   endif
-
-definit
-   'AtInit LinkKeyDefs'
+   KeyPathSelected = '\NEPMD\User\Keys\AddKeyDefs\Selected'
+   CurAddKeyDefs = NepmdQueryConfigValue( nepmd_hini, KeyPathSelected)
+   return CurAddKeyDefs
 
 ; ---------------------------------------------------------------------------
-defproc GetKeyDef
+defc RemoveAddKeyDefs
    universal nepmd_hini
-   None = '-none-'
-   KeyPath = '\NEPMD\User\Keys\AddKeyDefs\Selected'
-   Current = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Current = '' then
-      Current = None
+
+   KeyPathList     = '\NEPMD\User\Keys\AddKeyDefs\List'
+   KeyPathSelected = '\NEPMD\User\Keys\AddKeyDefs\Selected'
+
+   AddKeyDefs = strip( arg(1))
+   AddKeyDefsList = NepmdQueryConfigValue( nepmd_hini, KeyPathList)
+   CurAddKeyDefs  = NepmdQueryConfigValue( nepmd_hini, KeyPathSelected)
+
+   if linked( AddKeyDefs'keys') > 0 then
+      'unlink' AddKeyDefs'keys'
    endif
-   return Current
+
+   -- Remove from list
+   wp = wordpos( AddKeyDefs, AddKeyDefsList)
+   if wp > 0 then
+      AddKeyDefsList = DelWord( AddKeyDefsList, wp, 1)
+      rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathList, AddKeyDefsList)
+   endif
+
+   if AddKeyDefs = CurAddKeyDefs then
+      'SetAddKeyDefs'  -- reset
+   endif
+
+; ---------------------------------------------------------------------------
+defc SetAddKeyDefs
+   universal nepmd_hini
+   universal activeaccel
+
+   KeyPathList     = '\NEPMD\User\Keys\AddKeyDefs\List'
+   KeyPathSelected = '\NEPMD\User\Keys\AddKeyDefs\Selected'
+
+   AddKeyDefs = strip( arg(1))
+   --dprintf( 'SetAddKeyDefs: arg(1) = 'arg(1))
+   AddKeyDefsList = NepmdQueryConfigValue( nepmd_hini, KeyPathList)
+   PrevAddKeyDefs = NepmdQueryConfigValue( nepmd_hini, KeyPathSelected)
+   DefinedKeysets = GetAVar( 'keysets')
+
+   -- Nothing changed: don't process further
+   if AddKeyDefs = PrevAddKeyDefs then
+      --dprintf( 'SetAddKeyDefs: AddKeyDefs = 'AddKeyDefs', PrevAddKeyDefs = 'PrevAddKeyDefs)
+      return
+   endif
+
+   do w = 1 to words( DefinedKeysets)
+      Name = word( DefinedKeysets, w)
+      KeysetCmds = strip( GetAVar( 'keyset.'Name))
+      --dprintf( 'SetAddKeyDefs: w = 'w', Name = 'Name', KeysetCmds = 'KeysetCmds', AddKeyDefs = 'AddKeyDefs', PrevAddKeyDefs = 'PrevAddKeyDefs)
+
+      -- Remove previous add. keydefs first
+      wp = wordpos( PrevAddKeyDefs, KeysetCmds)
+      if wp > 0 then
+         KeysetCmds = DelWord( KeysetCmds, wp, 1)
+      endif
+
+      -- Add add. keydefs next after 'std'
+      if AddKeyDefs <> '' then
+         wp = wordpos( 'std', KeysetCmds)
+         LeftWords  = subword( KeysetCmds, 1, wp)
+         RightWords = subword( KeysetCmds, wp + 1)
+         KeysetCmds = strip( strip( LeftWords AddKeyDefs) RightWords)
+      endif
+
+      --dprintf( 'SetAddKeyDefs: w = 'w', Name = 'Name', KeysetCmds = 'KeysetCmds', AddKeyDefs = 'AddKeyDefs', activeaccel = 'activeaccel)
+      if Name = activeaccel then
+         --dprintf( 'SetAddKeyDefs: execute SetKeyset' Name KeysetCmds)
+         'SetKeyset' Name KeysetCmds               -- active, redefine and exec keyset cmds
+      else
+         --dprintf( 'SetAddKeyDefs: call SetAVar( keyset.'Name', 'KeysetCmds')')
+         call SetAVar( 'keyset.'Name, KeysetCmds)  -- not active, just redefine
+      endif
+   enddo
 
 ; ---------------------------------------------------------------------------
 ; Open a listbox to select aditional key defs. The additional defs must be
@@ -1307,6 +1448,7 @@ defproc GetKeyDef
 ; expected. For unlinking a key def file, no restart is required.
 defc SelectKeyDefs
    universal nepmd_hini
+   universal activeaccel
    None = '-none-'
 
    parse arg Action Basename
@@ -1320,28 +1462,32 @@ defc SelectKeyDefs
    elseif rightstr( Basename, 3) = '.ex' then
       Basename = leftstr( Basename, length( Basename) - 3)
    endif
+   if rightstr( Basename, 4) <> 'keys' then
+      Basename = Basename'keys'
+   endif
 
    -- Read available files from NEPMD.INI
-   KeyPath1 = '\NEPMD\User\Keys\AddKeyDefs\List'
-   KeyPath2 = '\NEPMD\User\Keys\AddKeyDefs\Selected'
-   KeyDefs = NepmdQueryConfigValue( nepmd_hini, KeyPath1)  -- space-separated list
-   Current = NepmdQueryConfigValue( nepmd_hini, KeyPath2)
-   if Current = '' then
-      Current = None
+   KeyPathList = '\NEPMD\User\Keys\AddKeyDefs\List'
+   KeyPathSelected = '\NEPMD\User\Keys\AddKeyDefs\Selected'
+   AddKeyDefsList = NepmdQueryConfigValue( nepmd_hini, KeyPathList)  -- space-separated list
+   CurAddKeyDefs = NepmdQueryConfigValue( nepmd_hini, KeyPathSelected)
+   CurAddKeyDefs = lowcase( CurAddKeyDefs)
+   if CurAddKeyDefs = '' then
+      CurAddKeyDefs = None
    endif
 
    if Action = 'ADD' & Basename <> '' then
-
-      if not wordpos( Basename, KeyDefs) then
-         KeyDefs = strip( KeyDefs Basename)
-         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath1, KeyDefs)
+      parse value Basename with NextAddKeyDefs'keys'
+      if not wordpos( NextAddKeyDefs, AddKeyDefsList) then
+         AddKeyDefsList = strip( AddKeyDefsList NextAddKeyDefs)
+         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathList, AddKeyDefsList)
       endif
 
       Path = Get_Env('EPMEXPATH')
       ListFiles = ''
       BaseNames = ReadMacroLstFiles( Path, ListFiles)
 
-      if not pos( ';'Basename';', ';'BaseNames) then
+      if not pos( ';'Basename';', ';'BaseNames';') then
          Title = 'Adding additional key definitions'
          Text = 'For the additional key definition macro "'Basename'" no'
          Text = Text || ' entry in a LST file was found. In order to make'
@@ -1352,7 +1498,7 @@ defc SelectKeyDefs
          ret = winmessagebox( Title,
                               Text,
                               Style)
-         if ret = 6 then  -- Yes
+         if ret = 6 then      -- Yes
             call AddToMacroLstFile( Basename)
             if rc <> 0 then
                sayerror 'Error: AddToMacroLstFile( 'Basename') returned rc = 'rc
@@ -1371,7 +1517,7 @@ defc SelectKeyDefs
       ret = winmessagebox( Title,
                            Text,
                            Style)
-      if ret = 6 then  -- Yes
+      if ret = 6 then      -- Yes
          -- Execute RecompileNew and open this dialog again
          'RecompileNew'
          'postme SelectKeyDefs'
@@ -1381,17 +1527,18 @@ defc SelectKeyDefs
    endif
 
    -- Open listbox
-   Rest = KeyDefs
    Sep = '/'
+   -- Add None first
    Entries = Sep''None
-   do w = 1 to words( Rest)
-      Next = word( Rest, w)
+   do w = 1 to words( AddKeyDefsList)
+      Next = word( AddKeyDefsList, w)'keys'
+      -- Add Next with 'keys' appended
       Entries = Entries''Sep''Next
    enddo
 
    DefaultItem = 1
-   if Current <> '' then
-      wp = wordpos( Current, KeyDefs)
+   if CurAddKeyDefs <> '' then
+      wp = wordpos( CurAddKeyDefs, AddKeyDefsList)
       if wp > 0 then
          DefaultItem = wp + 1
       endif
@@ -1399,16 +1546,14 @@ defc SelectKeyDefs
    DefaultButton = 1
    HelpId = 0
    Title = 'Select additional key definitions'copies( ' ', 20)
-   --Text = 'These defs override or extend the standard keyset.'
-   --Text = 'Current key def additions for the standard keyset: 'Current
-   Text = 'Current key def additions: 'Current
+   Text = 'Current key def additions:' CurAddKeyDefs
 
    refresh
    Result = listbox( Title,
                      Entries,
                      '/~Set/~Add.../~Edit/~Remove/Cancel', -- buttons
                      0, 0,  --5, 5,                       -- top, left,
-                     min( words( KeyDefs), 15), 50,  -- height, width
+                     min( words( AddKeyDefsList), 15), 50,  -- height, width
                      gethwnd(APP_HANDLE) || atoi(DefaultItem) ||
                      atoi(DefaultButton) || atoi(HelpId) ||
                      Text\0 )
@@ -1418,19 +1563,11 @@ defc SelectKeyDefs
    button = asc( leftstr( Result, 1))
    EOS = pos( \0, Result, 2)        -- CHR(0) signifies End Of String
    Selected = substr( Result, 2, EOS - 2)
-   if button = 1 then      -- Set
-      -- Unlink current
-      if Current <> None then
-         if linked( Current) > 0 then
-            'unlink 'Current
-         endif
-      endif
+   if button = 1 then                         -- Set
       if Selected = None then
+         'SetAddKeyDefs'
          Msg = 'No keyset additions file active.'
-         'SetKeyset std std'
-         'postme RefreshMenu'
-         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, None)
-         sayerror Msg
+         'SayHint' Msg
       else
          -- Check if .E file exists
          findfile EFile, Selected'.e', 'EPMPATH'
@@ -1439,42 +1576,33 @@ defc SelectKeyDefs
             findfile EFile, Selected'.ex', 'EPMPATH'
             if rc then
                sayerror 'Key definition file 'upcase( Selected)'.E or 'upcase( Selected)'.EX not found.'
-               return 2
+               rc = 2
+               return
             endif
          endif
-         -- Write selected value to NEPMD.INI
-         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, Selected)
+         parse value lowcase( Selected) with AddKeyDefs'keys'
+         'SetAddKeyDefs' AddKeyDefs
          Msg = 'Keyset additions file 'upcase( Selected)'.EX activated.'
-         'LinkKeyDefs'
-         'postme RefreshMenu'
-         sayerror Msg
+         'SayHint' Msg
       endif
-   elseif button = 2 then  -- Add
+   elseif button = 2 then                     -- Add
       -- Open fileselector to select an e or ex filename
-      -- Call this Cmd again, but with args to repaint the list
-      'FileDlg Select a file with additional key definitions, SelectKeyDefs ADD, 'Get_Env('NEPMD_USERDIR')'\macros\*.e'
-      return 0
+      -- Call this Cmd again, but with args to renew the list
+      Text = 'Select a file with additional key definitions'
+      'FileDlg 'Text', SelectKeyDefs ADD, 'Get_Env('NEPMD_USERDIR')'\macros\?*keys.e'
+      rc = 0
+      return
    elseif button = 3 & Selected <> None then  -- Edit
       -- Load file
       'ep 'Selected'.e'
       return rc
    elseif button = 4 & Selected <> None then  -- Remove
-      if linked( Selected) > 0 then
-         'unlink 'Selected
-      endif
-      'SetKeyset std std'
-      'postme RefreshMenu'
-      rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, None)
-      wp = wordpos( Selected, KeyDefs)
-      if wp > 0 then
-         NewKeyDefs = DelWord( KeyDefs, wp, 1)
-         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath1, NewKeyDefs)
-      endif
+      parse value lowcase( Selected) with AddKeyDefs'keys'
+      'RemoveAddKeyDefs' AddKeyDefs
       -- Call this Cmd again
       'SelectKeyDefs'
-   else                    -- Cancel
+   else                                       -- Cancel
    endif
-
 
 ; ---------------------------------------------------------------------------
 ;  Definitions used for key commands
@@ -2688,7 +2816,7 @@ defc PlaybackKeys
       elseif Cmd <> '' then
          -- Execute Cmd if defined
          ''Cmd
-      elseif length( Key) = 1 then
+      elseif IsSingleKey( Key) then
          -- A standard char
          call Process_Key( Key)
       endif
@@ -2728,7 +2856,7 @@ defc DeleteChar
       .levelofattributesupport = old_level
    endif
 
-defc Down
+defc Nextline, Down
    call UnmarkIfCua()
 compile if RESPECT_SCROLL_LOCK
    if scroll_lock() then
@@ -2809,7 +2937,7 @@ defc ProcessEscape
    if recordingstate = 'R' then
       'CancelRecordKeys'
    elseif alt_R_active <> '' then
-       'setmessageline '\0
+      'setmessageline '\0
       'toggleframe 2 'alt_R_active  -- restore status of messageline
       alt_R_active = ''
    elseif ESCAPE_KEY then

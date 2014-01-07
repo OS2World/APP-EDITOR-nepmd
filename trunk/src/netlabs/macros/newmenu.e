@@ -773,7 +773,7 @@ defproc add_file_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   if GetKeyDef() = '-none-' then
+   if GetAddKeyDefs() = '' then
       KeyString = \9'F3'
    else
       KeyString = \9''CTRL_KEY__MSG'+F4'
@@ -1551,7 +1551,7 @@ defproc add_search_menu(menuname)
    -- The standard keyset doesn't have keys to search backward. Therefore Ctrl+- was added.
    -- For a CUA keyset simply the shifted variants were used.
    -- Therefore the following Search and Change menu items depend on the keyset:
-if GetKeyDef() = '-none-' then
+if GetAddKeyDefs() = '' then
    -- stdkeys
    i = i + 1; call SetAVar( 'mid_findnext', i);
    buildmenuitem menuname, mid, i, 'Repeat ~find'MenuAccelString( 'RepeatFind'),                   -- Repeat find
@@ -3366,9 +3366,10 @@ defc menuinit_edit
    SetMenuAttribute( GetAVar('mid_discardchanges'),    MIA_DISABLED, .modify > 0)
 
 defc menuinit_spellcheck
+   None = '-none-'
    new = GetDictBaseName()
    if new = '' then
-      new = '-none-'
+      new = None
    endif
    parse value GetAVar('mtxt_dict') with next'['x']'rest
    SetMenuText( GetAVar('mid_dict'), next'['new']'rest)
@@ -3500,7 +3501,7 @@ defc menuinit_search
    on = FileIsMarked()
    SetMenuAttribute( GetAVar('mid_findmark'), MIA_DISABLED, on)
    -- Menu for CUA keys doesn't have a Backward item
-   if GetKeyDef() = '-none-' then
+   if GetAddKeyDefs() = '' then
       on = (GetSearchDirection() = '-')
       SetMenuAttribute( GetAVar('mid_searchbackwards'), MIA_CHECKED, not on)
    endif
@@ -3612,6 +3613,7 @@ defc menuinit_searchoptions
 
 defc menuinit_modesettings
    universal nepmd_hini
+   None = '-none-'
    CurMode = GetMode()
 
    KeyPath = '\NEPMD\User\KeywordHighlighting'
@@ -3633,7 +3635,7 @@ defc menuinit_modesettings
 
    new = GetCodingStyle()
    if new = '' then
-      new = '-none-'
+      new = None
    endif
    parse value GetAVar('mtxt_selectcodingstyle') with next'['x']'rest
    NewText = next'['new']'rest
@@ -3662,10 +3664,17 @@ defc menuinit_keyssettings
    universal cua_menu_accel
    universal nepmd_hini
    universal default_stream_mode
+   None = '-none-'
 
    SetMenuAttribute( GetAVar('mid_defaultstreammode'),          MIA_CHECKED, not default_stream_mode)
 
-   new = GetKeyDef()
+   new = GetAddKeyDefs()
+   if new = '' then
+      new = None
+   else
+      parse value new with new'keys'
+      new = new'keys'
+   endif
    parse value GetAVar('mtxt_keydefs') with next'['x']'rest
    SetMenuText( GetAVar('mid_keydefs'), next'['new']'rest)
 
@@ -4720,7 +4729,7 @@ defc toggle_nodismiss
    call showmenu_activemenu()
 
 /*
-see also: STDCTRL.E: defc initconfig
+see also: CONFIG.E
 
 OPTFLAGS:
    Bit              Setting
@@ -4968,10 +4977,11 @@ defc toggle_alias
 
 ; ---------------------------------------------------------------------------
 defc switch_dicts
+   None = '-none-'
    'DictLang SWITCH'
    new = GetDictBaseName()
    if new = '' then
-      new = '-none-'
+      new = None
    endif
    parse value GetAVar('mtxt_dict') with next'['x']'rest
    SetMenuText( GetAVar('mid_dict'), next'['new']'rest)
