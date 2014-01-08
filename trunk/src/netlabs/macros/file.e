@@ -812,7 +812,6 @@ compile endif
    if not rc then
       .modify=0            -- If saved to a different file, turn modify off
       'q'
-      call select_edit_keys()
    endif
    InfolineRefresh = 1
 
