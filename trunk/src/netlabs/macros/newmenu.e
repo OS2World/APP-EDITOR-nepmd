@@ -239,6 +239,7 @@ definit
    'CheckRecode'
    'CheckGrep'
    'CheckGfc'
+   'CheckKDiff3'
    'CheckWps'
 
    rc = save_rc  -- don't change rc of the link statement by definit code
@@ -286,6 +287,17 @@ defc CheckGfc
       gfcfound = 0  -- File not found
    else
       gfcfound = 1  -- File found
+   endif
+
+; ---------------------------------------------------------------------------
+defc CheckKDiff3
+   universal kdiff3found
+   -- Find kdiff3.exe in path
+   findfile File, 'kdiff3.exe', 'PATH', 'P'
+   if File = '' then
+      kdiff3found = 0  -- File not found
+   else
+      kdiff3found = 1  -- File found
    endif
 
 ; ---------------------------------------------------------------------------
@@ -1534,6 +1546,7 @@ defproc add_search_menu(menuname)
    universal nodismiss
    universal grepfound
    universal gfcfound
+   universal kdiff3found
    mid = GetAVar('mid_search')
    i = mid'00'
    buildsubmenu  menuname, mid, SEARCH_BAR__MSG,                                                   -- Search ----------
@@ -1815,6 +1828,13 @@ endif
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
+if kdiff3found then
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'K~Diff3 current file...'MenuAccelString( 'KDiff3CurrentFile'),  -- KDiff3 current file
+                                   'KDiff3CurrentFile' ||
+                                   \1'Compare current file with another',
+                                   MIS_TEXT, 0
+endif
 if gfcfound then
    i = i + 1;
    buildmenuitem menuname, mid, i, 'GFC curr~ent file...'MenuAccelString( 'GfcCurrentFile'),       -- GFC current file
