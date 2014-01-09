@@ -458,7 +458,7 @@ defc KDiff3CurrentFile
          rest = substr( fn, length( NetlabsDir) + 1)  -- including leading \
          fn2 = UserDir''rest
          if NepmdFileExists(fn2) then
-            arams = Params' "'fn2'"'
+            Params = Params' "'fn2'"'
          endif
       elseif abbrev( upcase(fn), upcase(UserDir)'\') then
          rest = substr( fn, length( UserDir) + 1)  -- including leading \
