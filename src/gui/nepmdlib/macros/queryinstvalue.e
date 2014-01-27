@@ -88,8 +88,7 @@ executing:
   - or
 - *QueryInstValue*
 
-Executing this command will
-open up a virtual file and
+Executing this command will open up a virtual file and
 write all [.IDPNL_EFUNC_NEPMDQUERYINSTVALUE_PARM_VALUETAG supported installation values]
 into it.
 

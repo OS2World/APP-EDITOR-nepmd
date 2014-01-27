@@ -45,7 +45,6 @@ This procedure sets the implicit universal var rc. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 rc is set to 3 = ERROR__PATH__NOT__FOUND if no mode could be determined.
 
-
 @@NepmdQueryDefaultMode@TESTCASE
 You can test this function from the *EPM* commandline by executing:
 .sl
