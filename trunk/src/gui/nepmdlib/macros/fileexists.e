@@ -2,8 +2,8 @@
 *
 * Module Name: fileexists.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdFileExists@PROTOTYPE
-fResult = NepmdFileExists( Filename);
+fResult = NepmdFileExists( Filename)
 
 @@NepmdFileExists@CATEGORY@FILE
 
@@ -39,6 +39,9 @@ This parameter specifies the name of the file to be checked.
 .ul compact
 - *0* (zero), if the file does not exist  or
 - *1* , if the file exists
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdFileExists@REMARKS
 *NepmdFileExists* replaces the function *Exist* of *dosutil.e*.
@@ -58,64 +61,65 @@ Executing this command will
 check, wether the specified file exists or not,
 and display the result within the status area.
 
-_*Example:*_
+*Example:*
 .fo off
-  FileExists c:\os2\cmd.exe
+ FileExists c:\os2\cmd.exe
 .fo on
 
 @@
 */
 
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdFileExists, FileExists =
+defc NepmdFileExists, FileExists
 
- Filename = arg( 1);
- if (Filename = '') then
-    sayerror 'error: no filename specified.';
-    return;
- endif
+   do i = 1 to 1
 
- fResult = NepmdFileExists( Filename);
- if (fResult) then
-    StrResult = 'does';
- else
-    StrResult = 'does not';
- endif
+      Filename = arg( 1)
+      if (Filename = '') then
+         sayerror 'Error: no filename specified.'
+         leave
+      endif
 
- sayerror 'file "'Filename'"' StrResult 'exist';
+      fResult = NepmdFileExists( Filename)
+      if (fResult) then
+         StrResult = 'does'
+      else
+         StrResult = 'does not'
+      endif
 
- return;
+      sayerror 'File "'Filename'"' StrResult 'exist.'
+
+   enddo
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdFileExists                                    */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    fResult = NepmdFileExists( filename);                      */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  BOOL EXPENTRY NepmdFileExists( PSZ pszFilename);             */
-/*                                                               */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdFileExists
+; ---------------------------------------------------------------------------
+; E syntax:
+;    fResult = NepmdFileExists( filename)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    BOOL EXPENTRY NepmdFileExists( PSZ pszFilename);
+; ---------------------------------------------------------------------------
 
-defproc NepmdFileExists( Filename) =
+defproc NepmdFileExists( Filename)
 
- /* prepare parameters for C routine */
- Filename   = Filename''atoi( 0);
+   -- Prepare parameters for C routine
+   Filename = Filename\0
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- fResult = dynalink32( LibFile,
-                       "NepmdFileExists",
-                        address( Filename));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   fResult = dynalink32( LibFile,
+                         "NepmdFileExists",
+                         address( Filename))
 
- helperNepmdCheckliberror( LibFile, fResult);
+   helperNepmdCheckliberror( LibFile, fResult)
 
- return fResult;
+   return fResult
 

@@ -2,8 +2,8 @@
 *
 * Module Name: getnextclose.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdGetNextClose@PROTOTYPE
-rc = NepmdGetNextClose( Handle);
+NepmdGetNextClose( Handle)
 
 @@NepmdGetNextClose@CATEGORY@FILE
 
@@ -52,7 +52,10 @@ the cleanup code must close the open handle by a call to *NepmdGetNextClose*.
 .at
 
 @@NepmdGetNextClose@RETURNS
-*NepmdGetNextClose* returns an OS/2 error code or zero for no error.
+*NepmdGetNextClose* returns nothing.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdGetNextClose@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -62,8 +65,7 @@ executing:
   - or
 - *GetNextClose* [.IDPNL_EFUNC_NEPMDGETNEXTCLOSE_PARM_HANDLE handle]
 
-Executing this command will
-delete the specified handle
+Executing this command will delete the specified handle
 and display the result within the status area.
 
 Because of that only a previous call to the functions [.IDPNL_EFUNC_NEPMDGETNEXTFILE]
@@ -71,55 +73,51 @@ or [.IDPNL_EFUNC_NEPMDGETNEXTDIR] can leave an open handle for you to test, and
 the related testcases will not do so, you will not truly be able to test a successful
 call to this function by this testcase.
 
-_*Example:*_
+*Example:*
 .fo off
-  GetNextClose 5
+ GetNextClose 5
 .fo on
 
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdGetNextClose, GetNextClose =
+defc NepmdGetNextClose, GetNextClose
 
- Handle = arg( 1);
- rc = NepmdGetNextClose( Handle);
+   Handle = arg( 1)
+   call NepmdGetNextClose( Handle)
 
- if (rc > 0) then
-    sayerror 'Invalid handle' Handle', could not be closed,  rc='rc;
-    return;
- endif
-
- sayerror 'Handle'  Handle '  was closed successfully.';
-
- return;
+   if rc then
+      sayerror 'Invalid handle' Handle', could not be closed, rc = 'rc'.'
+   else
+      sayerror 'Handle' Handle 'was closed successfully.'
+   endif
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdGetNextClose                                  */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    rc = NepmdGetNextClose( Handle);                           */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdGetNextClose( ULONG Handle);            */
-/*                                                               */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdGetNextClose
+; ---------------------------------------------------------------------------
+; E syntax:
+;    NepmdGetNextClose( Handle)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdGetNextClose( ULONG Handle);
+; ---------------------------------------------------------------------------
 
-defproc NepmdGetNextClose( Handle) =
+defproc NepmdGetNextClose( Handle)
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdGetNextClose",
-                  atol( Handle));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdGetNextClose",
+                    atol( Handle))
 
- helperNepmdCheckliberror( LibFile, rc);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return rc;
+   return
 

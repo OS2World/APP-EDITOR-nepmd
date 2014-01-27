@@ -2,8 +2,8 @@
 *
 * Module Name: direxists.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdDirExists@PROTOTYPE
-fResult = NepmdDirExists( Dirname);
+fResult = NepmdDirExists( Dirname)
 
 @@NepmdDirExists@CATEGORY@FILE
 
@@ -37,8 +37,11 @@ This parameter specifies the name of the directory to be checked.
 @@NepmdDirExists@RETURNS
 *NepmdDirExists* returns either
 .ul compact
-- *0* (zero), if the directory does not exist  or
-- *1* , if the directory exists
+- *0* (zero), if the directory does not exist or
+- *1*, if the directory exists.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdDirExists@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -48,11 +51,10 @@ executing:
   - or
 - *DirExists* [.IDPNL_EFUNC_NEPMDDIREXISTS_PARM_DIRNAME dirname]
 
-Executing this command will
-check, wether the specified directory exists or not,
-and display the result within the status area.
+Executing this command will check, wether the specified directory exists
+or not and display the result within the status area.
 
-_*Example:*_
+*Example:*
 .fo off
   DirExists c:\os2
 .fo on
@@ -61,55 +63,56 @@ _*Example:*_
 */
 
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdDirExists, DirExists =
+defc NepmdDirExists, DirExists
 
- Dirname = arg( 1);
- if (Dirname = '') then
-    sayerror 'error: no filename specified.';
-    return;
- endif
+   do i = 1 to 1
 
- fResult = NepmdDirExists( Dirname);
- if (fResult) then
-    StrResult = 'does';
- else
-    StrResult = 'does not';
- endif
+      Dirname = arg( 1)
+      if (Dirname = '') then
+         sayerror 'error: no filename specified.'
+         leave
+      endif
 
- sayerror 'directory "'Dirname'"' StrResult 'exist';
+      fResult = NepmdDirExists( Dirname)
+      if (fResult) then
+         StrResult = 'does'
+      else
+         StrResult = 'does not'
+      endif
 
- return;
+      sayerror 'directory "'Dirname'"' StrResult 'exist.'
+
+   enddo
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdDirExists                                     */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    fResult = NepmdDirExists( filename);                       */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  BOOL EXPENTRY NepmdDirExists( PSZ pszDirname);               */
-/*                                                               */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdDirExists
+; ---------------------------------------------------------------------------
+; E syntax:
+;    fResult = NepmdDirExists( filename)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    BOOL EXPENTRY NepmdDirExists( PSZ pszDirname);
+; ---------------------------------------------------------------------------
 
-defproc NepmdDirExists( Dirname) =
+defproc NepmdDirExists( Dirname)
 
- /* prepare parameters for C routine */
- Dirname   = Dirname''atoi( 0);
+   -- Prepare parameters for C routine
+   Dirname = Dirname\0
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- fResult = dynalink32( LibFile,
-                       "NepmdDirExists",
-                       address( Dirname));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   fResult = dynalink32( LibFile,
+                         "NepmdDirExists",
+                         address( Dirname))
 
- helperNepmdCheckliberror( LibFile, fResult);
+   helperNepmdCheckliberror( LibFile, fResult)
 
- return fResult;
+   return fResult
 

@@ -2,8 +2,8 @@
 *
 * Module Name: openconfig.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,13 +24,19 @@
 
 /*
 @@NepmdOpenConfig@PROTOTYPE
-Handle = NepmdOpenConfig();
+NepmdOpenConfig( Handle)
 
 @@NepmdOpenConfig@CATEGORY@CONFIG
 
 @@NepmdOpenConfig@SYNTAX
 This function opens the configuration repository of the [=TITLE]
 installation.
+
+@@NepmdOpenConfig@PARM@Handle
+This parameter must be a variable.
+
+The handle to the opened configuration repository is stored in this
+parameter.
 
 @@NepmdOpenConfig@REMARKS
 If you want to perform only only a single operation on the
@@ -44,10 +50,10 @@ the repository before and after the access will save you from
 additional disk I/O.
 
 @@NepmdOpenConfig@RETURNS
-*NepmdOpenConfig* returns either
-.ul compact
-- the handle to the opened configuration repository  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+*NepmdOpenConfig* returns nothing.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdOpenConfig@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -81,81 +87,86 @@ result within the status area.
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdOpenConfig, OpenConfig =
+defc NepmdOpenConfig, OpenConfig
 
- TestPath  = '\NEPMD\NepmdLib\Testcase';
- TestValue = 'This is a testvalue';
- Handle    = 0;
+   do i = 1 to 1
 
- Handle = NepmdOpenConfig();
- parse value Handle with 'ERROR:'rc;
- if (rc > 0) then
-    sayerror 'Configuration repository could not be opened, rc = 'rc'.';
-    return;
- endif
+      TestPath  = '\NEPMD\NepmdLib\Testcase'
+      TestValue = 'This is a testvalue'
+      Handle    = 0;
 
- rc = NepmdWriteConfigValue( Handle, TestPath, TestValue);
- if (rc > 0) then
-    sayerror 'Config value "'TestPath'" cout not be written, rc = 'rc'.';
- else
-    QueriedValue  = NepmdQueryConfigValue( Handle, TestPath);
-    if (rc > 0) then
-       sayerror 'Value of "'TestPath'" could not be read.';
-    else
-       rc = NepmdDeleteConfigValue( Handle, TestPath);
-       if (rc > 0) then
-          sayerror 'Config value "'TestPath'" could not be deleted.';
-       endif
-    endif
-    rc2 = NepmdCloseConfig( Handle);
- endif
+      NepmdOpenConfig( Handle)
+      if rc then
+         sayerror 'Configuration repository could not be opened, rc = 'rc'.'
+         leave
+      endif
 
- if (rc = 0) then
-    helperNepmdCreateDumpfile( 'NepmdOpenConfig/NepmdCloseConfig', '');
+      NepmdWriteConfigValue( Handle, TestPath, TestValue)
+      if rc then
+         sayerror 'Config value "'TestPath'" cout not be written, rc = 'rc'.'
+         leave
+      endif
 
-    insertline '       handle:' Handle;
-    insertline '      keypath:' TestPath;
-    insertline '     keyvalue:' TestValue;
-    insertline '';
-    insertline 'queried value:' QueriedValue;
-    insertline '';
-    .modify = 0;
- endif
+      QueriedValue  = NepmdQueryConfigValue( Handle, TestPath)
+      if rc then
+         sayerror 'Value of "'TestPath'" could not be read.'
+      else
+         NepmdDeleteConfigValue( Handle, TestPath)
+         if rc then
+            sayerror 'Config value "'TestPath'" could not be deleted.'
+         endif
+      endif
 
- return;
+      NepmdCloseConfig( Handle)
+
+      helperNepmdCreateDumpfile( 'NepmdOpenConfig/NepmdCloseConfig', '')
+
+      insertline '       Handle:' Handle
+      insertline '      Keypath:' TestPath
+      insertline '     Keyvalue:' TestValue
+      insertline ''
+      insertline 'Queried value:' QueriedValue
+      insertline ''
+      .modify = 0
+
+   enddo
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdOpenConfig                                    */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    Handle = NepmdOpenConfig( );                               */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdOpenConfig( PSZ pszBuffer,              */
-/*                                   ULONG ulBuflen)             */
-/*                                                               */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdOpenConfig
+; ---------------------------------------------------------------------------
+; E syntax:
+;    NepmdOpenConfig( Handle)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdOpenConfig( PSZ pszBuffer,
+;                                     ULONG ulBuflen)
+; ---------------------------------------------------------------------------
 
-defproc NepmdOpenConfig( ) =
+defproc NepmdOpenConfig( var Handle)
 
- BufLen = 20;
- Handle = copies( \0, BufLen);
+   BufLen = 20
+   Handle = copies( \0, BufLen)
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdOpenConfig",
-                  address( Handle)     ||
-                  atol( Buflen));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdOpenConfig",
+                    address( Handle)     ||
+                    atol( Buflen))
 
- helperNepmdCheckliberror( LibFile, rc);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return makerexxstring( Handle);
+   if rc then
+      Handle = ''
+   else
+      Handle = makerexxstring( Handle)
+   endif
+   return
 

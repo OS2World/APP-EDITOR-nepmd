@@ -2,8 +2,8 @@
 *
 * Module Name: scanenv.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdScanEnv@PROTOTYPE
-EnvValue = NepmdScanEnv( EnvName);
+EnvValue = NepmdScanEnv( EnvName)
 
 @@NepmdScanEnv@CATEGORY@PROCESS
 
@@ -36,10 +36,11 @@ This parameter specifies the name of the environment variable
 of which the value is to be retrieved.
 
 @@NepmdScanEnv@RETURNS
-*NepmdScanEnv* returns either
-.ul compact
-- the value of the requested extended attribute  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+*NepmdScanEnv* returns the value of the requested extended attribute.
+In case of an error an empty string is returned.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdScanEnv@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -61,43 +62,43 @@ _*Examples:*_
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdScanEnv, ScanEnv =
+defc NepmdScanEnv, ScanEnv
 
- EnvName  =  arg( 1);
- if (EnvName = '') then
-    sayerror 'error: no environment variable name specified !';
-    return;
- endif
+   do i = 1 to 1
 
- EnvValue = NepmdScanEnv( EnvName);
- parse value EnvValue with 'ERROR:'rc;
- if (rc > '') then
-    sayerror 'Environment variable "'EnvName'" is not defined, rc='rc;
-    return;
- endif
+      EnvName  =  arg( 1)
+      if (EnvName = '') then
+         sayerror 'Error: no environment variable name specified.'
+         leave
+      endif
 
- sayerror 'Value of "'EnvName'" is:' EnvValue;
+      EnvValue = NepmdScanEnv( EnvName)
+      if rc then
+         sayerror 'Environment variable "'EnvName'" is not defined, rc = 'rc'.'
+      else
+         sayerror 'Value of "'EnvName'" is:' EnvValue
+      endif
 
- return;
+   enddo
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdScanEnv                                       */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    EnvValue = NepmdScanEnv( EnvName);                         */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdScanEnv( PSZ pszEnvName,                */
-/*                                PSZ pszBuffer,                 */
-/*                                ULONG ulBuflen)                */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdScanEnv
+; ---------------------------------------------------------------------------
+; E syntax:
+;    EnvValue = NepmdScanEnv( EnvName)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdScanEnv( PSZ pszEnvName,
+;                                  PSZ pszBuffer,
+;                                  ULONG ulBuflen);
+; ---------------------------------------------------------------------------
 
 defproc NepmdScanEnv( EnvName ) =
 

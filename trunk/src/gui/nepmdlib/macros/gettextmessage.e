@@ -2,8 +2,8 @@
 *
 * Module Name: gettextmessage.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -67,23 +67,24 @@ text message file *myproject.tmf* and inserts the string *A:*, where
 the message text includes the palceholder *%1*.
 
 .fo off
-TextMessage = NepmdGetTextMessage( "myproject.tmf", "MSG__DRIVE__NOT__READY",  "A:");
+ TextMessage = NepmdGetTextMessage( "myproject.tmf", "MSG__DRIVE__NOT__READY",  "A:")
 .fo on
 .
 Taken that the file *myproject.tmf* contains a message like this one
 .fo off
-<--MSG__DRIVE__NOT__READY-->:Drive %1 ist not ready, please insert a diskette and press any key!
+ <--MSG__DRIVE__NOT__READY-->:Drive %1 is not ready, please insert a diskette and press any key!
 .fo on
 .
-the resulting message would be:
+The resulting message would be:
 
-Drive A: ist not ready, please insert a diskette and press any key!
+Drive A: is not ready, please insert a diskette and press any key!
 
 @@NepmdGetTextMessage@RETURNS
-*NepmdGetTextMessage* returns either
-.ul compact
-- the textmessage with the supplied parameters inserted  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+*NepmdGetTextMessage* returns the text message with the supplied parameters
+inserted. In case of an error, an empty string is returned.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdGetTextMessage@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -98,150 +99,155 @@ executing:
     [[ [.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_PARAMETERS parameters] ]]
 
 Executing this command will display the specified message from the
-text meesage file of the [TITLE], having inserted the specified parameters
+text message file of the [TITLE], having inserted the specified parameters
 and display the result within the status area.
 
 You can also use an alternate text message file by specifying its
 pathname with the environment variable *NEPMD__TMFTESTFILE*.
 
-_*Example:*_
+*Example:*
 .fo off
-  GetTextMessage INSERTTEST parm1 parm2 parm3
+ GetTextMessage INSERTTEST parm1 parm2 parm3
 .fo on
 
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
 defc NepmdGetTextMessage, GetTextMessage
 
- /* determine message name or use default */
- if ( words( arg( 1)) = 0) then
-    Messagename = 'TESTMESSAGE';
- else
-    Messagename = word( arg( 1), 1);
- endif
+   -- Determine message name or use default
+   if ( words( arg( 1)) = 0) then
+      Messagename = 'TESTMESSAGE'
+   else
+      Messagename = word( arg( 1), 1)
+   endif
 
- /* determine TMF name  */
- Envvar = 'NEPMD_TMFTESTFILE';
- Testfile = get_env( Envvar);
+   -- Determine TMF name
+   Envvar = 'NEPMD_TMFTESTFILE'
+   Testfile = get_env( Envvar)
 
- /* fetch message - NOTE: word 1 is already message name ! */
- ParmCount = words( arg( 1));
- Parm1     = word( arg( 1),  2);
- Parm2     = word( arg( 1),  3);
- Parm3     = word( arg( 1),  4);
- Parm4     = word( arg( 1),  5);
- Parm5     = word( arg( 1),  6);
- Parm6     = word( arg( 1),  7);
- Parm7     = word( arg( 1),  8);
- Parm8     = word( arg( 1),  9);
- Parm9     = word( arg( 1), 10);
- if (ParmCount < 2) then
-    MessageText = NepmdGetTextMessage( Testfile, Messagename);
- elseif (ParmCount = 2) then
-    MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                       Parm1);
- elseif (ParmCount = 3) then
-    MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                       Parm1, Parm2);
- elseif (ParmCount = 4) then
-    MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                       Parm1, Parm2, Parm3);
- elseif (ParmCount = 5) then
-    MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                       Parm1, Parm2, Parm3, Parm4);
- elseif (ParmCount = 6) then
-    MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                       Parm1, Parm2, Parm3, Parm4, Parm5);
- elseif (ParmCount = 7) then
-    MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                       Parm1, Parm2, Parm3, Parm4, Parm5, Parm6);
- elseif (ParmCount = 8) then
-    MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                       Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7);
- elseif (ParmCount = 9) then
-    MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                       Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7, Parm8);
- else
-    MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                       Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7, Parm8, Parm9);
- endif
+   -- Fetch message - Note: word 1 is already message name
+   ParmCount = words( arg( 1))
+   Parm1     = word( arg( 1),  2)
+   Parm2     = word( arg( 1),  3)
+   Parm3     = word( arg( 1),  4)
+   Parm4     = word( arg( 1),  5)
+   Parm5     = word( arg( 1),  6)
+   Parm6     = word( arg( 1),  7)
+   Parm7     = word( arg( 1),  8)
+   Parm8     = word( arg( 1),  9)
+   Parm9     = word( arg( 1), 10)
+   if (ParmCount < 2) then
+      MessageText = NepmdGetTextMessage( Testfile, Messagename)
+   elseif (ParmCount = 2) then
+      MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                         Parm1)
+   elseif (ParmCount = 3) then
+      MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                         Parm1, Parm2)
+   elseif (ParmCount = 4) then
+      MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                         Parm1, Parm2, Parm3)
+   elseif (ParmCount = 5) then
+      MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                         Parm1, Parm2, Parm3, Parm4)
+   elseif (ParmCount = 6) then
+      MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                         Parm1, Parm2, Parm3, Parm4, Parm5)
+   elseif (ParmCount = 7) then
+      MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                         Parm1, Parm2, Parm3, Parm4, Parm5, Parm6)
+   elseif (ParmCount = 8) then
+      MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                         Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7)
+   elseif (ParmCount = 9) then
+      MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                         Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7, Parm8)
+   else
+      MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                         Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7, Parm8, Parm9)
+   endif
 
- parse value MessageText with 'ERROR:'rc;
- if (rc > '') then
-    sayerror 'error: message' Messagename 'could not be retrieved, rc='rc;
-    return;
- endif
-
- sayerror 'message is: "'MessageText'"';
-
- return;
+   if rc then
+      sayerror 'Error: message' Messagename 'could not be retrieved, rc = 'rc'.'
+   else
+      sayerror 'Message is: "'MessageText'"'
+   endif
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdGetTextMessage                                */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    message = NepmdGetTextMessage( Filename, Messagename       */
-/*                                   [, parm1, parm2 ... parm8]);*/
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdGetTextMessage( PSZ pszFilename,        */
-/*                                       PSZ pszMessageName,     */
-/*                                       PSZ pszBuffer,          */
-/*                                       ULONG ulBuflen,         */
-/*                                       PSZ pszParm1,           */
-/*                                       PSZ pszParm2,           */
-/*                                       PSZ pszParm3,           */
-/*                                       PSZ pszParm4,           */
-/*                                       PSZ pszParm5,           */
-/*                                       PSZ pszParm6,           */
-/*                                       PSZ pszParm7,           */
-/*                                       PSZ pszParm8,           */
-/*                                       PSZ pszParm9);          */
-/* NOTE: unlike DosGetMessage, this function returns an ASCIIZ ! */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdGetTextMessage
+; ---------------------------------------------------------------------------
+; E syntax:
+;    TextMessage = NepmdGetTextMessage( Filename, Messagename
+;                                       [, parm1, parm2, ... ,parm9])
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdGetTextMessage( PSZ pszFilename,
+;                                         PSZ pszMessageName,
+;                                         PSZ pszBuffer,
+;                                         ULONG ulBuflen,
+;                                         PSZ pszParm1,
+;                                         PSZ pszParm2,
+;                                         PSZ pszParm3,
+;                                         PSZ pszParm4,
+;                                         PSZ pszParm5,
+;                                         PSZ pszParm6,
+;                                         PSZ pszParm7,
+;                                         PSZ pszParm8,
+;                                         PSZ pszParm9);
+;    Note: unlike DosGetMessage, this function returns an ASCIIZ.
+; ---------------------------------------------------------------------------
 
-defproc NepmdGetTextMessage( Filename, Messagename) =
+compile if not defined( NEPMD_MAXLEN_ESTRING) then
+   include 'STDCONST.E'
+compile endif
 
- BufLen      = NEPMD_MAXLEN_ESTRING;
- TextMessage = copies( atoi( 0), BufLen);
+defproc NepmdGetTextMessage( Filename, Messagename)
 
- /* prepare parameters for C routine */
- Filename    = Filename''atoi( 0);
- Messagename = Messagename''atoi( 0);
+   BufLen      = NEPMD_MAXLEN_ESTRING
+   TextMessage = copies( \0, BufLen)
 
- /* prepare all parms as ASSCIZ string and assemble variable parm list */
- /* NOTE: we need to setup vars for each parm, as arg() */
- /*       returns the same address for all values :-((  */
- if (arg() >=  3) then  Parm1 = arg(  3)''atoi( 0); Addr1 = address( Parm1); else Addr1 = atol( 0); endif
- if (arg() >=  4) then  Parm2 = arg(  4)''atoi( 0); Addr2 = address( Parm2); else Addr2 = atol( 0); endif
- if (arg() >=  5) then  Parm3 = arg(  5)''atoi( 0); Addr3 = address( Parm3); else Addr3 = atol( 0); endif
- if (arg() >=  6) then  Parm4 = arg(  6)''atoi( 0); Addr4 = address( Parm4); else Addr4 = atol( 0); endif
- if (arg() >=  7) then  Parm5 = arg(  7)''atoi( 0); Addr5 = address( Parm5); else Addr5 = atol( 0); endif
- if (arg() >=  8) then  Parm6 = arg(  8)''atoi( 0); Addr6 = address( Parm6); else Addr6 = atol( 0); endif
- if (arg() >=  9) then  Parm7 = arg(  9)''atoi( 0); Addr7 = address( Parm7); else Addr7 = atol( 0); endif
- if (arg() >= 10) then  Parm8 = arg( 10)''atoi( 0); Addr8 = address( Parm8); else Addr8 = atol( 0); endif
- if (arg() >= 11) then  Parm9 = arg( 11)''atoi( 0); Addr9 = address( Parm9); else Addr9 = atol( 0); endif
- VarParmList = Addr1 || Addr2 || Addr3 || Addr4 || Addr5 || Addr6 || Addr7 || Addr8 || Addr9;
+   -- Prepare parameters for C routine
+   Filename    = Filename\0
+   Messagename = Messagename\0
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdGetTextMessage",
-                  address( Filename)            ||
-                  address( Messagename)         ||
-                  address( TextMessage)         ||
-                  atol( Buflen)                 ||
-                  VarParmList);
+   -- Prepare all parms as ASSCIZ string and assemble variable parm list.
+   -- Note: we need to setup vars for each parm, as arg()
+   --       returns the same address for all values :-((
+   --       address() needs a variable as parameter.
+   if (arg() >=  3) then  Parm1 = arg(  3)''atoi( 0); Addr1 = address( Parm1); else Addr1 = atol( 0); endif
+   if (arg() >=  4) then  Parm2 = arg(  4)''atoi( 0); Addr2 = address( Parm2); else Addr2 = atol( 0); endif
+   if (arg() >=  5) then  Parm3 = arg(  5)''atoi( 0); Addr3 = address( Parm3); else Addr3 = atol( 0); endif
+   if (arg() >=  6) then  Parm4 = arg(  6)''atoi( 0); Addr4 = address( Parm4); else Addr4 = atol( 0); endif
+   if (arg() >=  7) then  Parm5 = arg(  7)''atoi( 0); Addr5 = address( Parm5); else Addr5 = atol( 0); endif
+   if (arg() >=  8) then  Parm6 = arg(  8)''atoi( 0); Addr6 = address( Parm6); else Addr6 = atol( 0); endif
+   if (arg() >=  9) then  Parm7 = arg(  9)''atoi( 0); Addr7 = address( Parm7); else Addr7 = atol( 0); endif
+   if (arg() >= 10) then  Parm8 = arg( 10)''atoi( 0); Addr8 = address( Parm8); else Addr8 = atol( 0); endif
+   if (arg() >= 11) then  Parm9 = arg( 11)''atoi( 0); Addr9 = address( Parm9); else Addr9 = atol( 0); endif
+   VarParmList = Addr1 || Addr2 || Addr3 || Addr4 || Addr5 || Addr6 || Addr7 || Addr8 || Addr9
 
- helperNepmdCheckliberror( LibFile, rc);
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdGetTextMessage",
+                    address( Filename)            ||
+                    address( Messagename)         ||
+                    address( TextMessage)         ||
+                    atol( Buflen)                 ||
+                    VarParmList)
 
- return makerexxstring( TextMessage);
+   helperNepmdCheckliberror( LibFile, rc)
+
+   if rc then
+      return ''
+   else
+      return makerexxstring( TextMessage)
+   endif
 

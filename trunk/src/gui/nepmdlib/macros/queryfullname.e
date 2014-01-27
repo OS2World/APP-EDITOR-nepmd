@@ -2,8 +2,8 @@
 *
 * Module Name: queryfullname.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdQueryFullname@PROTOTYPE
-Fullname = NepmdQueryFullname( Filename);
+Fullname = NepmdQueryFullname( Filename)
 
 @@NepmdQueryFullname@CATEGORY@FILE
 
@@ -42,14 +42,15 @@ This parameter specifies the file or directory name. it may include
 
 It is not necessary to specify a name of a file, which exists
 or of which all directories of the path specification exist.
-The only requirement ist that the resulting file or directory entry
+The only requirement is that the resulting file or directory entry
 #could# exist in the resulting directory, that means it must be valid.
 
 @@NepmdQueryFullname@RETURNS
-*NepmdQueryFullname* returns either
-.ul compact
-- the full qualified filename  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+*NepmdQueryFullname* returns the fully qualified filename.
+In case of an error an empty string is returned.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdQueryFullname@REMARKS
 This function calls the OS/2 API *DosQueryPathInfo* and will
@@ -80,63 +81,66 @@ _*Examples:*_
 */
 
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdQueryFullname, QueryFullname =
+defc NepmdQueryFullname, QueryFullname
 
- Filename = arg( 1);
- if (Filename = '') then
-    sayerror 'error: no filename specified.';
-    return;
- endif
+   do i = 1 to 1
 
- Fullname = NepmdQueryFullname( Filename);
+      Filename = arg( 1)
+      if (Filename = '') then
+         sayerror 'Error: no filename specified.'
+         leave
+      endif
 
- parse value Fullname with 'ERROR:'rc;
- if (rc > '') then
-    sayerror 'fullname of "'Filename'" could not be retrieved, rc='rc;
-    return;
- endif
+      Fullname = NepmdQueryFullname( Filename)
 
- sayerror 'fullname of "'Filename'" is:' Fullname;
+      if rc then
+         sayerror 'Fullname of "'Filename'" could not be retrieved, rc = 'rc'.'
+      else
+         sayerror 'Fullname of "'Filename'" is:' Fullname
+      endif
 
- return;
+   enddo
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdQueryFullname                                 */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    Fullname = NepmdQueryFullname( filename);                  */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdQueryFullname( PSZ pszFilename,         */
-/*                                      PSZ pszBuffer,           */
-/*                                      ULONG ulBuflen)          */
-/*                                                               */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdQueryFullname
+; ---------------------------------------------------------------------------
+; E syntax:
+;    Fullname = NepmdQueryFullname( filename)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdQueryFullname( PSZ pszFilename,
+;                                        PSZ pszBuffer,
+;                                        ULONG ulBuflen);
+; ---------------------------------------------------------------------------
 
-defproc NepmdQueryFullname( Filename) =
+defproc NepmdQueryFullname( Filename)
 
- BufLen   = 260;
- FullName = copies( atoi( 0), BufLen);
+   BufLen   = 260
+   FullName = copies( \0, BufLen)
 
- /* prepare parameters for C routine */
- Filename   = Filename''atoi( 0);
+   -- Prepare parameters for C routine
+   Filename   = Filename\0
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdQueryFullname",
-                  address( Filename)            ||
-                  address( Fullname)            ||
-                  atol( Buflen));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdQueryFullname",
+                    address( Filename)            ||
+                    address( Fullname)            ||
+                    atol( Buflen))
 
- helperNepmdCheckliberror( LibFile, rc);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return makerexxstring( FullName);
+   if rc then
+      return ''
+   else
+      return makerexxstring( FullName)
+   endif
 

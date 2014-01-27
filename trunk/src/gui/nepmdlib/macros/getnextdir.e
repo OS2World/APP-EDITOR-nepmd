@@ -2,8 +2,8 @@
 *
 * Module Name: getnextdir.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,9 +24,9 @@
 
 /*
 @@NepmdGetNextDir@PROTOTYPE
-Filename = NepmdGetNextDir( DirMask, AddressOfHandle);
+Flag = NepmdGetNextDir( DirMask, Handle, NextDirname)
 
-@@NepmdGetNextDir@CATEGORY@FILE
+@@NepmdGetNextDir@CATEGORY@DIR
 
 @@NepmdGetNextDir@SYNTAX
 This function implements an easy directory lookup
@@ -34,55 +34,61 @@ for subdirectories with one function. For that it needs to be
 [.IDPNL_EFUNC_NEPMDGETNEXTDIR_EXAMPLE called in a loop].
 
 @@NepmdGetNextDir@PARM@DirMask
-This parameter specifies the directories to be searched
+This parameter specifies the dirs to be searched
 and may contain wildcards.
 
-@@NepmdGetNextDir@PARM@AddressOfHandle
-This parameter specifies the address of a search handle,
-it can be determined with the *address()* function like
-.fo off
- Handle = 0;
- AddressOfHandle = address( Handle);
-.fo on
+@@NepmdGetNextDir@PARM@Handle
+This parameter must be a variable. It specifies the handle used for the
+search.
 
 Note that on the first call to NepmdGetNextDir() the value
-of the variable holding the handle must be set to zero.
+of the variable holding the handle must be set to '' or to
+GETNEXT_CREATE_NEW_HANDLE in order to initiate a new search.
+
+The used handle is stored in this parameter.
+
+@@NepmdGetNextDir@PARM@DirName
+This parameter must be a variable. It should be set to '' when specified.
+
+The next found dirname is stored in this parameter.
 
 @@NepmdGetNextDir@EXAMPLE
 The following code searches all subdirectories within the directory C:\OS2:
 .fo off
- Handle  = 0;  /** always create a new handle ! **/
- AddressOfHandle = address( Handle);
- DirMask = 'C:\OS2\**';
+ DirMask     = 'C:\OS2\**'
+ Handle       = ''  -- always create a new handle
+ NextDirname = ''
 
- /** search all files **/
- do while (1)
-    Dirname = NepmdGetNextDir(  DirMask, AddressOfHandle);
-    parse value Dirname with 'ERROR:'rc;
-    if (rc > '') then
-       leave;
-    endif
-
-    /** process subdirectory - here as a sample we display a popup **/
-    messagenwait( 'Dir found:' Dirname);
- end;
+ -- Search all dirs
+ do while NepmdGetNextDir( DirMask, Handle, NextDirname)
+    -- Process subdirectory - here as a sample we display a popup
+    messagenwait( 'Dir found:' NextDirname)
+ enddo
 .fo on
 
 @@NepmdGetNextDir@REMARKS
 The search handle created by *NepmdGetNextDir* is automatically closed
 if the search is repeated until no more entries are available.
 
-.at fc=red
-If a search for files is interrupted for any reason before receiving
-the error code 18 (ERROR__NO__MORE__FILES), it is required to close
-the search handle by a call to [.IDPNL_EFUNC_NEPMDGETNEXTCLOSE].
-.at
+If a search for dirs is interrupted for any reason before receiving
+the error code 18 (ERROR__NO__MORE__FILES), the search handle is closed
+automatically by a call to [.IDPNL_EFUNC_NEPMDGETNEXTCLOSE].
 
 @@NepmdGetNextDir@RETURNS
 *NepmdGetNextDir* returns either
 .ul compact
-- the next directory returned by the directory seach  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+- *0* (zero), if no more dirs exist or on error
+- *1*, if next directory name was queried successfully.
+
+The next dirname returned by the search is stored in the
+[.IDPNL_EFUNC_NEPMDGETNEXTDIR_PARM_NEXTDIRNAME NextDirname] parameter.
+
+The search handle returned by the search is stored in the
+[.IDPNL_EFUNC_NEPMDGETNEXTDIR_PARM_HANDLE Handle] parameter.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
+rc is set to 18 = ERROR__NO__MORE__FILES if no directory name was found.
 
 @@NepmdGetNextDir@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -96,92 +102,113 @@ Executing this command will
 open up a virtual file and
 write all found directories into it.
 
-_*Example:*_
+*Example:*
 .fo off
-  GetNextDir c:\os2\**
+ GetNextDir c:\os2\**
 .fo on
 
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
-include 'STDCONST.E'
 
-defc NepmdGetNextDir, GetNextDir =
+defc NepmdGetNextDir, GetNextDir
 
- Handle   = GETNEXT_CREATE_NEW_HANDLE
- AddressOfHandle = address( Handle);
+   do i = 1 to 1
 
- DirMask = arg( 1);
- if (DirMask = '') then
-    sayerror 'error: no dir mask specified !';
-    return;
- endif
+      DirMask = arg( 1)
+      if (DirMask = '') then
+         sayerror 'Error: no dir mask specified.'
+         leave
+      endif
 
- DirMask = NepmdQueryFullname( arg( 1));
- parse value DirMask with 'ERROR:'rc;
- if (rc > '') then
-    sayerror 'error: invalid filemask specified !';
-    return;
- endif
+      DirMask = NepmdQueryFullname( DirMask)
+      if rc then
+         sayerror 'Error: invalid dir mask specified.'
+         leave
+      endif
 
- /* create virtual file */
- helperNepmdCreateDumpfile( 'NepmdGetNextDir', DirMask);
+      Handle       = ''
+      NextDirName = ''
 
- /* search all files */
- do while (1)
-    Dirname = NepmdGetNextDir(  DirMask, AddressOfHandle);
-    parse value Dirname with 'ERROR:'rc;
-    if (rc > '') then
-       leave;
-    endif
+      -- Create virtual file
+      helperNepmdCreateDumpdir( 'NepmdGetNextDir', DirMask)
 
-    insertline( Dirname);
- end;
- .modify = 0;
+      -- Search all dirs
+      do while NepmdGetNextDir( DirMask, Handle, NextDirname)
+         insertline( NextDirname)
+      enddo
+      .modify = 0
 
- return;
+/*
+      rc = 0
+      do while not rc
+         Flag = NepmdGetNextDir( DirMask, Handle, NextDirname)
+         dprintf( 'rc = 'rc', Flage = 'Flag', NextDirname = 'NextDirname', address( Handle) = 'address( Handle))
+      enddo
+*/
+
+   enddo
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdGetNextDir                                    */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    Handle   = 0;                                              */
-/*    Filename = NepmdGetNextDir( DirMask, address(Handle));      */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdGetNextDir( PSZ   pszDirMask,           */
-/*                                    PSZ   pszHandle,           */
-/*                                    PSZ   pszBuffer,           */
-/*                                    ULONG ulBuflen)            */
-/*                                                               */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdGetNextDir
+; ---------------------------------------------------------------------------
+; E syntax:
+;    Flag = NepmdGetNextDir( DirMask, Handle, NextDirname)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdGetNextDir( PSZ   pszDirMask,
+;                                     PSZ   pszHandle,
+;                                     PSZ   pszBuffer,
+;                                     ULONG ulBuflen);
+; ---------------------------------------------------------------------------
 
-defproc NepmdGetNextDir( DirMask, PtrToHandle) =
+compile if not defined( GETNEXT_CREATE_NEW_HANDLE) then
+   include 'STDCONST.E'
+compile endif
 
- BufLen   = 260;
- FileName = copies( atoi( 0), BufLen);
+defproc NepmdGetNextDir( DirMask, var Handle, var NextDirname)
 
- /* prepare parameters for C routine */
- /* don't touch the handle parameter, as we must report */
- /* the address of the original var of the caller !!!   */
- DirMask   = DirMask''atoi( 0);
+   if (strip( Handle) = '') then
+      Handle = GETNEXT_CREATE_NEW_HANDLE
+   endif
+   BufLen       = 260
+   NextDirname = copies( \0, BufLen)
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdGetNextDir",
-                  address( DirMask)             ||
-                  PtrToHandle                   ||
-                  address( Filename)            ||
-                  atol( Buflen));
+   -- Prepare parameters for C routine
+   -- Don't touch the handle parameter, as we must report
+   -- the address of the original var of the caller.
+   DirMask = DirMask\0
 
- helperNepmdCheckliberror( LibFile, rc);
+   -- Call C routine
+   LibDir = helperNepmdGetlibdir()
+   rc = dynalink32( LibDir,
+                    "NepmdGetNextDir",
+                    address( DirMask)            ||
+                    address( Handle)             ||
+                    address( NextDirname)        ||
+                    atol( Buflen))
 
- return makerexxstring( FileName);
+   helperNepmdCheckliberror( LibDir, rc)
+   if rc then
+      Flag = 0
+      NextDirname = ''
+      -- Automatically close the handle in case of an error <> 18.
+      -- Keep previous rc.
+      if rc <> 18 then  -- ERROR_NO_MORE_FILES
+         Savedrc = rc   -- save rc
+         call NepmdGetNextClose( Handle)
+         rcx = rc       -- ignore rc of NepmdGetNextClose
+         rc = Savedrc   -- restore rc
+      endif
+   else
+      Flag = 1
+      NextDirname = makerexxstring( NextDirname)
+   endif
+   return Flag
 

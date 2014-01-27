@@ -2,8 +2,8 @@
 *
 * Module Name: queryinstvalue.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdQueryInstValue@PROTOTYPE
-InstValue = NepmdQueryInstValue( ValueTag);
+InstValue = NepmdQueryInstValue( ValueTag)
 
 @@NepmdQueryInstValue@CATEGORY@INSTALL
 
@@ -74,10 +74,11 @@ except for *ROOT* can be used even if not the complete [=TITLE]
 is installed.
 
 @@NepmdQueryInstValue@RETURNS
-*NepmdQueryInstValue* returns either
-.ul compact
-- the installation value  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+*NepmdQueryInstValue* returns the installation value.
+In case of an error an empty string is returned.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdQueryInstValue@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -95,59 +96,61 @@ into it.
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 
 defc NepmdQueryInstValue, QueryInstValue
 
- helperNepmdCreateDumpfile( 'NepmdQueryInstValue', '');
- insertline helperNepmdQueryInstValue( 'ROOTDIR');
- insertline helperNepmdQueryInstValue( 'USERDIR');
- insertline helperNepmdQueryInstValue( 'LANGUAGE');
- insertline helperNepmdQueryInstValue( 'INIT');
- insertline helperNepmdQueryInstValue( 'MESSAGE');
- insertline helperNepmdQueryInstValue( 'USRGUIDE');
- insertline helperNepmdQueryInstValue( 'PRGGUIDE');
- insertline helperNepmdQueryInstValue( 'HELP');
- .modify = 0;
+   helperNepmdCreateDumpfile( 'NepmdQueryInstValue', '')
+   insertline helperNepmdQueryInstValue( 'ROOTDIR')
+   insertline helperNepmdQueryInstValue( 'USERDIR')
+   insertline helperNepmdQueryInstValue( 'LANGUAGE')
+   insertline helperNepmdQueryInstValue( 'INIT')
+   insertline helperNepmdQueryInstValue( 'MESSAGE')
+   insertline helperNepmdQueryInstValue( 'USRGUIDE')
+   insertline helperNepmdQueryInstValue( 'PRGGUIDE')
+   insertline helperNepmdQueryInstValue( 'HELP')
+   .modify = 0
 
- return;
+defproc helperNepmdQueryInstValue( ValueTag)
+   return leftstr( ValueTag, 8) ':' NepmdQueryInstValue( ValueTag)
 
-defproc helperNepmdQueryInstValue( ValueTag) =
-  return leftstr( ValueTag, 8) ':' NepmdQueryInstValue( ValueTag);
+; ---------------------------------------------------------------------------
+; Procedure: NepmdQueryInstValue
+; ---------------------------------------------------------------------------
+; E syntax:
+;    InstValue = NepmdQueryInstValue( ValueTag)
+;
+;    See valig tags in src\gui\common\nepmd.h: NEPMD_INSTVALUE_*
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdQueryInstValue( PSZ pszTagName,
+;                                         PSZ pszBuffer,
+;                                         ULONG ulBuflen):
+; ---------------------------------------------------------------------------
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdQueryInstValue                                */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    InstValue = NepmdQueryInstValue( ValueTag);                */
-/*                                                               */
-/*  See valig tags in src\gui\common\nepmd.h : NEPMD_INSTVALUE_* */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdQueryInstValue( PSZ pszTagName,         */
-/*                                       PSZ pszBuffer,          */
-/*                                       ULONG ulBuflen)         */
-/* ------------------------------------------------------------- */
+defproc NepmdQueryInstValue( ValueTag)
 
-defproc NepmdQueryInstValue( ValueTag) =
+   BufLen    = 260
+   InstValue = copies( \0, BufLen)
 
- BufLen    = 260;
- InstValue = copies( atoi( 0), BufLen);
+   -- Prepare parameters for C routine
+   ValueTag = ValueTag\0
 
- /* prepare parameters for C routine */
- ValueTag = ValueTag''atoi( 0);
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdQueryInstValue",
+                    address( ValueTag)          ||
+                    address( InstValue)         ||
+                    atol( Buflen))
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdQueryInstValue",
-                  address( ValueTag)          ||
-                  address( InstValue)         ||
-                  atol( Buflen));
+   helperNepmdCheckliberror( LibFile, rc)
 
- helperNepmdCheckliberror( LibFile, rc);
-
- return makerexxstring( InstValue);
+   if rc then
+      return ''
+   else
+      return makerexxstring( InstValue)
+   endif
 

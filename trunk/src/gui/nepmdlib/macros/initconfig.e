@@ -2,8 +2,8 @@
 *
 * Module Name: initconfigvalue.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdInitConfig@PROTOTYPE
-rc = NepmdInitConfig( Handle);
+NepmdInitConfig( Handle)
 
 @@NepmdInitConfig@CATEGORY@CONFIG
 
@@ -41,7 +41,10 @@ You may pass a *zero* or an *empty string* to
 the configuration repository before and after this call.
 
 @@NepmdInitConfig@RETURNS
-*NepmdInitConfig* returns an OS/2 error code or zero for no error.
+*NepmdInitConfig* returns nothing.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdInitConfig@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -59,50 +62,48 @@ and display the result within the status area.
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
 defc NepmdInitConfig
 
- rc = NepmdInitConfig( 0);
+   call NepmdInitConfig( 0)
 
- if (rc > 0) then
-    sayerror 'configuration repository could not be initialized, rc='rc;
-    return;
- endif
+   if rc then
+      sayerror 'Configuration repository could not be initialized, rc = 'rc'.'
+   else
+      sayerror 'Configuration repository initialized successfully.'
+   endif
 
- sayerror 'config value repository initialized successfully';
-
- return;
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdInitConfig                                    */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    rc = NepmdInitConfig( Handle);                             */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdInitConfig( HCONFIG hconfig);           */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdInitConfig
+; ---------------------------------------------------------------------------
+; E syntax:
+;    NepmdInitConfig( Handle)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdInitConfig( HCONFIG hconfig);
+; ---------------------------------------------------------------------------
 
-defproc NepmdInitConfig( Handle) =
+defproc NepmdInitConfig( Handle)
 
- /* use zero as handle if none specified */
- if (strip( Handle) = '') then
-    Handle = 0;
- endif
+   -- Use zero as handle if none specified
+   if (strip( Handle) = '') then
+      Handle = 0
+   endif
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdInitConfig",
-                  atol( Handle));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdInitConfig",
+                    atol( Handle))
 
- helperNepmdCheckliberror( LibFile, rc);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return rc;
+   return
 

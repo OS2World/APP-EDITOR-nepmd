@@ -2,8 +2,8 @@
 *
 * Module Name: deleteconfigvalue.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdDeleteConfigValue@PROTOTYPE
-rc = NepmdDeleteConfigValue( Handle, ConfPath);
+NepmdDeleteConfigValue( Handle, ConfPath)
 
 @@NepmdDeleteConfigValue@CATEGORY@CONFIG
 
@@ -41,11 +41,14 @@ You may pass a *zero* or an *empty string* to
 the configuration repository before and after this call.
 
 @@NepmdDeleteConfigValue@PARM@ConfPath
-This parameter specifies the [.IDPNL_REGISTRY_NAMESPACE path] under which the
-configuration value is to be deleted.
+This parameter specifies the [.IDPNL_REGISTRY_NAMESPACE path] under which
+the configuration value is to be deleted.
 
 @@NepmdDeleteConfigValue@RETURNS
-*NepmdDeleteConfigValue* returns an OS/2 error code or zero for no error.
+*NepmdDeleteConfigValue* returns nothing.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdDeleteConfigValue@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -66,55 +69,52 @@ and display the result within the status area.
 
 @@
 */
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdDeleteConfigValue, DeleteConfigValue =
+defc NepmdDeleteConfigValue, DeleteConfigValue
 
- rc = NepmdDeleteConfigValue( 0, NEPMD_TEST_CONFIGPATH);
+   call NepmdDeleteConfigValue( 0, NEPMD_TEST_CONFIGPATH)
 
- if (rc > 0) then
-    sayerror 'config value not deleted, rc='rc;
-    return;
- endif
-
- sayerror 'config value  "'NEPMD_TEST_CONFIGPATH'" successfully deleted!';
-
- return;
+   if (rc > 0) then
+      sayerror 'Config value not deleted, rc = 'rc'.'
+   else
+      sayerror 'Config value "'NEPMD_TEST_CONFIGPATH'" successfully deleted.'
+   endif
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdDeleteConfigValue                             */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    rc = NepmdDeleteConfigValue( Handle, ConfPath);            */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdDeleteConfigValue( HCONFIG hconfig,     */
-/*                                          PSZ pszRegPath);     */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdDeleteConfigValue
+; ---------------------------------------------------------------------------
+; E syntax:
+;    NepmdDeleteConfigValue( Handle, ConfPath)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdDeleteConfigValue( HCONFIG hconfig,
+;                                            PSZ pszRegPath);
+; ---------------------------------------------------------------------------
 
-defproc NepmdDeleteConfigValue( Handle, ConfPath) =
+defproc NepmdDeleteConfigValue( Handle, ConfPath)
 
- /* use zero as handle if none specified */
- if (strip( Handle) = '') then
-    Handle = 0;
- endif
+   -- Use zero as handle if none specified
+   if (strip( Handle) = '') then
+      Handle = 0
+   endif
 
- /* prepare parameters for C routine */
- ConfPath  = ConfPath''atoi( 0);
+   -- Prepare parameters for C routine
+   ConfPath = ConfPath\0
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdDeleteConfigValue",
-                  atol( Handle)      ||
-                  address( ConfPath));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdDeleteConfigValue",
+                    atol( Handle)      ||
+                    address( ConfPath))
 
- helperNepmdCheckliberror( LibFile, rc);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return rc;
+   return
 

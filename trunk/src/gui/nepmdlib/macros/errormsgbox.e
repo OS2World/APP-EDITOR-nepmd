@@ -2,8 +2,8 @@
 *
 * Module Name: errormsgbox.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdErrorMsgBox@PROTOTYPE
-rc = NepmdErrorMsgBox( BoxMessage, BoxTitle);
+NepmdErrorMsgBox( BoxMessage, BoxTitle)
 
 @@NepmdErrorMsgBox@CATEGORY@INTERACT
 
@@ -40,7 +40,10 @@ This parameter specifies the title to be
 displayed in the message box.
 
 @@NepmdErrorMsgBox@RETURNS
-*NepmdErrorMsgBox* returns an OS/2 error code or zero for no error.
+*NepmdErrorMsgBox* returns nothing.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdErrorMsgBox@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -59,51 +62,49 @@ specified message text.
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdErrorMsgBox, ErrorMsgBox =
+defc NepmdErrorMsgBox, ErrorMsgBox
 
- ErrorText = arg( 1);
- if (ErrorText = '') then
-    ErrorText = 'This is an error message box!';
- endif
+   ErrorText = arg( 1)
+   if (ErrorText = '') then
+      ErrorText = 'This is an error message box.'
+   endif
 
- rcx = NepmdErrorMsgBox( ErrorText, 'Netlabs EPM Distribution');
-
- return;
+   call NepmdErrorMsgBox( ErrorText, 'Netlabs EPM Distribution')
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdErrorMsgBox                                   */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    rc = NepmdErrorMsgBox( BoxMessage, BoxTitle);              */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdErrorMsgBox( HWND hwndClient,           */
-/*                                    PSZ pszMessage,            */
-/*                                    PSZ pszTitle)              */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdErrorMsgBox
+; ---------------------------------------------------------------------------
+; E syntax:
+;    NepmdErrorMsgBox( BoxMessage, BoxTitle)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdErrorMsgBox( HWND hwndClient,
+;                                      PSZ pszMessage,
+;                                      PSZ pszTitle);
+; ---------------------------------------------------------------------------
 
-defproc NepmdErrorMsgBox( BoxMessage, BoxTitle) =
+defproc NepmdErrorMsgBox( BoxMessage, BoxTitle)
 
- /* prepare parameters for C routine */
- BoxMessage = BoxMessage''atoi( 0);
- BoxTitle   = Boxtitle''atoi( 0);
+   -- Prepare parameters for C routine
+   BoxMessage = BoxMessage\0
+   BoxTitle   = Boxtitle\0
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdErrorMsgBox",
-                  gethwndc( EPMINFO_EDITCLIENT) ||
-                  address( BoxMessage)          ||
-                  address( BoxTitle));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdErrorMsgBox",
+                    gethwndc( EPMINFO_EDITCLIENT) ||
+                    address( BoxMessage)          ||
+                    address( BoxTitle))
 
- helperNepmdCheckliberror( LibFile, rc);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return rc;
+   return
 

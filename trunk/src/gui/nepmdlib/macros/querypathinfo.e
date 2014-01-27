@@ -2,8 +2,8 @@
 *
 * Module Name: querypathinfo.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,13 +24,12 @@
 
 /*
 @@NepmdQueryPathInfo@PROTOTYPE
-InfoValue = NepmdQueryPathInfo( Pathname, ValueTag);
+InfoValue = NepmdQueryPathInfo( Pathname, ValueTag)
 
 @@NepmdQueryPathInfo@CATEGORY@FILE
 
 @@NepmdQueryPathInfo@SYNTAX
-This function queries installation related values
-from the [=TITLE].
+This function queries installation-related values from the [=TITLE].
 
 @@NepmdQueryPathInfo@PARM@Pathname
 This parameter specifies the pathname of the file or directory, of
@@ -56,10 +55,11 @@ The following keywords are supported:
 .el
 
 @@NepmdQueryPathInfo@RETURNS
-*NepmdQueryPathInfo* returns either
-.ul compact
-- the information value  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+*NepmdQueryPathInfo* returns the information value.
+In case of an error an empty string is returned.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdQueryPathInfo@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -69,80 +69,84 @@ executing:
   - or
 - *QueryPathInfo* [.IDPNL_EFUNC_NEPMDQUERYPATHINFO_PARM_PATHNAME pathname]
 
-Executing this command will
-open up a virtual file and
+Executing this command will open up a virtual file and
 write all [.IDPNL_EFUNC_NEPMDQUERYPATHINFO_PARM_VALUETAG supported path info values]
 about the specified file or directory into it.
 
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
 defc NepmdQueryPathInfo, QueryPathInfo
 
- PathName = arg( 1);
- if (PathName = '') then
-    sayerror 'error: no pathname specified !';
-    return;
- endif
+   do i = 1 to 1
 
- /* create virtual file */
- helperNepmdCreateDumpfile( 'NepmdQueryPathInfo', NepmdQueryFullname( PathName));
+      PathName = arg( 1)
+      if (PathName = '') then
+         sayerror 'Error: no pathname specified.'
+         leave
+      endif
 
- insertline helperNepmdQueryPathInfoValue( PathName, 'ATIME');
- insertline helperNepmdQueryPathInfoValue( PathName, 'MTIME');
- insertline helperNepmdQueryPathInfoValue( PathName, 'CTIME');
- insertline helperNepmdQueryPathInfoValue( PathName, 'SIZE');
- insertline helperNepmdQueryPathInfoValue( PathName, 'EASIZE');
- insertline helperNepmdQueryPathInfoValue( PathName, 'ATTR');
- .modify = 0;
+      -- Create virtual file
+      helperNepmdCreateDumpfile( 'NepmdQueryPathInfo', NepmdQueryFullname( PathName))
 
- return;
+      insertline helperNepmdQueryPathInfoValue( PathName, 'ATIME')
+      insertline helperNepmdQueryPathInfoValue( PathName, 'MTIME')
+      insertline helperNepmdQueryPathInfoValue( PathName, 'CTIME')
+      insertline helperNepmdQueryPathInfoValue( PathName, 'SIZE')
+      insertline helperNepmdQueryPathInfoValue( PathName, 'EASIZE')
+      insertline helperNepmdQueryPathInfoValue( PathName, 'ATTR')
+      .modify = 0
 
-defproc helperNepmdQueryPathInfoValue( Pathname, ValueTag) =
-  return leftstr( ValueTag, 6) ':' NepmdQueryPathInfo( PathName, ValueTag);
+   enddo
+
+defproc helperNepmdQueryPathInfoValue( Pathname, ValueTag)
+   return leftstr( ValueTag, 6) ':' NepmdQueryPathInfo( PathName, ValueTag)
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdQueryPathInfo                                 */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    InfoValue = NepmdQueryPathInfo( PathName, ValueTag);       */
-/*                                                               */
-/*  See valig tags in src\gui\nepmdlib\nepmdlib.h:               */
-/*      NEPMD_PATHINFO_*                                         */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdQueryPathInfo( PSZ pszPathname,         */
-/*                                      PSZ pszInfoTag,          */
-/*                                      PSZ pszBuffer,           */
-/*                                      ULONG ulBuflen)          */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdQueryPathInfo
+; ---------------------------------------------------------------------------
+; E syntax:
+;    InfoValue = NepmdQueryPathInfo( PathName, ValueTag)
+;
+;    See valig tags in src\gui\nepmdlib\nepmdlib.h: NEPMD_PATHINFO_*
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdQueryPathInfo( PSZ pszPathname,
+;                                        PSZ pszInfoTag,
+;                                        PSZ pszBuffer,
+;                                        ULONG ulBuflen);
+; ---------------------------------------------------------------------------
 
-defproc NepmdQueryPathInfo( Pathname, ValueTag) =
+defproc NepmdQueryPathInfo( Pathname, ValueTag)
 
- BufLen    = 260;
- InfoValue = copies( atoi( 0), BufLen);
+   BufLen    = 260
+   InfoValue = copies( \0, BufLen)
 
- /* prepare parameters for C routine */
- Pathname = Pathname''atoi( 0);
- ValueTag  = ValueTag''atoi( 0);
+   -- Prepare parameters for C routine
+   Pathname = Pathname\0
+   ValueTag  = ValueTag\0
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdQueryPathInfo",
-                  address( Pathname)         ||
-                  address( ValueTag)         ||
-                  address( InfoValue)        ||
-                  atol( Buflen));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdQueryPathInfo",
+                    address( Pathname)         ||
+                    address( ValueTag)         ||
+                    address( InfoValue)        ||
+                    atol( Buflen))
 
- helperNepmdCheckliberror( LibFile, rc);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return makerexxstring( InfoValue);
+   if rc then
+      return ''
+   else
+      return makerexxstring( InfoValue)
+   endif
 

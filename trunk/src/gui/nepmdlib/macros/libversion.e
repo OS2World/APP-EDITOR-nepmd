@@ -2,8 +2,8 @@
 *
 * Module Name: libversion.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdLibVersion@PROTOTYPE
-Version = NepmdLibVersion();
+Version = NepmdLibVersion()
 
 @@NepmdLibVersion@CATEGORY@INSTALL
 
@@ -34,61 +34,60 @@ of the [=TITLE].
 
 @@NepmdLibVersion@RETURNS
 *NepmdLibVersion* returns the version number of the runtime library
-of the [=TITLE].
+of the [=TITLE]. In case of an error an empty string is returned.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdLibVersion@TESTCASE
-You can test this function from the *EPM* commandline by
-executing:
+You can test this function from the *EPM* commandline by executing:
 .sl
 - *NepmdLibVersion*
 
-Executing this command will
-display the version number of the runtime library of the [=TITLE]
-within the status area.
+Executing this command will display the version number of the runtime
+library of the [=TITLE] within the status area.
 
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
-; We want this command also if included in EPM.E to call it from
-; the command line or from an menu item.
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
+; This command is executed from the menu and should be available from cammand
+; line.
 
-defc NepmdLibVersion =
+defc NepmdLibVersion
 
- sayerror 'NEPMDLIB Version' NepmdLibVersion();
+   sayerror 'NEPMDLIB Version' NepmdLibVersion()
 
- return;
+; ---------------------------------------------------------------------------
+; Procedure: NepmdLibVersion
+; ---------------------------------------------------------------------------
+; E syntax:
+;    Version = NepmdLibVersion()
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdLibVersion( PSZ pszBuffer,
+;                                     ULONG ulBuflen)
+; ---------------------------------------------------------------------------
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdLibVersion                                    */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    Version = NepmdLibVersion();                               */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdLibVersion( PSZ pszBuffer,              */
-/*                                   ULONG ulBuflen)             */
-/*                                                               */
-/* ------------------------------------------------------------- */
+defproc NepmdLibVersion()
 
-defproc NepmdLibVersion() =
+   BufLen     = 20
+   LibVersion = copies( \0, BufLen)
 
- BufLen     = 20;
- LibVersion = copies( atoi( 0), BufLen);
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdLibVersion",
+                    address( LibVersion) ||
+                    atol( Buflen))
 
- /* prepare parameters for C routine */
- Token    = Token''atoi( 0);
+   helperNepmdCheckliberror( LibFile, rc)
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdLibVersion",
-                  address( LibVersion) ||
-                  atol( Buflen));
-
- helperNepmdCheckliberror( LibFile, rc);
-
- return makerexxstring( LibVersion);
+   if rc then
+      return ''
+   else
+      return makerexxstring( LibVersion)
+   endif
 
