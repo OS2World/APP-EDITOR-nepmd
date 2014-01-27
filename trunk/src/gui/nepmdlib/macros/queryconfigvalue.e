@@ -59,12 +59,11 @@ executing:
   - or
 - *QueryConfigValue*
 
-
 Executing this command will read the configuration value with the pathname
 .sl compact
 - *\NEPMD\Test\Nepmdlib\TestKey*
 .el
-from the configuration repository of the [=TILE]
+from the configuration repository of the [=TITLE]
 and display the result within the status area.
 
 @@
