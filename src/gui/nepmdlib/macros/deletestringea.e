@@ -2,8 +2,8 @@
 *
 * Module Name: deletestringea.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdDeleteStringEa@PROTOTYPE
-rc = NepmdDeleteStringEa( Filename, EaName);
+NepmdDeleteStringEa( Filename, EaName)
 
 @@NepmdDeleteStringEa@CATEGORY@EAS
 
@@ -53,7 +53,10 @@ attribute to be deleted.
 .at
 
 @@NepmdDeleteStringEa@RETURNS
-*NepmdDeleteStringEa* returns an OS/2 error code or zero for no error.
+*NepmdDeleteStringEa* returns nothing.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdDeleteStringEa@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -73,7 +76,7 @@ with the name
 from the specified file
 and display the result within the status area.
 
-_*Example:*_
+*Example:*
 .fo off
   DeleteStringEa d:\myscript.txt
 .fo on
@@ -81,54 +84,55 @@ _*Example:*_
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdDeleteStringEa, DeleteStringEa =
+defc NepmdDeleteStringEa, DeleteStringEa
 
- Filename = arg( 1);
- if (Filename = '') then
-    sayerror 'error: no filename specified.';
-    return;
- endif
+   do i = 1 to 1
 
- rc = NepmdWriteStringEa( Filename, NEPMD_TEST_EANAME, '');
- if (rc > 0) then
-    sayerror 'Extended attribute not deleted, rc='rc;
-    return;
- endif
+      Filename = arg( 1)
+      if (Filename = '') then
+         sayerror 'error: no filename specified.'
+         leave
+      endif
 
- sayerror 'Extended attribute "'NEPMD_TEST_EANAME'" deleted from:' Filename;
+      call NepmdWriteStringEa( Filename, NEPMD_TEST_EANAME, '')
+      if (rc > 0) then
+         sayerror 'Extended attribute not deleted, rc = 'rc'.'
+      else
+         sayerror 'Extended attribute "'NEPMD_TEST_EANAME'" deleted from:' Filename'.'
+      endif
 
- return;
+   enddo
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdDeleteStringEa                                */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    Fullname = NepmdDeleteStringEa( Filename, EaName);         */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdDeleteStringEa
+; ---------------------------------------------------------------------------
+; E syntax:
+;    NepmdDeleteStringEa( Filename, EaName)
+; ---------------------------------------------------------------------------
 
-defproc NepmdDeleteStringEa( Filename, EaName ) =
+defproc NepmdDeleteStringEa( Filename, EaName )
 
- /* prepare parameters for C routine */
- Filename   = Filename''atoi( 0);
- EaName     = EaName''atoi( 0);
- EaValue    = atoi( 0);
+   -- Prepare parameters for C routine
+   Filename   = Filename\0
+   EaName     = EaName\0
+   EaValue    = \0
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdWriteStringEa",
-                  address( Filename)            ||
-                  address( EaName)              ||
-                  address( EaValue));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdWriteStringEa",
+                    address( Filename)            ||
+                    address( EaName)              ||
+                    address( EaValue))
 
- helperNepmdCheckliberror( LibFile, rc);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return rc;
+   return
 

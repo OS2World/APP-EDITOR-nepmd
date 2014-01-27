@@ -2,8 +2,8 @@
 *
 * Module Name: deleterexxea.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdDeleteRexxEa@PROTOTYPE
-rc = NepmdDeleteRexxEa( Filename);
+NepmdDeleteRexxEa( Filename)
 
 @@NepmdDeleteRexxEa@CATEGORY@EAS
 
@@ -37,7 +37,10 @@ This parameter specifies the name of the file, from which
 the REXX EAs are to be deleted.
 
 @@NepmdDeleteRexxEa@RETURNS
-*NepmdDeleteRexxEa* returns an OS/2 error code or zero for no error.
+*NepmdDeleteRexxEa* returns nothing.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdDeleteRexxEa@REMARKS
 [=NOTE]
@@ -59,7 +62,7 @@ Executing this command will
 remove the REXX extended attributes from the specified file
 and display the result within the status area.
 
-_*Example:*_
+*Example:*
 .fo off
   DeleteRexxEa d:\myscript.cmd
 .fo on
@@ -68,53 +71,54 @@ _*Example:*_
 */
 
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdDeleteRexxEa, DeleteRexxEa =
+defc NepmdDeleteRexxEa, DeleteRexxEa
 
- Filename = arg( 1);
- if (Filename = '') then
-    sayerror 'error: no filename specified.';
-    return;
- endif
+   do i = 1 to 1
 
- /* error handling for first EA only */
- rc = NepmdDeleteRexxEa( Filename);
- if (rc > 0) then
-    sayerror 'REXX Eas not deleted, rc='rc;
-    return;
- endif
+      Filename = arg( 1)
+      if (Filename = '') then
+         sayerror 'error: no filename specified.'
+         leave
+      endif
 
- sayerror 'REXX Eas deleted';
+      -- error handling for first EA only
+      call NepmdDeleteRexxEa( Filename)
+      if rc then
+         sayerror 'REXX Eas not deleted, rc = 'rc'.'
+      else
+         sayerror 'REXX Eas deleted.'
+      endif
 
- return;
+   enddo
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdDeleteRexxEa                                  */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    Fullname = NepmdDeleteRexxEa( Filename);                   */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdDeleteRexxEa
+; ---------------------------------------------------------------------------
+; E syntax:
+;    NepmdDeleteRexxEa( Filename)
+; ---------------------------------------------------------------------------
 
-defproc NepmdDeleteRexxEa( Filename ) =
+defproc NepmdDeleteRexxEa( Filename )
 
- /* error handling for first EA only */
- rc = NepmdWriteStringEa( Filename, 'REXX.METACONTROL', '');
- if (rc > 0) then
-    sayerror 'REXX Eas not deleted, rc='rc;
-    return;
- endif
+   -- Error handling for first EA only
+   call NepmdWriteStringEa( Filename, 'REXX.METACONTROL', '')
+   if rc then
+      sayerror 'REXX Eas not deleted, rc = 'rc'.'
+      return
+   endif
 
- /* delete all others as well, discard result codes here */
- rcx = NepmdWriteStringEa( Filename, 'REXX.PROGRAMDATA', '');
- rcx = NepmdWriteStringEa( Filename, 'REXX.LITERALPOOL', '');
- rcx = NepmdWriteStringEa( Filename, 'REXX.TOKENSIMAGE', '');
- rcx = NepmdWriteStringEa( Filename, 'REXX.VARIABLEBUF', '');
+   -- Delete all others as well, discard result codes here
+   call NepmdWriteStringEa( Filename, 'REXX.PROGRAMDATA', '')
+   call NepmdWriteStringEa( Filename, 'REXX.LITERALPOOL', '')
+   call NepmdWriteStringEa( Filename, 'REXX.TOKENSIMAGE', '')
+   call NepmdWriteStringEa( Filename, 'REXX.VARIABLEBUF', '')
 
- return rc;
+   return
 

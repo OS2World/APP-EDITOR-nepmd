@@ -2,8 +2,8 @@
 *
 * Module Name: setframewindowpos.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdSetFrameWindowPos@PROTOTYPE
-rc = NepmdSetFrameWindowPos( x, y, cx, cy, flags);
+NepmdSetFrameWindowPos( x, y, cx, cy, flags)
 
 @@NepmdSetFrameWindowPos@CATEGORY@EPMWINDOW
 
@@ -90,78 +90,74 @@ Executing this command will
 set the window position of the *EPM* frame window
 and display the result within the status area.
 
-_*Example:*_
+*Example:*
 .fo off
-   SetFrameWindowPos 100 100 800 800 3
+ SetFrameWindowPos 100 100 800 800 3
 .fo on
 
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
 defc NepmdSetFrameWindowPos, SetFrameWindowPos
 
- parse value arg( 1) with x y cx cy flags;
- if (cy = '') then
-    sayerror 'no complete window position specified!';
-    return;
- endif
+   do i = 1 to 1
 
- rc = NepmdSetFrameWindowPos( x, y, cx, cy, flags);
+      parse value arg( 1) with x y cx cy flags
+      if (cy = '') then
+         sayerror 'No complete window position specified.'
+         return
+      endif
 
- if (rc > 0) then
-    sayerror 'window pos of frame cannot be modified, rc='rc;
-    return;
- endif
+      call NepmdSetFrameWindowPos( x, y, cx, cy, flags)
 
- sayerror 'window pos of frame modified successfully.';
+      if rc then
+         sayerror 'Window pos of frame cannot be modified, rc = 'rc'.'
+      else
+         sayerror 'Window pos of frame modified successfully.'
+      endif
 
- return;
+   enddo
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdSetFrameWindowPos                             */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    rc = NepmdSetFrameWindowPos( x, y, cx, cy, style);         */
-/*                                                               */
-/*   windowId is one of the EPMINFO_* values of stdconst.e       */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdSetFrameWindowPos( HWND hwndFrame,      */
-/*                                          ULONG x, ULONG y,    */
-/*                                          ULONG cx, ULONG cy,  */
-/*                                          ULONG flags);        */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdSetFrameWindowPos
+; ---------------------------------------------------------------------------
+; E syntax:
+;    rc = NepmdSetFrameWindowPos( x, y, cx, cy, style)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdSetFrameWindowPos( HWND hwndFrame,
+;                                            ULONG x, ULONG y,
+;                                            ULONG cx, ULONG cy,
+;                                            ULONG flags);
+; ---------------------------------------------------------------------------
 
-defproc NepmdSetFrameWindowPos( x, y, cx, cy) =
+defproc NepmdSetFrameWindowPos( x, y, cx, cy)
 
- /* use default for flags */
- Flags = arg( 5);
- if (flags = '') then
-    flags = 3;
- endif
+   -- Use default for flags
+   Flags = arg( 5)
+   if (Flags = '') then
+      Flags = 3
+   endif
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdSetFrameWindowPos",
-                  gethwndc( EPMINFO_EDITFRAME)  ||
-                  atol( x)                      ||
-                  atol( y)                      ||
-                  atol( cx)                     ||
-                  atol( cy)                     ||
-                  atol( flags));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdSetFrameWindowPos",
+                    gethwndc( EPMINFO_EDITFRAME)  ||
+                    atol( x)                      ||
+                    atol( y)                      ||
+                    atol( cx)                     ||
+                    atol( cy)                     ||
+                    atol( Flags))
 
- helperNepmdCheckliberror( LibFile, rc);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return rc;
+   return
 

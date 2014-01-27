@@ -2,8 +2,8 @@
 *
 * Module Name: searchpath.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdSearchPath@PROTOTYPE
-Fullname = NepmdSearchPath( Filename, EnvVar);
+Fullname = NepmdSearchPath( Filename, EnvVar)
 
 @@NepmdSearchPath@CATEGORY@FILE
 
@@ -45,10 +45,11 @@ When this parameter is not specified, the file is searched along the path
 specified bye the environment variable *PATH*.
 
 @@NepmdSearchPath@RETURNS
-*NepmdSearchPath* returns either
-.ul compact
-- the full qualified filename  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+*NepmdSearchPath* returns the full qualified filename.
+In case of an error an empty string is returned.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdSearchPath@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -77,72 +78,75 @@ _*Examples:*_
 */
 
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdSearchPath, SearchPath =
+defc NepmdSearchPath, SearchPath
 
- parse arg Filename EnvVarName
- if leftstr( Filename, 1) = '"' then
-    parse arg '"'Filename'"' EnvVarName
- endif
+   do i = 1 to 1
 
- if (Filename = '') then
-    sayerror 'error: no filename specified.';
-    return;
- endif
- if (EnvVarName = '') then
-    EnvVarName = 'PATH';
- endif
+      parse arg Filename EnvVarName
+      if leftstr( Filename, 1) = '"' then
+         parse arg '"'Filename'"' EnvVarName
+      endif
 
- Fullname = NepmdSearchPath( Filename, EnvVarName);
- parse value Fullname with 'ERROR:'rc;
- if (rc > '') then
-    sayerror '"'Filename'" could not be found on "'EnvVarName'", rc='rc;
-    return;
- endif
+      if (Filename = '') then
+         sayerror 'error: no filename specified.'
+         leave
+      endif
+      if (EnvVarName = '') then
+         EnvVarName = 'PATH'
+      endif
 
- sayerror 'Location of "'Filename'" on "'EnvVarName'" is:' Fullname;
+      Fullname = NepmdSearchPath( Filename, EnvVarName)
+      if rc then
+         sayerror '"'Filename'" could not be found on "'EnvVarName'", rc = 'rc'.'
+      else
+         sayerror 'Location of "'Filename'" on "'EnvVarName'" is:' Fullname
+      endif
 
- return;
+   enddo
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdSearchPath                                    */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    Fullname = NepmdSearchPath( filename);                     */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdSearchPath( PSZ pszFilename,            */
-/*                                   PSZ pszEnvVarName,          */
-/*                                   PSZ pszBuffer,              */
-/*                                   ULONG ulBuflen)             */
-/*                                                               */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdSearchPath
+; ---------------------------------------------------------------------------
+; E syntax:
+;    Fullname = NepmdSearchPath( filename)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdSearchPath( PSZ pszFilename,
+;                                     PSZ pszEnvVarName,
+;                                     PSZ pszBuffer,
+;                                     ULONG ulBuflen);
+; ---------------------------------------------------------------------------
 
-defproc NepmdSearchPath( Filename) =
+defproc NepmdSearchPath( Filename)
 
- BufLen   = 260;
- FullName = copies( atoi( 0), BufLen);
+   BufLen   = 260
+   FullName = copies( \0, BufLen)
 
- /* prepare parameters for C routine */
- Filename   = Filename''atoi( 0);
- EnvVarName = arg( 2)''atoi( 0);  /* this parm is optional */
+   -- Prepare parameters for C routine
+   Filename   = Filename\0
+   EnvVarName = arg( 2)\0  -- this parm is optional
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdSearchPath",
-                  address( Filename)            ||
-                  address( EnvVarName)          ||
-                  address( Fullname)            ||
-                  atol( Buflen));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdSearchPath",
+                    address( Filename)            ||
+                    address( EnvVarName)          ||
+                    address( Fullname)            ||
+                    atol( Buflen))
 
- helperNepmdCheckliberror( LibFile, rc);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return makerexxstring( FullName);
+   if rc then
+      return ''
+   else
+      return makerexxstring( FullName)
+   endif
 

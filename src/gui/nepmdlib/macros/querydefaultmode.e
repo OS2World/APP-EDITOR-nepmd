@@ -2,8 +2,8 @@
 *
 * Module Name: querydefaultmode.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdQueryDefaultMode@PROTOTYPE
-DefaultMode = NepmdQueryDefaultMode( Filename);
+DefaultMode = NepmdQueryDefaultMode( Filename)
 
 @@NepmdQueryDefaultMode@CATEGORY@MODE
 
@@ -38,13 +38,16 @@ the default *EPM* mode is to be determined.
 @@NepmdQueryDefaultMode@RETURNS
 *NepmdQueryDefaultMode* returns either
 .ul compact
-- the name of the default *EPM* mode  or
-- *TEXT*, if no mode could be determined  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+- the name of the default *EPM* mode or
+- *TEXT*, if no mode could be determined or if in case of an error.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
+rc is set to 3 = ERROR__PATH__NOT__FOUND if no mode could be determined.
+
 
 @@NepmdQueryDefaultMode@TESTCASE
-You can test this function from the *EPM* commandline by
-executing:
+You can test this function from the *EPM* commandline by executing:
 .sl
 - *NepmdQueryDefaultMode*
    [.IDPNL_EFUNC_NEPMDQUERYDEFAULTMODE_PARM_FILENAME filename]
@@ -52,80 +55,86 @@ executing:
 - *QueryDefaultMode*
    [.IDPNL_EFUNC_NEPMDQUERYDEFAULTMODE_PARM_FILENAME filename]
 
-
-Executing this command will
-determine the default mode of the
+Executing this command will determine the default mode of the
 the specified file.
 
-_*Example:*_
+*Example:*
 .fo off
-  QueryDefaultMode d:\test.cmd
+ QueryDefaultMode d:\test.cmd
 .fo on
 
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdQueryDefaultMode, QueryDefaultMode =
+defc NepmdQueryDefaultMode, QueryDefaultMode
 
- Filename =  arg( 1);
- if (Filename = '') then
-    sayerror 'error: no filename specified.';
-    return;
- endif
+   do i = 1 to 1
 
- DefaultMode = NepmdQueryDefaultMode( Filename);
- parse value DefaultMode with 'ERROR:'rc;
- if (rc > '') then
-    sayerror 'default EPM mode could not be determined, rc='rc;
-    return;
- endif
+      Filename =  arg( 1)
+      if (Filename = '') then
+         sayerror 'Error: no filename specified.'
+         leave
+      endif
 
- sayerror 'default mode for "'Filename'" is:' DefaultMode;
+      DefaultMode = NepmdQueryDefaultMode( Filename)
+      if rc then
+         sayerror 'Default EPM mode could not be determined, rc = 'rc'.'
+      else
+         sayerror 'Default mode for "'Filename'" is:' DefaultMode
+      endif
 
- return;
+   enddo
+
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdQueryDefaultMode                              */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    DefaultMode = NepmdQueryDefaultMode( Filename);            */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdQueryDefaultMode( PSZ pszFilename,      */
-/*                                         PSZ pszBuffer,        */
-/*                                         ULONG ulBuflen)       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdQueryDefaultMode
+; ---------------------------------------------------------------------------
+; E syntax:
+;    DefaultMode = NepmdQueryDefaultMode( Filename)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdQueryDefaultMode( PSZ pszFilename,
+;                                           PSZ pszBuffer,
+;                                           ULONG ulBuflen);
+; ---------------------------------------------------------------------------
 
-defproc NepmdQueryDefaultMode( Filename ) =
+compile if not defined( NEPMD_MAXLEN_ESTRING) then
+   include 'STDCONST.E'
+compile endif
 
- BufLen      = NEPMD_MAXLEN_ESTRING;
- DefaultMode = copies( atoi( 0), BufLen);
+defproc NepmdQueryDefaultMode( Filename)
 
- /* prepare parameters for C routine */
- Filename   = Filename''atoi( 0);
+   BufLen      = NEPMD_MAXLEN_ESTRING
+   DefaultMode = copies( \0, BufLen)
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdQueryDefaultMode",
-                  address( Filename)    ||
-                  address( DefaultMode) ||
-                  atol( Buflen));
+   -- Prepare parameters for C routine
+   Filename = Filename\0
 
- /* reserved value, if no mode found */
- if (rc == 3) then
-    DefaultMode = "TEXT";
- else
-    helperNepmdCheckliberror( LibFile, rc);
-    DefaultMode = makerexxstring( DefaultMode);
- endif
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    'NepmdQueryDefaultMode',
+                    address( Filename)    ||
+                    address( DefaultMode) ||
+                    atol( Buflen))
 
- return DefaultMode;
+
+   if (rc == 3) then        -- 3 = reserved value, if no mode found
+      DefaultMode = 'TEXT'
+   elseif rc then
+      DefaultMode = 'TEXT'  -- use TEXT also for other errors
+   else
+      DefaultMode = makerexxstring( DefaultMode)
+   endif
+
+   helperNepmdCheckliberror( LibFile, rc)
+
+   return DefaultMode;
 

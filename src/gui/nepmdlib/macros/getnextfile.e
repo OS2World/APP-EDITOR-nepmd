@@ -2,8 +2,8 @@
 *
 * Module Name: getnextfile.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdGetNextFile@PROTOTYPE
-Filename = NepmdGetNextFile( FileMask, AddressOfHandle);
+Flag = NepmdGetNextFile( FileMask, Handle, NextFilename)
 
 @@NepmdGetNextFile@CATEGORY@FILE
 
@@ -37,54 +37,57 @@ for files with one function. For that it needs to be
 This parameter specifies the files to be searched
 and may contain wildcards.
 
-@@NepmdGetNextFile@PARM@AddressOfHandle
-This parameter specifies the address of a search handle,
-it can be determined with the *address()* function like
-.fo off
- Handle  = 0;
- AddressOfHandle = address( Handle);
-.fo on
+@@NepmdGetNextFile@PARM@Handle
+This parameter specifies the handle used for the search.
 
 Note that on the first call to NepmdGetNextFile() the value
-of the variable holding the handle must be set to zero
-in order initiate a new search.
+of the variable holding the handle must be set to '' or to
+GETNEXT_CREATE_NEW_HANDLE in order to initiate a new search.
+
+The used handle is stored in this parameter.
+
+@@NepmdGetNextFile@PARM@FileName
+This parameter should be set to '' when specified.
+
+The next found filename is stored in this parameter.
 
 @@NepmdGetNextFile@EXAMPLE
 The following code searches all files within the directory C:\OS2:
 .fo off
- Handle  = 0;  /** always create a new handle ! **/
- AddressOfHandle = address( Handle);
- FileMask = 'C:\OS2\**';
+ FileMask     = 'C:\OS2\**'
+ Handle       = ''  -- always create a new handle
+ NextFilename = ''
 
- /** search all files **/
- do while (1)
-    Filename = NepmdGetNextFile(  FileMask, AddressOfHandle);
-    parse value Filename with 'ERROR:'rc;
-    if (rc > '') then
-       leave;
-    endif
-
-    /** process subdirectory - here as a sample we display a popup **/
-    messagenwait( 'File found:' Filename);
- end;
-
+ -- Search all files
+ do while NepmdGetNextFile( FileMask, Handle, NextFilename)
+    -- Process subdirectory - here as a sample we display a popup
+    messagenwait( 'File found:' NextFilename)
+ enddo
 .fo on
 
 @@NepmdGetNextFile@REMARKS
 The search handle created by *NepmdGetNextFile* is automatically closed
 if the search is repeated until no more entries are available.
 
-.at fc=red
 If a search for files is interrupted for any reason before receiving
-the error code 18 (ERROR__NO__MORE__FILES), it is required to close
-the search handle by a call to [.IDPNL_EFUNC_NEPMDGETNEXTCLOSE].
-.at
+the error code 18 (ERROR__NO__MORE__FILES), the search handle is closed
+automatically by a call to [.IDPNL_EFUNC_NEPMDGETNEXTCLOSE].
 
 @@NepmdGetNextFile@RETURNS
 *NepmdGetNextFile* returns either
 .ul compact
-- the next directory returned by the directory seach  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+- *0* (zero), if no more files exist or on error
+- *1*, if next filename was queried successfully.
+
+The next filename returned by the search is stored in the
+[.IDPNL_EFUNC_NEPMDGETNEXTFILE_PARM_NEXTFILENAME NextFilename] parameter.
+
+The search handle returned by the search is stored in the
+[.IDPNL_EFUNC_NEPMDGETNEXTFILE_PARM_HANDLE Handle] parameter.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
+rc is set to 18 = ERROR__NO__MORE__FILES if no filename was found.
 
 @@NepmdGetNextFile@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -98,93 +101,113 @@ Executing this command will
 open up a virtual file and
 write all found files into it.
 
-_*Example:*_
+*Example:*
 .fo off
-  GetNextFile c:\os2\**
+ GetNextFile c:\os2\**
 .fo on
 
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
-include 'STDCONST.E'
 
-defc NepmdGetNextFile, GetNextFile =
+defc NepmdGetNextFile, GetNextFile
 
- Handle = GETNEXT_CREATE_NEW_HANDLE
- AddressOfHandle = address( Handle);
- call dprintf('getnext', 'Address of handle: 'AddressOfHandle)
+   do i = 1 to 1
 
- FileMask = arg( 1);
- if (FileMask = '') then
-    sayerror 'error: no filename mask specified !';
-    return;
- endif
+      FileMask = arg( 1)
+      if (FileMask = '') then
+         sayerror 'Error: no file mask specified.'
+         leave
+      endif
 
- FileMask = NepmdQueryFullname( FileMask);
- parse value FileMask with 'ERROR:'rc;
- if (rc > '') then
-    sayerror 'error: invalid file mask specified !';
-    return;
- endif
+      FileMask = NepmdQueryFullname( FileMask)
+      if rc then
+         sayerror 'Error: invalid file mask specified.'
+         leave
+      endif
 
- /* create virtual file */
- helperNepmdCreateDumpfile( 'NepmdGetNextFile', FileMask);
+      Handle       = ''
+      NextFileName = ''
 
- /* search all files */
- do while (1)
-    Filename = NepmdGetNextFile(  FileMask, AddressOfHandle);
-    parse value Filename with 'ERROR:'rc;
-    if (rc > '') then
-       leave;
-    endif
+      -- Create virtual file
+      helperNepmdCreateDumpfile( 'NepmdGetNextFile', FileMask)
 
-    insertline( Filename);
- end;
- .modify = 0;
+      -- Search all files
+      do while NepmdGetNextFile( FileMask, Handle, NextFilename)
+         insertline( NextFilename)
+      enddo
+      .modify = 0
 
- return;
+/*
+      rc = 0
+      do while not rc
+         Flag = NepmdGetNextFile( FileMask, Handle, NextFilename)
+         dprintf( 'rc = 'rc', Flage = 'Flag', NextFilename = 'NextFilename', address( Handle) = 'address( Handle))
+      enddo
+*/
+
+   enddo
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdGetNextFile                                   */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    Handle   = 0;                                              */
-/*    Filename = NepmdGetNextFile( FileMask, address(Handle));   */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdGetNextFile( PSZ   pszFileMask,         */
-/*                                    PSZ   pszHandle,           */
-/*                                    PSZ   pszBuffer,           */
-/*                                    ULONG ulBuflen)            */
-/*                                                               */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdGetNextFile
+; ---------------------------------------------------------------------------
+; E syntax:
+;    Flag = NepmdGetNextFile( FileMask, Handle, NextFilename)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdGetNextFile( PSZ   pszFileMask,
+;                                      PSZ   pszHandle,
+;                                      PSZ   pszBuffer,
+;                                      ULONG ulBuflen);
+; ---------------------------------------------------------------------------
 
-defproc NepmdGetNextFile( FileMask, PtrToHandle) =
+compile if not defined( GETNEXT_CREATE_NEW_HANDLE) then
+   include 'STDCONST.E'
+compile endif
 
- BufLen   = 260;
- FileName = copies( atoi( 0), BufLen);
+defproc NepmdGetNextFile( FileMask, var Handle, var NextFilename)
 
- /* prepare parameters for C routine */
- /* don't touch the handle parameter, as we must report */
- /* the address of the original var of the caller !!!   */
- FileMask   = FileMask''atoi( 0);
+   if (strip( Handle) = '') then
+      Handle = GETNEXT_CREATE_NEW_HANDLE
+   endif
+   BufLen       = 260
+   NextFilename = copies( \0, BufLen)
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdGetNextFile",
-                  address( FileMask)            ||
-                  PtrToHandle                   ||
-                  address( Filename)            ||
-                  atol( Buflen));
+   -- Prepare parameters for C routine
+   -- Don't touch the handle parameter, as we must report
+   -- the address of the original var of the caller.
+   FileMask = FileMask\0
 
- helperNepmdCheckliberror( LibFile, rc);
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdGetNextFile",
+                    address( FileMask)            ||
+                    address( Handle)              ||
+                    address( NextFilename)        ||
+                    atol( Buflen))
 
- return makerexxstring( FileName);
+   helperNepmdCheckliberror( LibFile, rc)
+   if rc then
+      Flag = 0
+      NextFilename = ''
+      -- Automatically close the handle in case of an error <> 18.
+      -- Keep previous rc.
+      if rc <> 18 then  -- ERROR_NO_MORE_FILES
+         Savedrc = rc   -- save rc
+         call NepmdGetNextClose( Handle)
+         rcx = rc       -- ignore rc of NepmdGetNextClose
+         rc = Savedrc   -- restore rc
+      endif
+   else
+      Flag = 1
+      NextFilename = makerexxstring( NextFilename)
+   endif
+   return Flag
 

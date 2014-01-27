@@ -2,8 +2,8 @@
 *
 * Module Name: getnextconfigkey.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdGetNextConfigKey@PROTOTYPE
-NextKey = NepmdGetNextConfigKey( Handle, RegPath, PreviousKey, SearchOpts);
+Flag = NepmdGetNextConfigKey( Handle, RegPath, SearchOpts, NextKey)
 
 @@NepmdGetNextConfigKey@CATEGORY@CONFIG
 
@@ -45,15 +45,6 @@ the configuration repository before and after this call.
 @@NepmdGetNextConfigKey@PARM@RegPath
 This parameter specifies the pathname of the container.
 
-@@NepmdGetNextConfigKey@PARM@PreviousKey
-This parameter specifies either
-.ul compact
-- an empty string to query the first key of the container  or
-- the previously returned key in order to query the next key
-
-If a key is specified, it must exist in the key list, otherwise
-*NepmdGetNextConfigKey* will return an error.
-
 @@NepmdGetNextConfigKey@PARM@SearchOpts
 This parameter specifies the search options in a logical
 combination of the following:
@@ -68,41 +59,46 @@ combination of the following:
 Note that a container #may# also have a key value, but does not
 necessarily have one.
 
+@@NepmdGetNextConfigKey@PARM@NextKey
+This parameter must be a variable. It specifies either
+.ul compact
+- an empty string to query the first key of the container or
+- the previously returned key in order to query the next key.
+
+If a key is specified, it must exist in the key list, otherwise
+*NepmdGetNextConfigKey* will return an error.
+
+The next found key is stored in this parameter.
+
 @@NepmdGetNextConfigKey@EXAMPLE
 The following code searches both keys and subcontainers within the container *\NEPMD*:
 .fo off
- RegPath        = '\NEPMD';
- CurrentKey     = '';
- SearchOptions  = 'B';
+ universal nepmd_hini
 
- /** open up the configuration repository **/
- Handle = NepmdOpenConfig();
- parse value Handle with 'ERROR:'rc;
- if (rc > 0) then
-    sayerror 'configuration repository could not be opened, rc='rc;
-    return;
- endif
+ Handle        = nepmd_hini
+ RegPath       = '\NEPMD'
+ SearchOptions = 'B'
+ NextKey       = ''
 
- /** search all files **/
- do while (1)
-    CurrentKey = NepmdGetNextConfigKey( Handle, RegPath, CurrentKey, SearchOptions);
-    parse value CurrentKey with 'ERROR:'rc;
-    if (rc > '') then
-       leave;
-    endif
-
-    /** process key - here as a sample we display a popup **/
-    messagenwait( 'key found:' CurrentKey);
- end;
-
- rc = NepmdCloseConfig( Handle);
+ -- Search all files
+ do while NepmdGetNextConfigKey( Handle, RegPath, SearchOptions, NextKey)
+    -- Process key - here as a sample we display a popup
+    messagenwait( 'Key found:' NextKey)
+ enddo
 .fo on
 
 @@NepmdGetNextConfigKey@RETURNS
 *NepmdGetNextConfigKey* returns either
 .ul compact
-- the next key returned by the key search  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+- *0* (zero), if no more keys exist or on error
+- *1*, if next config key was queried successfully.
+
+The next key returned by the key search is stored in the
+[.IDPNL_EFUNC_NEPMDGETNEXTCONFIGKEY_PARM_NEXTKEY NextKey] parameter.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
+rc is set to 18 = ERROR__NO__MORE__FILES if key was not found.
 
 @@NepmdGetNextConfigKey@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -119,94 +115,132 @@ write all keys found for the container *\NEPMD* to it.
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdGetNextConfigKey, GetNextConfigKey =
+ compile if 1
+; 1) Use the standard handle of the NEPMD config repository
+defc NepmdGetNextConfigKey, GetNextConfigKey
+   universal nepmd_hini
 
- rc = ''
- RegPath        = '\NEPMD';
- CurrentKey     = '';
- SearchOptions  = 'B';
+   Handle        = nepmd_hini
+   RegPath       = '\NEPMD'
+   SearchOptions = 'B'
+   NextKey       = ''
 
- /* open up the configuration repository */
- Handle = NepmdOpenConfig();
- parse value Handle with 'ERROR:'rc;
- if (rc > 0) then
-    sayerror 'configuration repository could not be opened, rc='rc;
-    return;
- endif
+   -- Create virtual file
+   helperNepmdCreateDumpfile( 'NepmdGetNextConfigKey', RegPath)
 
- /* create virtual file */
- helperNepmdCreateDumpfile( 'NepmdGetNextConfigKey', RegPath);
+   -- Search all keys
+   do while NepmdGetNextConfigKey( Handle, RegPath, SearchOptions, NextKey)
+      insertline( '-' NextKey)
+   enddo
+   insertline ''
+   .modify = 0
 
- /* search all keys */
- do while (1)
-    CurrentKey = NepmdGetNextConfigKey( Handle, RegPath, CurrentKey, SearchOptions);
-    parse value CurrentKey with 'ERROR:'rc;
-    if (rc > '') then
-       leave;
-    endif
+/*
+   rc = 0
+   do while not rc
+      Flag = NepmdGetNextConfigKey( Handle, RegPath, SearchOptions, NextKey)
+      dprintf( 'rc = 'rc', Flag = 'Flag', NextKey = 'NextKey)
+   enddo
+*/
 
-    insertline( '-' CurrentKey);
- end;
- insertline '';
- .modify = 0;
+ compile else
+; 2) Get a new handle for the already opened NEPMD config repository
+defc NepmdGetNextConfigKey, GetNextConfigKey
 
- rcx = NepmdCloseConfig( Handle);
+   do i = 1 to 1
 
- return;
+      RegPath       = '\NEPMD'
+      SearchOptions = 'B'
+      NextKey       = ''
 
+      -- Open up the configuration repository
+      Handle = NepmdOpenConfig()
+      if rc then
+         sayerror 'Configuration repository could not be opened, rc = 'rc'.'
+         leave
+      endif
+
+      -- Create virtual file
+      helperNepmdCreateDumpfile( 'NepmdGetNextConfigKey', RegPath)
+
+      -- Search all keys
+      do while NepmdGetNextConfigKey( Handle, RegPath, SearchOptions, NextKey)
+         insertline( '-' NextKey)
+      enddo
+      insertline ''
+      .modify = 0
+
+      -- Close the configuration repository
+      call NepmdCloseConfig( Handle)
+
+   enddo
+
+ compile endif
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdGetNextConfigKey                              */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    Handle   = 0;                                              */
-/*    NextKey = NepmdGetNextConfigKey( Handle, RegPath,          */
-/*                                     PreviousKey, SearchOpts); */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdGetNextConfigKey( HCONFIG hconfig,      */
-/*                                         PSZ   pszRegPath,     */
-/*                                         PSZ   pszPreviousKey, */
-/*                                         PSZ   pszBuffer,      */
-/*                                         ULONG ulBuflen)       */
-/*                                                               */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdGetNextConfigKey
+; ---------------------------------------------------------------------------
+; E syntax:
+;    Handle  = 0
+;    Flag = NepmdGetNextConfigKey( Handle, RegPath, SearchOpts, NextKey)
+;
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdGetNextConfigKey( HCONFIG hconfig,
+;                                           PSZ   pszRegPath,
+;                                           PSZ   pszPreviousKey,
+;                                           PSZ   pszBuffer,
+;                                           ULONG ulBuflen);
+;
+; ---------------------------------------------------------------------------
 
-defproc NepmdGetNextConfigKey( Handle, RegPath, PreviousKey, SearchOpts)
+compile if not defined( NEPMD_MAXLEN_ESTRING) then
+   include 'STDCONST.E'
+compile endif
 
- /* use zero as handle if none specified */
- if (strip( Handle) = '') then
-    Handle = 0;
- endif
+defproc NepmdGetNextConfigKey( Handle, RegPath, SearchOpts, var NextKey)
 
- BufLen   = NEPMD_MAXLEN_ESTRING;
- NextKey  = copies( atoi( 0), BufLen);
+   -- Use zero as handle if none specified. Zero means that the config
+   -- repository is opened and closed by the C routine at each call, which
+   -- might be much slower when being called in a loop.
+   -- The usual parameter is the handle returned by NepmdInitConfig.
+   if (strip( Handle) = '') then
+      Handle = 0
+   endif
 
- /* prepare parameters for C routine */
- /* don't touch the handle parameter, as we must report */
- /* the address of the original var of the caller !!!   */
- RegPath      = RegPath''atoi( 0);
- PreviousKey  = PreviousKey''atoi( 0);
- SearchOpts   = SearchOpts''atoi( 0);
+   -- Prepare parameters for C routine
+   -- Don't touch the handle parameter, as we must report
+   -- the address of the original var of the caller.
+   RegPath      = RegPath\0
+   PreviousKey  = NextKey\0
+   SearchOpts   = SearchOpts\0
+   BufLen       = NEPMD_MAXLEN_ESTRING
+   NextKey      = copies( \0, BufLen)
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdGetNextConfigKey",
-                  atol( Handle)                ||
-                  address( RegPath)            ||
-                  address( PreviousKey)        ||
-                  address( SearchOpts)         ||
-                  address( NextKey)            ||
-                  atol( Buflen));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    'NepmdGetNextConfigKey',
+                    atol( Handle)                ||
+                    address( RegPath)            ||
+                    address( PreviousKey)        ||
+                    address( SearchOpts)         ||
+                    address( NextKey)            ||
+                    atol( Buflen))
 
- helperNepmdCheckliberror( LibFile, rc);
-
- return makerexxstring( NextKey);
+   helperNepmdCheckliberror( LibFile, rc)
+   if rc then
+      Flag = 0
+      NextKey = ''
+   else
+      Flag = 1
+      NextKey = makerexxstring( NextKey)
+   endif
+   return Flag
 

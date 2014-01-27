@@ -2,8 +2,8 @@
 *
 * Module Name: queryprocessinfo.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdQueryProcessInfo@PROTOTYPE
-InfoValue = NepmdQueryProcessInfo( ValueTag);
+InfoValue = NepmdQueryProcessInfo( ValueTag)
 
 @@NepmdQueryProcessInfo@CATEGORY@PROCESS
 
@@ -48,10 +48,11 @@ The following keywords are supported:
 .el
 
 @@NepmdQueryProcessInfo@RETURNS
-*NepmdQueryProcessInfo* returns either
-.ul compact
-- the information value  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+*NepmdQueryProcessInfo* returns the information value.
+In case of an error an empty string is returned.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdQueryProcessInfo@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -69,59 +70,61 @@ into it.
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
 defc NepmdQueryProcessInfo, QueryProcessInfo
 
- helperNepmdCreateDumpfile( 'NepmdQueryProcessInfo', '');
- insertline helperNepmdQueryProcessInfoValue( 'PID');
- insertline helperNepmdQueryProcessInfoValue( 'PPID');
- insertline helperNepmdQueryProcessInfoValue( 'PROGRAM');
- insertline helperNepmdQueryProcessInfoValue( 'PARMS');
- .modify = 0;
+   helperNepmdCreateDumpfile( 'NepmdQueryProcessInfo', '')
+   insertline helperNepmdQueryProcessInfoValue( 'PID')
+   insertline helperNepmdQueryProcessInfoValue( 'PPID')
+   insertline helperNepmdQueryProcessInfoValue( 'PROGRAM')
+   insertline helperNepmdQueryProcessInfoValue( 'PARMS')
+   .modify = 0
 
- return;
-
-defproc helperNepmdQueryProcessInfoValue( ValueTag) =
-  return leftstr( ValueTag, 15) ':' NepmdQueryProcessInfo( ValueTag);
+defproc helperNepmdQueryProcessInfoValue( ValueTag)
+   return leftstr( ValueTag, 15) '=' NepmdQueryProcessInfo( ValueTag)
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdQueryProcessInfo                              */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    InfoValue = NepmdQueryProcessInfo( ValueTag);              */
-/*                                                               */
-/*  See valig tags in src\gui\nepmdlib\nepmdlib.h:               */
-/*      NEPMD_PROCESSINFO_*                                      */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdQueryProcessInfo( PSZ pszInfoTag,       */
-/*                                         PSZ pszBuffer,        */
-/*                                         ULONG ulBuflen)       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdQueryProcessInfo
+; ---------------------------------------------------------------------------
+; E syntax:
+;    InfoValue = NepmdQueryProcessInfo( ValueTag);
+;
+;  See valig tags in src\gui\nepmdlib\nepmdlib.h:
+;      NEPMD_PROCESSINFO_*
+; ---------------------------------------------------------------------------
+; C prototype:
+;  APIRET EXPENTRY NepmdQueryProcessInfo( PSZ pszInfoTag,
+;                                         PSZ pszBuffer,
+;                                         ULONG ulBuflen);
+; ---------------------------------------------------------------------------
 
-defproc NepmdQueryProcessInfo( ValueTag) =
+defproc NepmdQueryProcessInfo( ValueTag)
 
- BufLen    = 260;
- InfoValue = copies( atoi( 0), BufLen);
+   BufLen    = 260
+   InfoValue = copies( \0, BufLen)
 
- /* prepare parameters for C routine */
- ValueTag  = ValueTag''atoi( 0);
+   -- Prepare parameters for C routine
+   ValueTag  = ValueTag\0
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdQueryProcessInfo",
-                  address( ValueTag)         ||
-                  address( InfoValue)        ||
-                  atol( Buflen));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdQueryProcessInfo",
+                    address( ValueTag)         ||
+                    address( InfoValue)        ||
+                    atol( Buflen))
 
- helperNepmdCheckliberror( LibFile, rc);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return makerexxstring( InfoValue);
+   if rc then
+      return ''
+   else
+      return makerexxstring( InfoValue)
+   endif
 

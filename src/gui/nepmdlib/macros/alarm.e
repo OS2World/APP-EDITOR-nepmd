@@ -2,8 +2,8 @@
 *
 * Module Name: alarm.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdAlarm@PROTOTYPE
-fResult = NepmdAlarm( AlarmStyle);
+NepmdAlarm( AlarmStyle)
 
 @@NepmdAlarm@CATEGORY@INTERACT
 
@@ -42,10 +42,10 @@ The following styles are supported:
 If no style is specified, the alarm for *NOTE* is generated.
 
 @@NepmdAlarm@RETURNS
-*NepmdAlarm* returns either
-.ul compact
-- *0* (zero), if the alarm was not generated  or
-- *1* , if the alarm was generated.
+*NepmdAlarm* returns nothing.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdAlarm@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -59,59 +59,57 @@ Executing this command will
 generate the apropriate alarm sound, if the related system setting is set to on,
 and display the result within the status area.
 
-_*Example:*_
+*Example:*
 .fo off
-  Alarm ERROR
+ Alarm ERROR
 .fo on
 
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdAlarm, Alarm =
+defc NepmdAlarm, Alarm
 
- AlarmStyle = arg( 1);
+   AlarmStyle = arg( 1)
 
- fResult = NepmdAlarm( AlarmStyle);
- if (fResult) then
-    StrResult = 'was';
- else
-    StrResult = 'was not';
- endif
- sayerror 'alarm' StrResult 'generated';
-
- return;
+   call NepmdAlarm( AlarmStyle)
+   if rc then
+      StrResult = 'was'
+   else
+      StrResult = 'was not'
+   endif
+   sayerror 'Alarm' StrResult 'generated.'
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdAlarm                                         */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    fResult = NepmdAlarm( AlarmStyle);                         */
-/*                                                               */
-/*  Valid tags are: NOTE ALARM WARNING                           */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  BOOL EXPENTRY NepmdAlarm( PSZ pszAlarmStyle);                */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdAlarm
+; ---------------------------------------------------------------------------
+; E Syntax:
+;    NepmdAlarm( AlarmStyle)
+;
+;  Valid tags are: NOTE ALARM WARNING
+; ---------------------------------------------------------------------------
+; C prototype:
+;    BOOL EXPENTRY NepmdAlarm( PSZ pszAlarmStyle);
+; ---------------------------------------------------------------------------
 
-defproc NepmdAlarm( AlarmStyle) =
+defproc NepmdAlarm( AlarmStyle)
 
- /* prepare parameters for C routine */
- AlarmStyle = AlarmStyle''atoi( 0);
+   -- Prepare parameters for C routine
+   AlarmStyle = AlarmStyle\0
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- fResult = dynalink32( LibFile,
-                       "NepmdAlarm",
-                       address( AlarmStyle));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdAlarm",
+                    address( AlarmStyle))
 
- helperNepmdCheckliberror( LibFile, fResult);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return fResult;
+   return
 

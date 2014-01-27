@@ -2,8 +2,8 @@
 *
 * Module Name: querywindowpos.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdQueryWindowPos@PROTOTYPE
-WindowPos = NepmdQueryWindowPos( WindowId);
+WindowPos = NepmdQueryWindowPos( WindowId)
 
 @@NepmdQueryWindowPos@CATEGORY@EPMWINDOW
 
@@ -50,10 +50,11 @@ It is recommended to include *stdconst.e* and use the constant names
 instead of using the numeric values.
 
 @@NepmdQueryWindowPos@RETURNS
-*NepmdQueryWindowPos* returns either
-.ul compact
-- the windowposition in pixels as a string like *x y cx cy*  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+*NepmdQueryWindowPos* returns the window position in pixels as a string
+like *x y cx cy*. In case of an error an empty string is returned.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdQueryWindowPos@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -65,13 +66,12 @@ executing:
 - *QueryWindowPos*
   [[ [.IDPNL_EFUNC_NEPMDQUERYWINDOWPOS_PARM_WINDOWID windowid] ]]
 
-
 Executing this command will
 query the window position of the specified *EPM* window or control window
 (*EPM* frame window, if no id specified)
 and display the result within the status area.
 
-_*Example:*_
+*Example:*
 .fo off
   QueryWindowPos
   QueryWindowPos 5
@@ -80,67 +80,67 @@ _*Example:*_
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
 defc NepmdQueryWindowPos, QueryWindowPos
 
- WindowId = arg( 1);
- if (WindowId = '') then
-    WindowId = EPMINFO_EDITCLIENT;
- endif
+   WindowId = arg( 1)
+   if (WindowId = '') then
+      WindowId = EPMINFO_EDITCLIENT
+   endif
 
- WindowPos = NepmdQueryWindowPos( WindowId);
+   WindowPos = NepmdQueryWindowPos( WindowId)
 
- parse value WindowPos with 'ERROR:'rc;
- if (rc > '') then
-    sayerror 'window pos of window with id' WindowId 'cannot be determined, rc='rc;
-    return;
- endif
-
- sayerror 'window pos of window with id' WindowId 'is:' WindowPos;
-
- return;
+   if rc then
+      sayerror 'Window pos of window with id' WindowId 'cannot be determined, rc = 'rc'.'
+   else
+      sayerror 'Window pos of window with id' WindowId 'is:' WindowPos
+   endif
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdQueryWindowPos                                */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    WindowPos = NepmdQueryWindowPos( WindowId);                */
-/*                                                               */
-/*   windowId is one of the EPMINFO_* values of stdconst.e       */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdQueryWindowPos( HWND hwnd,              */
-/*                                       PSZ pszBuffer,          */
-/*                                       ULONG ulBuflen)         */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdQueryWindowPos
+; ---------------------------------------------------------------------------
+; E syntax:
+;    WindowPos = NepmdQueryWindowPos( WindowId)
+;
+;    WindowId is one of the EPMINFO_* values of stdconst.e.
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdQueryWindowPos( HWND hwnd,
+;                                         PSZ pszBuffer,
+;                                         ULONG ulBuflen);
+; ---------------------------------------------------------------------------
 
-defproc NepmdQueryWindowPos( WindowId) =
+defproc NepmdQueryWindowPos( WindowId)
 
- BufLen    = 260;
- WindowPos = copies( atoi( 0), BufLen);
+   BufLen    = 260
+   WindowPos = copies( \0, BufLen)
 
+   -- Check for valid IDs
+   ValidIds = '1 2 3 4 5 6 9 10 17'
+   if (wordpos( WindowId, ValidIds) = 0) then
+      rc = 87
+      return ''
+   endif
 
- /* check for valid IDs */
- ValidIds = '1 2 3 4 5 6 9 10 17'
- if (wordpos( WindowId, ValidIds) = 0) then
-    return 'ERROR:87';
- end;
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdQueryWindowPos",
+                    gethwndc( WindowId)         ||
+                    address( WindowPos)         ||
+                    atol( Buflen))
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdQueryWindowPos",
-                  gethwndc( WindowId)         ||
-                  address( WindowPos)         ||
-                  atol( Buflen));
+   helperNepmdCheckliberror( LibFile, rc)
 
- helperNepmdCheckliberror( LibFile, rc);
-
- return makerexxstring( WindowPos);
+   if rc then
+      return ''
+   else
+      return makerexxstring( WindowPos)
+   endif
 

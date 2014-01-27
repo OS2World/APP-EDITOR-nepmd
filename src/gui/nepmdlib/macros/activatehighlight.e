@@ -2,8 +2,8 @@
 *
 * Module Name: activatehighlight.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdActivateHighlight@PROTOTYPE
-rc = NepmdActivateHighlight( ActivateFlag, EpmMode, HiliteOptions, Handle);
+NepmdActivateHighlight( ActivateFlag, EpmMode, HiliteOptions, Handle)
 
 @@NepmdActivateHighlight@CATEGORY@MODE
 
@@ -72,7 +72,10 @@ You may pass a *zero* or an *empty string* to
 the configuration repository before and after this call.
 
 @@NepmdActivateHighlight@RETURNS
-*NepmdActivateHighlight* returns an OS/2 error code or zero for no error.
+*NepmdActivateHighlight* returns nothing.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdActivateHighlight@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -90,117 +93,69 @@ mode of the currently loaded file
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdActivateHighlight, ActivateHighlight =
+defc NepmdActivateHighlight, ActivateHighlight
 
- ActivateFlag = translate( word( arg( 1), 1));
- if (ActivateFlag = '') then
-    ActivateFlag = 'ON';
- endif
+   do i = 1 to 1
 
- EpmMode = translate( word( arg( 1), 2));
+      ActivateFlag = translate( word( arg( 1), 1))
+      if (ActivateFlag = '') then
+         ActivateFlag = 'ON'
+      endif
 
- NewStatus = 1
- if (wordpos( ActivateFlag, 'ON 1') > 0) then
-    NewStatus = 'activated';
- elseif (wordpos( ActivateFlag, 'OFF 0') > 0) then
-    NewStatus = 'deactivated';
- else
-    sayerror 'Wrong parameter "'ActivateFlag'" specified!';
-    return;
- endif
+      EpmMode = translate( word( arg( 1), 2))
 
- rc = NepmdActivateHighlight( ActivateFlag, EpmMode, 0, NewStatus);
- if (rc > 0) then
-    sayerror 'Keyword highlighting could not be' NewStatus ', rc='rc;
-    return;
- endif
+      NewStatus = 1
+      if (wordpos( ActivateFlag, 'ON 1') > 0) then
+         NewStatus = 'activated'
+      elseif (wordpos( ActivateFlag, 'OFF 0') > 0) then
+         NewStatus = 'deactivated'
+      else
+         sayerror 'Wrong parameter "'ActivateFlag'" specified.'
+         leave
+      endif
 
- sayerror 'Keyword highlighting was' NewStatus 'successfully.';
+      call NepmdActivateHighlight( ActivateFlag, EpmMode, 0, NewStatus)
+      if rc then
+         sayerror 'Keyword highlighting could not be' NewStatus', rc = 'rc'.'
+      else
+         sayerror 'Keyword highlighting was' NewStatus 'successfully.'
+      endif
 
- return;
+   enddo
 
 compile endif
 
-/****************************
-/* ------------------------------------------------------------- */
-/* procedure: NepmdActivateHighlight                             */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    rc = NepmdActivateHighlight( ActivateFlag,                 */
-/*                                 Mode,                         */
-/*                                 HiliteOptions,                */
-/*                                 Handle)                       */
-/*                                                               */
-/*   windowId is one of the EPMINFO_* values of stdconst.e       */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdActivateHighlight(  HWND hwndClient,    */
-/*                                           PSZ pszActivateFlag,*/
-/*                                           PSZ pszEpmMode,     */
-/*                                           PSZ pszOptions,     */
-/*                                           HCONFIG hconfig);   */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdActivateHighlight
+; ---------------------------------------------------------------------------
+; E syntax:
+;    rc = NepmdActivateHighlight( ActivateFlag,
+;                                 Mode,
+;                                 HiliteOptions,
+;                                 Handle)
+;
+; ---------------------------------------------------------------------------
+; C prototype:
+;     APIRET EXPENTRY NepmdQueryHighlightArgs( PSZ pszActivateFlag,
+;                                              PSZ pszEpmMode,
+;                                              PSZ pszOptions,
+;                                              HCONFIG hconfig,
+;                                              PSZ pszBuffer,
+;                                              ULONG ulBuflen);
+; ---------------------------------------------------------------------------
+
+compile if not defined( NEPMD_MAXLEN_ESTRING) then
+   include 'STDCONST.E'
+compile endif
 
 defproc NepmdActivateHighlight( ActivateFlag)
 
- /* get mode of current file, if not specified */
- EpmMode = arg( 2);
- if (EpmMode = '') then
-    EpmMode = NepmdGetMode();
- endif
- -- use zero as handle if none specified
- Handle = arg( 3)
- if (strip( Handle) = '') then
-    Handle = 0;
- endif
- HiliteOptions = arg( 4);
-
- /* prepare parameters for C routine */
- ActivateFlag  = ActivateFlag''atoi( 0);
- EpmMode       = EpmMode''atoi( 0);
- HiliteOptions = HiliteOptions''atoi( 0);
-
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdActivateHighlight",
-                  gethwndc( EPMINFO_EDITCLIENT) ||
-                  address( ActivateFlag)        ||
-                  address( EpmMode)             ||
-                  address( HiliteOptions)       ||
-                  atol( Handle));
-
- helperNepmdCheckliberror( LibFile, rc);
-
- return rc;
-****************************/
-
-/* ------------------------------------------------------------- */
-/* procedure: NepmdActivateHighlight                             */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    rc = NepmdActivateHighlight( ActivateFlag,                 */
-/*                                 Mode,                         */
-/*                                 HiliteOptions,                */
-/*                                 Handle)                       */
-/*                                                               */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdQueryHighlightArgs( PSZ pszActivateFlag,*/
-/*                                           PSZ pszEpmMode,     */
-/*                                           PSZ pszOptions,     */
-/*                                           HCONFIG hconfig,    */
-/*                                           PSZ pszBuffer,      */
-/*                                           ULONG ulBuflen);    */
-/* ------------------------------------------------------------- */
-defproc NepmdActivateHighlight( ActivateFlag)
-
-   -- get mode of current file, if not specified
+   -- Get mode of current file, if not specified
    EpmMode = arg( 2)
    if (EpmMode = '') then
       EpmMode = GetMode()
@@ -208,10 +163,10 @@ defproc NepmdActivateHighlight( ActivateFlag)
 
    HiliteOptions = arg( 3)
 
-   -- use zero as handle if none specified
+   -- Use zero as handle if none specified
    Handle = arg( 4)
    if (strip( Handle) = '') then
-      Handle = 0;
+      Handle = 0
    endif
 
    ActivateFlag  = ActivateFlag\0
@@ -235,5 +190,5 @@ defproc NepmdActivateHighlight( ActivateFlag)
       HighlightArgs = makerexxstring( HighlightArgs)
       'toggle_parse' HighlightArgs
    endif
-   return rc
+   return
 

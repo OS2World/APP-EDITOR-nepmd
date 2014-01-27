@@ -2,8 +2,8 @@
 *
 * Module Name: closeconfig.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdCloseConfig@PROTOTYPE
-rc = NepmdCloseConfig( Handle);
+NepmdCloseConfig( Handle)
 
 @@NepmdCloseConfig@CATEGORY@CONFIG
 
@@ -39,7 +39,10 @@ must have been returned by a previous call
 to [.IDPNL_EFUNC_NEPMDOPENCONFIG].
 
 @@NepmdCloseConfig@RETURNS
-*NepmdCloseConfig* returns an OS/2 error code or zero for no error.
+*NepmdCloseConfig* returns nothing.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdCloseConfig@REMARKS
 If you want to perform only only a single operation on the
@@ -83,36 +86,35 @@ result within the status area.
 
 @@
 */
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdCloseConfig, CloseConfig =
- 'NepmdOpenConfig'
+defc NepmdCloseConfig, CloseConfig
+   call NepmdCloseConfig( arg(1))
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdCloseConfig                                   */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    rc = NepmdCloseConfig( Handle);                            */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdCloseConfig( HCONFIG hconfig);          */
-/*                                                               */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdCloseConfig
+; ---------------------------------------------------------------------------
+; E syntax:
+;    NepmdCloseConfig( Handle)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdCloseConfig( HCONFIG hconfig);
+; ---------------------------------------------------------------------------
 
-defproc NepmdCloseConfig( Handle) =
+defproc NepmdCloseConfig( Handle)
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdCloseConfig",
-                  atol( Handle));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdCloseConfig",
+                    atol( Handle))
 
- helperNepmdCheckliberror( LibFile, rc);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return rc;
+   return
 

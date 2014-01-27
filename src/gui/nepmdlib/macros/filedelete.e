@@ -2,8 +2,8 @@
 *
 * Module Name: filedelete.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdFileDelete@PROTOTYPE
-rc = NepmdFileDelete( Filename);
+NepmdFileDelete( Filename)
 
 @@NepmdFileDelete@CATEGORY@FILE
 
@@ -35,7 +35,10 @@ This function deletes a file.
 This parameter specifies the name of the file to be deleted.
 
 @@NepmdFileDelete@RETURNS
-*NepmdFileDelete* returns an OS/2 error code or zero for no error.
+*NepmdFileDelete* returns nothing.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdFileDelete@REMARKS
 *NepmdFileDelete* replaces the function *erasetemp* of *stdprocs.e*.
@@ -55,64 +58,65 @@ Executing this command will
 delete the specified file
 and display the result within the status area.
 
-_*Example:*_
+*Example:*
 .fo off
-  FileDelete d:\myscript.txt
+ FileDelete d:\myscript.txt
 .fo on
 
 @@
 */
 
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdFileDelete, FileDelete =
+defc NepmdFileDelete, FileDelete
 
- Filename = arg( 1);
- if (Filename = '') then
-    sayerror 'error: no filename specified.';
-    return;
- endif
+   do i = 1 to 1
 
- rc = NepmdFileDelete( Filename);
- if (rc = 0) then
-    StrResult = 'been deleted';
- else
-    StrResult = 'not been deleted, rc='rc;
- endif
+      Filename = arg( 1)
+      if (Filename = '') then
+         sayerror 'Error: no filename specified.'
+         leave
+      endif
 
- sayerror 'file "'Filename'" has' StrResult;
+      call NepmdFileDelete( Filename)
+      if (rc = 0) then
+         StrResult = 'been deleted'
+      else
+         StrResult = 'not been deleted, rc = 'rc'.'
+      endif
 
- return;
+      sayerror 'File "'Filename'" has' StrResult
+
+   enddo
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdFileDelete                                    */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    rc = NepmdFileDelete( filename);        v                  */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdFileDelete( PSZ pszFilename);           */
-/*                                                               */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdFileDelete
+; ---------------------------------------------------------------------------
+; E syntax:
+;    NepmdFileDelete( filename)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdFileDelete( PSZ pszFilename);
+; ---------------------------------------------------------------------------
 
-defproc NepmdFileDelete( Filename) =
+defproc NepmdFileDelete( Filename)
 
- /* prepare parameters for C routine */
- Filename   = Filename''atoi( 0);
+   -- Prepare parameters for C routine
+   Filename = Filename\0
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdFileDelete",
-                  address( Filename));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdFileDelete",
+                    address( Filename))
 
- helperNepmdCheckliberror( LibFile, rc);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return rc;
+   return
 

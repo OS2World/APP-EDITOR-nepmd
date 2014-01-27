@@ -2,8 +2,8 @@
 *
 * Module Name: pmprintf.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdPmPrintf@PROTOTYPE
-NepmdPmPrintf( Message);
+NepmdPmPrintf( Message)
 
 @@NepmdPmPrintf@CATEGORY@INTERACT
 
@@ -71,12 +71,12 @@ PmPrintf utility.
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdPmPrintf, PmPrintf =
+defc NepmdPmPrintf, PmPrintf
 
    Text = arg( 1)
    if (Text = '') then
@@ -86,37 +86,35 @@ defc NepmdPmPrintf, PmPrintf =
 
    call NepmdPmPrintf( Text)
 
-   return
-
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdPmPrintf                                      */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    NepmdPmPrintf( Text);                                      */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdPmPrintf( PSZ pszText);                 */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdPmPrintf
+; ---------------------------------------------------------------------------
+; E syntax:
+;    NepmdPmPrintf( Text)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdPmPrintf( PSZ pszText);
+; ---------------------------------------------------------------------------
 
 defproc NepmdPmPrintf( Text)
 
-   -- save previous rc
+   -- Save previous rc
    -- (required for not to change rc by helperNepmdCheckliberror)
    saved_rc = rc
 
-   -- prepare parameters for C routine
+   -- Prepare parameters for C routine
    Text = Text\0;
 
-   -- call C routine
+   -- Call C routine
    LibFile = helperNepmdGetlibfile()
-   ret = dynalink32( LibFile,
-                     'NepmdPmPrintf',
-                     address( Text))
+   rc = dynalink32( LibFile,
+                    'NepmdPmPrintf',
+                    address( Text))
 
    -- The following sets rc to the value of its 2nd param
-   helperNepmdCheckliberror( LibFile, ret)   -- not required anymore
+   helperNepmdCheckliberror( LibFile, rc)   -- not required anymore
 
    rc = saved_rc
 

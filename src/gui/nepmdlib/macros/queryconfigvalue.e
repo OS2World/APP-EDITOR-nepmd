@@ -2,8 +2,8 @@
 *
 * Module Name: queryconfigvalue.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdQueryConfigValue@PROTOTYPE
-ConfValue = NepmdQueryConfigValue( Handle, ConfPath);
+ConfValue = NepmdQueryConfigValue( Handle, ConfPath)
 
 @@NepmdQueryConfigValue@CATEGORY@CONFIG
 
@@ -45,10 +45,11 @@ This parameter specifies the [.IDPNL_REGISTRY_NAMESPACE path] under which the
 configuration is to be read.
 
 @@NepmdQueryConfigValue@RETURNS
-*NepmdQueryConfigValue* returns either
-.ul compact
-- the configuration value  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+*NepmdQueryConfigValue* returns the configuration value.
+In case of an error an empty string is returned.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdQueryConfigValue@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -59,8 +60,7 @@ executing:
 - *QueryConfigValue*
 
 
-Executing this command will
-read the configuration value with the pathname
+Executing this command will read the configuration value with the pathname
 .sl compact
 - *\NEPMD\Test\Nepmdlib\TestKey*
 .el
@@ -70,61 +70,65 @@ and display the result within the status area.
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 ; We want this command also if included in EPM.E to call it from
 ; the command line or from an menu item.
 
-defc NepmdQueryConfigValue, QueryConfigValue =
+defc NepmdQueryConfigValue, QueryConfigValue
 
- ConfigValue = NepmdQueryConfigValue( 0, NEPMD_TEST_CONFIGPATH);
- parse value ConfigValue with 'ERROR:'rc;
- if (rc > '') then
-    sayerror 'config value could not be retrieved, rc='rc;
-    return;
- endif
+    ConfigValue = NepmdQueryConfigValue( 0, NEPMD_TEST_CONFIGPATH)
+    if rc then
+       sayerror 'config value could not be retrieved, rc = 'rc'.'
+    else
+       sayerror 'config value "'NEPMD_TEST_CONFIGPATH'" contains:' ConfigValue
+    endif
 
- sayerror 'config value "'NEPMD_TEST_CONFIGPATH'" contains:' ConfigValue;
+; ---------------------------------------------------------------------------
+; Procedure: NepmdQueryConfigValue
+; ---------------------------------------------------------------------------
+; E syntax:
+;    ConfValue = NepmdQueryConfigValue( Handle, ConfPath)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdQueryConfigValue( HCONFIG hconfig,
+;                                           PSZ pszRegPath,
+;                                           PSZ pszBuffer,
+;                                           ULONG ulBuflen);
+; ---------------------------------------------------------------------------
 
- return;
+compile if not defined( NEPMD_MAXLEN_ESTRING) then
+   include 'STDCONST.E'
+compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdQueryConfigValue                              */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    ConfValue = NepmdQueryConfigValue( Handle, ConfPath);      */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdQueryConfigValue( HCONFIG hconfig,      */
-/*                                         PSZ pszRegPath,       */
-/*                                         PSZ pszBuffer,        */
-/*                                         ULONG ulBuflen);      */
-/* ------------------------------------------------------------- */
+defproc NepmdQueryConfigValue( Handle, ConfPath)
 
-defproc NepmdQueryConfigValue( Handle, ConfPath) =
+   -- Use zero as handle if none specified
+   if (strip( Handle) = '') then
+      Handle = 0
+   endif
 
- /* use zero as handle if none specified */
- if (strip( Handle) = '') then
-    Handle = 0;
- endif
+   BufLen    = NEPMD_MAXLEN_ESTRING
+   ConfValue = copies( \0, BufLen)
 
- BufLen      = NEPMD_MAXLEN_ESTRING;
- ConfValue   = copies( atoi( 0), BufLen);
+   -- Prepare parameters for C routine
+   ConfPath  = ConfPath\0
 
- /* prepare parameters for C routine */
- ConfPath  = ConfPath''atoi( 0);
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdQueryConfigValue",
+                    atol( Handle)       ||
+                    address( ConfPath)  ||
+                    address( ConfValue) ||
+                    atol( Buflen))
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdQueryConfigValue",
-                  atol( Handle)       ||
-                  address( ConfPath)  ||
-                  address( ConfValue) ||
-                  atol( Buflen));
+   helperNepmdCheckliberror( LibFile, rc)
 
- helperNepmdCheckliberror( LibFile, rc);
-
- return makerexxstring( ConfValue);
+   if rc then
+      return ''
+   else
+      return makerexxstring( ConfValue)
+   endif
 

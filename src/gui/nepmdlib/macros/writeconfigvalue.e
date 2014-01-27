@@ -2,8 +2,8 @@
 *
 * Module Name: writeconfigvalue.e
 *
-* .e wrapper routine to access the NEPMD library DLL.
-* include of nepmdlib.e
+* E wrapper routine to access the NEPMD library DLL.
+* Include of nepmdlib.e.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdWriteConfigValue@PROTOTYPE
-rc = NepmdWriteConfigValue( Handle, ConfPath, ConfValue);
+rc = NepmdWriteConfigValue( Handle, ConfPath, ConfValue)
 
 @@NepmdWriteConfigValue@CATEGORY@CONFIG
 
@@ -49,7 +49,10 @@ This parameter specifies the value to be stored under the specified
 configuration path.
 
 @@NepmdWriteConfigValue@RETURNS
-*NepmdWriteConfigValue* returns an OS/2 error code or zero for no error.
+*NepmdWriteConfigValue* returns nothing.
+
+This procedure sets the implicit universal var rc. rc is set to an
+[inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdWriteConfigValue@TESTCASE
 You can test this function from the *EPM* commandline by
@@ -59,72 +62,68 @@ executing:
   - or
 - *WriteConfigValue*
 
-
 Executing this command will write the string
 .sl compact
-- *This is a test value for the Nepmd**Config** APIs !*
+- *This is a test value for the Nepmd**Config** APIs.*
 .el
 as the the configuration value with the pathname
 .sl compact
 - *\NEPMD\Test\Nepmdlib\TestKey*
 .el
-to the configuration repository of the [=TILE]
+to the configuration repository of the [=TITLE]
 and display the result within the status area.
 
 @@
 */
 
-/* ------------------------------------------------------------- */
-/*   allow editor command to call function                       */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Allow editor command to call function
+; ---------------------------------------------------------------------------
 compile if NEPMD_LIB_TEST
 
-defc NepmdWriteConfigValue, WriteConfigValue =
+defc NepmdWriteConfigValue, WriteConfigValue
 
- rc = NepmdWriteConfigValue( 0, NEPMD_TEST_CONFIGPATH, NEPMD_TEST_CONFIGVALUE);
- if (rc > 0) then
-    sayerror 'config value not written, rc='rc;
-    return;
- endif
-
- sayerror 'config value "'NEPMD_TEST_CONFIGPATH'" successfully written!';
-
- return;
+   call NepmdWriteConfigValue( 0, NEPMD_TEST_CONFIGPATH, NEPMD_TEST_CONFIGVALUE)
+   if rc then
+      sayerror 'Config value not written, rc = 'rc'.'
+   else
+      sayerror 'Config value "'NEPMD_TEST_CONFIGPATH'" successfully written.'
+   endif
 
 compile endif
 
-/* ------------------------------------------------------------- */
-/* procedure: NepmdWriteConfigValue                              */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    rc = NepmdWriteConfigValue( Handle, ConfPath, ConfValue);  */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdWriteConfigValue( HCONFIG hconfig,      */
-/*                                         PSZ pszRegPath,       */
-/*                                         PSZ pszRegValue);     */
-/* ------------------------------------------------------------- */
+; ---------------------------------------------------------------------------
+; Procedure: NepmdWriteConfigValue
+; ---------------------------------------------------------------------------
+; E syntax:
+;    rc = NepmdWriteConfigValue( Handle, ConfPath, ConfValue)
+; ---------------------------------------------------------------------------
+; C prototype:
+;    APIRET EXPENTRY NepmdWriteConfigValue( HCONFIG hconfig,
+;                                           PSZ pszRegPath,
+;                                           PSZ pszRegValue);
+; ---------------------------------------------------------------------------
 
-defproc NepmdWriteConfigValue( Handle, ConfPath, ConfValue) =
+defproc NepmdWriteConfigValue( Handle, ConfPath, ConfValue)
 
- /* use zero as handle if none specified */
- if (strip( Handle) = '') then
-    Handle = 0;
- endif
+   -- Use zero as handle if none specified
+   if (strip( Handle) = '') then
+      Handle = 0
+   endif
 
- /* prepare parameters for C routine */
- ConfPath  = ConfPath''atoi( 0);
- ConfValue = ConfValue''atoi( 0);
+   -- Prepare parameters for C routine
+   ConfPath  = ConfPath\0
+   ConfValue = ConfValue\0
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdWriteConfigValue",
-                  atol( Handle)      ||
-                  address( ConfPath) ||
-                  address( ConfValue));
+   -- Call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    "NepmdWriteConfigValue",
+                    atol( Handle)      ||
+                    address( ConfPath) ||
+                    address( ConfValue))
 
- helperNepmdCheckliberror( LibFile, rc);
+   helperNepmdCheckliberror( LibFile, rc)
 
- return rc;
+   return
 
