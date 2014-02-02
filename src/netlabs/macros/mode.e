@@ -56,16 +56,12 @@ defproc GetMode
       if (not IsATempFile) or IsAShellFileName() then
          -- Get default mode
          rc = 0
-         if isadefproc('NepmdQueryDefaultMode') then
-            DefaultMode = NepmdQueryDefaultMode(Filename)
-         else
+         DefaultMode = NepmdQueryDefaultMode(Filename)
+         if DefaultMode = '' then
+            sayerror "Default mode can't be determined. NepmdQueryDefaultMode returned rc = "rc"."
             DefaultMode = 'TEXT'
          endif
-         if rc then
-            sayerror "Default mode can't be determined. NepmdQueryDefaultMode returned rc = "rc"."
-         else
-            CurMode = DefaultMode
-         endif
+         CurMode = DefaultMode
       endif  -- not IsATempFile
    endif
 
@@ -219,9 +215,8 @@ defc Mode
    elseif wordpos( NewMode, ResetModeArgs) > 0 then
       -- Get the default mode
       NewMode =  NepmdQueryDefaultMode(.filename)
-      if rc then
+      if NewMode = '' then
          sayerror "Default mode can't be determined. NepmdQueryDefaultMode returned rc = "rc"."
-         NewMode = ''
       endif
 
       -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value.
