@@ -432,7 +432,7 @@ defc ProcessMouse
 
 ; ---------------------------------------------------------------------------
 defc StatWndMouseCmd
-   --call NepmdPmPrintf('StatWndMouseCmd: arg(1) = 'arg(1))
+   --dprintf( 'StatWndMouseCmd: arg(1) = 'arg(1))
    MouseEvent = arg(1)
    MouseString = MouseEvent2MouseString( MouseEvent)
    if MouseEvent = '1 SECONDCLK 0' then
@@ -447,7 +447,7 @@ defc StatWndMouseCmd
 
 ; ---------------------------------------------------------------------------
 defc MsgWndMouseCmd
-   --call NepmdPmPrintf('StatWndMouseCmd: arg(1) = 'arg(1))
+   --dprintf( 'StatWndMouseCmd: arg(1) = 'arg(1))
    MouseEvent = arg(1)
    MouseString = MouseEvent2MouseString( MouseEvent)
    if MouseEvent = '1 SECONDCLK 0' then

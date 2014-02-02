@@ -343,10 +343,9 @@ compile endif
    'linkverify nepmdlib.ex'
 
 ;  Open NEPMD.INI and save the returned handle ------------------------------
-   nepmd_hini = NepmdOpenConfig()
-   parse value nepmd_hini with 'ERROR:'rc;
-   if (rc > '') then
-      sayerror 'Configuration repository could not be opened, rc = 'rc;
+   NepmdOpenConfig( nepmd_hini)
+   if rc then
+      sayerror 'Configuration repository could not be opened, rc = 'rc'.'
    else
       dprintf( 'DEFINIT', 'Current ini entry: 'queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath'))
       IniFile = NepmdQueryInstValue( 'INIT')
@@ -395,10 +394,9 @@ compile endif
 ;  Process NEPMD.INI initialization -----------------------------------------
    -- Write default values from nepmd\netlabs\bin\defaults.dat to NEPMD.INI,
    -- application 'RegDefaults', if 'RegDefaults' was not found
-   rc = NepmdInitConfig( nepmd_hini)
-   parse value rc with 'ERROR:'rc;
-   if (rc > '') then
-      sayerror 'Configuration repository could not be initialized, rc = 'rc;
+   NepmdInitConfig( nepmd_hini)
+   if rc then
+      sayerror 'Configuration repository could not be initialized, rc = 'rc'.'
    endif
 
    if isadefproc('NepmdQueryConfigValue') then

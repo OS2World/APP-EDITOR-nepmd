@@ -340,7 +340,7 @@ defproc SetLastSearchArgs
    universal nepmd_hini
    KeyPathSearch = '\NEPMD\User\Search\LastSearchArgs'
    LastSearchArgs = arg(1)
-   rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathSearch, LastSearchArgs)
+   NepmdWriteConfigValue( nepmd_hini, KeyPathSearch, LastSearchArgs)
    return
 
 ; ---------------------------------------------------------------------------
@@ -348,7 +348,7 @@ defproc SetLastChangeArgs
    universal nepmd_hini
    KeyPathChange = '\NEPMD\User\Search\LastChangeArgs'
    LastChangeArgs = arg(1)
-   rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathChange, LastChangeArgs)
+   NepmdWriteConfigValue( nepmd_hini, KeyPathChange, LastChangeArgs)
    return
 
 ; ---------------------------------------------------------------------------
@@ -1174,7 +1174,7 @@ defc SetScrollAfterLocate
    KeyPath = '\NEPMD\User\Scroll\AfterLocate'
    -- if executed with a num as arg
    if arg(1) <> '' & isnum(arg(1)) then
-      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, arg(1))
+      NepmdWriteConfigValue( nepmd_hini, KeyPath, arg(1))
       return
    endif
    -- else open entrybox

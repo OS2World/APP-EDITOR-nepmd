@@ -297,13 +297,7 @@ compile endif
          -- Resolve FullName according to OS/2 syntax, esp. '..' and '.'
          -- Doesn't check if file or dir exists.
          -- Note: DosQueryPathInfo can't handle trailing '\' if not a root dir.
-         next = NepmdQueryFullName( FullName)
-         parse value next with 'ERROR:'rcx
-         if rcx = '' then
-            FullName = next
-         else
-            sayerror 'defc a_1: QueryFullName: rc = 'rcx'.'
-         endif
+         FullName = NepmdQueryFullName( FullName)
 
       elseif pos( 'F', flags) then  -- if DIR /F, then the line is the fully-qualified filename
                                     -- Note: DIR /F /B is resolved to DIR /B.
@@ -893,9 +887,8 @@ defproc A1FindSpecInTree( var Spec)
 
       -- First check for Spec in dir of current file
       ThisDir = NepmdQueryFullname( .filename'\..')
-      parse value ThisDir with 'ERROR:'rcx
-      if rcx <> '' then
-         return rcx
+      if rc then
+         return rc
       endif
       ThisDir = strip( ThisDir, 'T', '\')
       next = ThisDir'\'Spec
@@ -1016,7 +1009,7 @@ defproc a1load( FileName, SearchPath)
          endif
 
          next = FindFileInList( FileName, ResolveEnvVars( SearchPath))
-         if next > '' then
+         if next <> '' then
             LoadName = next
             leave
          endif
@@ -1033,20 +1026,17 @@ defproc a1load( FileName, SearchPath)
                                           NepmdQueryFullname( .filename'\..')';'                      ||
                                           NepmdQueryFullname( .filename'\..\..')';'                   ||
                                           NepmdQueryFullname( .filename'\..\..\..'))
-         if next > '' then
+         if next <> '' then
             LoadName = next
             leave
          endif
       enddo
 
       rc = -2
-      if LoadName > '' then
+      if LoadName <> '' then
          -- LoadName must exist
          FullName = NepmdQueryFullname( LoadName)
-         parse value FullName with 'ERROR:'rc
-         if rc = '' then
-            'edit "'FullName'"'
-         endif
+         'edit "'FullName'"'
       endif
    endif
 

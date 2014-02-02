@@ -247,11 +247,7 @@ defc dir
    Options = ''
    Mask    = ''
    call ParseOs2Options( Args, Options, Mask)
-   next = NepmdQueryFullname( Mask)
-   parse value next with 'ERROR:'rcx
-   if rcx = '' then
-      Mask = next
-   endif
+   Mask = NepmdQueryFullname( Mask)
 
    DirArgs = strip( Options Mask)
    dos_command( 'dir' DirArgs)
@@ -598,14 +594,7 @@ defproc FindFileInList( File, PathList)
       Path = strip( Path, 'T', '\')
       next = Path'\'File
       if Exist( next) then  -- find files and dirs
-         test = NepmdQueryFullname( next)
-         parse value test with 'ERROR:'rcx
-         if rcx > '' then
-            iterate
-         else
-            FullName = test
-            leave
-         endif
+         FullName = NepmdQueryFullname( next)
       endif
    enddo
    return FullName

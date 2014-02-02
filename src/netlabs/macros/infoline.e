@@ -320,31 +320,6 @@ defproc GetFileName
    return Filename
 
 ; ---------------------------------------------------------------------------
-; Helper for defproc GetInfoFieldValue.
-; Removes the 'ERROR:'rc return value
-; arg(1) = Filename, arg(2) = Keyword for NepmdQueryPathInfo.
-; May also be called only with keyword as arg(1). Filename is then
-; .filename.
-defproc QueryPathInfo
-   if arg(2) = '' then
-      Filename = .filename
-      Keyword = arg(1)
-   else
-      Filename = arg(1)
-      if Filename = '' then
-         Filename = .filename
-      endif
-      Keyword = arg(2)
-   endif
-   ret = NepmdQueryPathInfo( Filename, Keyword)
-   parse value ret with 'ERROR:'rcx
-   if rcx <> '' then
-      return ''
-   else
-      return ret
-   endif
-
-; ---------------------------------------------------------------------------
 ; Replace info field vars with '%...' or other values
 defproc GetInfoFieldValue(FVar, var FFlag)
    universal tab_key
@@ -411,13 +386,13 @@ defproc GetInfoFieldValue(FVar, var FFlag)
                                          FFlag  = 'READONLY'
    elseif FVar = 'FILENAME'         then FValue = GetFileName()
                                          FFlag  = 'FILE'
-   elseif FVar = 'DATETIME'         then FValue = QueryPathInfo('MTIME')                 -- show YYYY/MM/DD HH:MM:SS from file on disk
+   elseif FVar = 'DATETIME'         then FValue = NepmdQueryPathInfo('MTIME')            -- show YYYY/MM/DD HH:MM:SS from file on disk
                                          FFlag  = 'FILE'
-   elseif FVar = 'ATTR'             then FValue = QueryPathInfo('ATTR')                  -- show 'ADSHR' or '-----'
+   elseif FVar = 'ATTR'             then FValue = NepmdQueryPathInfo('ATTR')             -- show 'ADSHR' or '-----'
                                          FFlag  = 'FILE'
-   elseif FVar = 'SIZE'             then FValue = QueryPathInfo('SIZE')                  -- show size in bytes
+   elseif FVar = 'SIZE'             then FValue = NepmdQueryPathInfo('SIZE')             -- show size in bytes
                                          FFlag  = 'FILE'
-   elseif FVar = 'EASIZE'           then FValue = QueryPathInfo('EASIZE')                -- show size of EAs in bytes
+   elseif FVar = 'EASIZE'           then FValue = NepmdQueryPathInfo('EASIZE')           -- show size of EAs in bytes
                                          FFlag  = 'FILE'
    elseif FVar = 'DATETIMEMODIFIED' then FValue = GetDateTimeModified()                  -- show date - time or modified or other infos
                                          FFlag  = 'MODIFIED'
@@ -680,7 +655,7 @@ defproc GetDateTimeModified
             next = GetFileDateHex( filename)
             --next = NepmdQueryPathInfo( .filename, 'MTIME')
             --DateTime = NlsDateTime(next)
-            if rc = 0 then
+            if not rc then
                new_filedatehex = next
                cur_filedatehex = ltoa( substr( .fileinfo, 9, 4), 16)
                if new_filedatehex <> cur_filedatehex then
@@ -782,15 +757,15 @@ defc ConfigInfoLine
                          gethwndc(APP_HANDLE) ||
                          Text) with Button 2 NewValue \0
    if Button = \1 then
-      rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath, NewValue)
+      NepmdWriteConfigValue( nepmd_hini, KeyPath, NewValue)
    elseif Button = \2 then
-      rcx = NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+      NepmdDeleteConfigValue( nepmd_hini, KeyPath)
    elseif Button = \3 then
-      rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath, Standard)
+      NepmdWriteConfigValue( nepmd_hini, KeyPath, Standard)
    elseif Button = \4 then
       return
    endif
-   if not rcx then
+   if not rc then
       Cmd
    endif
 

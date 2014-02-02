@@ -169,14 +169,12 @@ defproc SaveProcessNetlabsFile( var Name, var SpecifiedName, var fNameChanged)
    do i = 1 to 1
 
       RootDir = NepmdScanEnv( 'NEPMD_ROOTDIR')
-      parse value RootDir with 'ERROR:'rcx
-      if rcx <> '' then
+      if RootDir = '' then
          sayerror 'Environment var NEPMD_ROOTDIR not set'
          leave
       endif
       UserDir = NepmdScanEnv( 'NEPMD_USERDIR')
-      parse value UserDir with 'ERROR:'rcx
-      if rcx <> '' then
+      if UserDir = '' then
          sayerror 'Environment var NEPMD_USERDIR not set'
          leave
       endif
@@ -666,8 +664,8 @@ defproc SaveFat( FullName, Options)
       sayerror 0  -- delete message
       call delete_ea('.LONGNAME')
       'add_ea .LONGNAME' LongName
-      longnamerc = NepmdWriteStringEa( ShortName, '.LONGNAME', LongName)
-      if longnamerc then
+      NepmdWriteStringEa( ShortName, '.LONGNAME', LongName)
+      if rc then
          sayerror 'EA ".LONGNAME" not written to file "'ShortName'"'
       else
          .filename = ShortName
@@ -1320,8 +1318,7 @@ defproc GetReadonly
 /*
    -- 1) using NepmdQueryPathInfo
    attr = NepmdQueryPathInfo( .filename, 'ATTR')
-   parse value attr with 'ERROR:'rc
-   if rc > '' then  -- file doesn't exist
+   if rc then  -- file doesn't exist
       --sayerror 'Attributes for "'Filename'" can''t be obtained, rc = 'rc
    elseif length(attr) = 5 then
       readonly = (substr( attr, 5, 1) = 'R')
@@ -1676,11 +1673,7 @@ defproc QueryFileSys( Drive)
 ; ---------------------------------------------------------------------------
 ; Accepts a relative dir name. The parent dir must exist.
 defproc MakeDirectory( Dirname)
-   next = NepmdQueryFullName( DirName)
-   parse value next with 'ERROR:'ret
-   if ret = '' then
-      DirName = next
-   endif
+   DirName = NepmdQueryFullName( DirName)
    Dirname = Dirname\0
    peaop2 = copies( \0, 4)
    rcx = dynalink32( 'DOSCALLS',           -- dynamic link library name
@@ -1692,18 +1685,10 @@ defproc MakeDirectory( Dirname)
 ; ---------------------------------------------------------------------------
 ; Maybe overwrites NewFileName.
 defproc CopyFile( FileName, NewFileName)
-   next = NepmdQueryFullName( FileName)
-   parse value next with 'ERROR:'ret
-   if ret = '' then
-      FileName = next
-   endif
-   next = NepmdQueryFullName( NewFileName)
-   parse value next with 'ERROR:'ret
-   if ret = '' then
-      NewFileName = next
-   endif
+   FileName    = NepmdQueryFullName( FileName)
+   NewFileName = NepmdQueryFullName( NewFileName)
 
-   FileName = FileName\0
+   FileName    = FileName\0
    NewFileName = NewFileName\0
    Option = 1  -- Overwrite if exists
    rcx = dynalink32( 'DOSCALLS',           -- dynamic link library name
@@ -1717,22 +1702,14 @@ defproc CopyFile( FileName, NewFileName)
 ; ---------------------------------------------------------------------------
 ; Maybe overwrites NewFileName instead of returning ERROR_ACCESS_DENIED.
 defproc Move( FileName, NewFileName)
-   next = NepmdQueryFullName( FileName)
-   parse value next with 'ERROR:'ret
-   if ret = '' then
-      FileName = next
-   endif
-   next = NepmdQueryFullName( NewFileName)
-   parse value next with 'ERROR:'ret
-   if ret = '' then
-      NewFileName = next
-   endif
+   FileName    = NepmdQueryFullName( FileName)
+   NewFileName = NepmdQueryFullName( NewFileName)
 
    if Exist( NewFileName) then
       call EraseTemp( NewFileName)
    endif
 
-   FileName = FileName\0
+   FileName    = FileName\0
    NewFileName = NewFileName\0
    rcx = dynalink32( 'DOSCALLS',           -- dynamic link library name
                      '#271',               -- ordinal value for Dos32Move
@@ -1757,11 +1734,7 @@ defproc MakeTree( DirName)
       DirName = strip( DirName, 't', '\')
    enddo
 
-   next = NepmdQueryFullName( DirName)
-   parse value next with 'ERROR:'ret
-   if ret = '' then
-      DirName = next
-   endif
+   DirName = NepmdQueryFullName( DirName)
 
    rcx = 0
    p = pos( '\', DirName)
@@ -1812,11 +1785,11 @@ defproc ReadFilePart( File, Len)
 
    if not NepmdFileExists( File) then
       rc = 2  -- ERROR_FILE_NOT_FOUND
-      return ''
+      return
    endif
    if not isnum( Len) | Len < 1 then
       rc = 87  -- ERROR_INVALID_PARAMETER
-      return ''
+      return
    endif
 
    'xcom e /t /512 /bin /d' File

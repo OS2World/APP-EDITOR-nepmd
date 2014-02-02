@@ -394,7 +394,7 @@ defc ShellSetInitCmd
    universal nepmd_hini
 
    KeyPath = '\NEPMD\User\Shell\InitCmd'
-   ret = NepmdWriteConfigValue( nepmd_hini, KeyPath, strip( arg(1)))
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, strip( arg(1)))
 
 ; ---------------------------------------------------------------------------
 defc ShellInitCmdDlg
@@ -417,7 +417,7 @@ defc ShellInitCmdDlg
                          Text) with button 2 NewInitCmd \0
    NewInitCmd = strip( NewInitCmd)
    if button = \1 & NewInitCmd <> InitCmd then
-      ret = NepmdWriteConfigValue( nepmd_hini, KeyPath, NewInitCmd)
+      NepmdWriteConfigValue( nepmd_hini, KeyPath, NewInitCmd)
    endif
 
 -------------------------------------------------------------Shell_Kill------------------
@@ -1548,11 +1548,7 @@ defc ShellFncInit
    endif
 
    -- Resolve FileMask to valid names for DosFind*
-   next = NepmdQueryFullName( FileMask)
-   parse value next with 'ERROR:'rc
-   if rc = '' then
-      FileMask = next
-   endif
+   FileMask = NepmdQueryFullName( FileMask)
 
    -- The here fully qualified filemask must be changed to a relative path later,
    -- if FilePart was relative before.
@@ -1588,9 +1584,7 @@ defc ShellFncInit
    call SetAVar( 'FncFound.last', '')
 
    -- Find dirs and files
-   rc1 = ''
-   rc2 = ''
-   handle = GETNEXT_CREATE_NEW_HANDLE  -- handle must be reset before the search
+   Handle = ''  -- handle must be reset before the search
    c = 0  -- number of found names
    m = 0  -- item number of ExeMaskList
    f = 0  -- number of found items per FileMask, only used for debugging
@@ -1609,10 +1603,7 @@ defc ShellFncInit
          --   dprintf( 'TabComplete', 'Dir: FileMask = ['FileMask']')
          --endif
 
-         next = NepmdGetNextDir( FileMask, address(handle))
-         parse value next with 'ERROR:'rc1
-         if rc1 = '' then
-            Name = next
+         if NepmdGetNextDir( FileMask, Handle, Name) then
             -- Append \ for dirs
             Name = Name'\'
             f = f + 1
@@ -1620,7 +1611,8 @@ defc ShellFncInit
             --dprintf( 'TabComplete', 'Dir: FileMask = ['FileMask'], Found 'f' filenames.')
             -- No more dirs, so reset flag, handle and counter
             fFindDirs = 0
-            handle = GETNEXT_CREATE_NEW_HANDLE  -- handle must be reset before the next search
+            Handle = ''  -- handle must be reset before the next search
+            Name   = ''
             f = 0
          endif
       endif
@@ -1643,10 +1635,7 @@ defc ShellFncInit
             --endif
 
             -- Find files
-            next = NepmdGetNextFile( FileMask, address(handle))
-            parse value next with 'ERROR:'rc2
-            if rc2 = '' then
-               Name = next
+            if NepmdGetNextFile( FileMask, Handle, Name) then
                f = f + 1
                fGetNextFileMask = 0
             else
@@ -1655,7 +1644,7 @@ defc ShellFncInit
                if fAppendExeMask & words( FNC_EXE_MASK_LIST) > m then
                   -- Initiate a new search with the next ExeMask
                   fGetNextFileMask = 1
-                  handle = GETNEXT_CREATE_NEW_HANDLE  -- handle must be reset before the next search
+                  Handle = ''  -- handle must be reset before the next search
                   iterate
                endif
             endif

@@ -84,8 +84,7 @@ defproc ModeFindDef
       if fRecursive then
          -- Parent dir of current file and recursive
          next = NepmdQueryFullName( .filename'\..\..')  -- needs recursive option
-         parse value next with 'ERROR:'rcx
-         if rcx <> '' then
+         if rc then
             return -3
          endif
          --FileMask = strip( next, 't', '\')'\*.c'
@@ -96,8 +95,7 @@ defproc ModeFindDef
       else
          -- Dir of current file
          next = NepmdQueryFullName( .filename'\..')
-         parse value next with 'ERROR:'rcx
-         if rcx <> '' then
+         if rc then
             return -3
          endif
          FileMask = strip( next, 't', '\')'\*.c'
@@ -349,7 +347,7 @@ defc FindDef
    endif
 
    -- Save selected button for next call
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, Button)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, Button)
    -- Set number and list of files to load
    if Button = 1 | Button = 2 then  -- load one file
       Files = Select

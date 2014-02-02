@@ -192,7 +192,7 @@ compile endif
 ; saved with the prefix to make the string executable directly.
 definit
    saved_rc = rc
-   --call NepmdPmPrintf( 'MODEEXEC: definit executed, rc at definit start = 'rc)
+   --dprintf( 'MODEEXEC: definit executed, rc at definit start = 'rc)
    call AddAVar( 'loadsettingslist',
                         'Highlight Margins Tabs DynaSpell CodingStyle')
    call AddAVar( 'selectsettingslist',
@@ -203,7 +203,7 @@ definit
                         ' HeaderStyle HeaderLength EndCommented' ||
                         ' MatchChars CommentAutoTerminate' ||
                         ' FunctionSpacing ClosingBraceAutoIndent')
-   --call NepmdPmPrintf( 'MODEEXEC: definit executed, rc at definit end   = 'rc)
+   --dprintf( 'MODEEXEC: definit executed, rc at definit end   = 'rc)
    -- Restore rc to make link/linkverify get the right rc, because definit
    -- is executed immediately at linking and maybe changes the rc that link
    -- sees.
@@ -324,7 +324,7 @@ defc ProcessLoadSettings
       -- Activate keyword highlighting, if not already done by load_<mode> hook
       next = GetAVar( 'highlight.'fid)  -- get file setting
       if next = '' | next = 'DEFAULT' then
-         call NepmdActivateHighlight( default_on, Mode, CheckFlag, nepmd_hini)
+         NepmdActivateHighlight( default_on, Mode, CheckFlag, nepmd_hini)
       endif
 
    elseif loadstate = 0 then  -- when changing a mode

@@ -101,17 +101,17 @@ defproc PreLoadFile( Spec, Options)
 
    -- Resolve wildcards in Spec to delete REXX EAs for every REXX file
    -- and for setting universal vars
-   Handle = GETNEXT_CREATE_NEW_HANDLE  -- always create a new handle!
+   Handle   = ''  -- always create a new handle!
+   Filename = ''
    fNoMoreFiles = 0
    do while fNoMoreFiles = 0
       if fWildcard then
          -- If Spec contains wildcards then find Filenames
-         Filename = NepmdGetNextFile( Spec, address( Handle))
-         parse value Filename with 'ERROR:'rcx
-         if rcx <> '' then
-            fNoMoreFiles = 1
-         else
+         if NepmdGetNextFile( Spec, Handle, Filename) then
             filestoload = filestoload + 1
+         else
+            fNoMoreFiles = 1
+            leave
          endif
       else
          -- If Spec doesn't contain wildcards then set Filename to make the
@@ -264,8 +264,7 @@ compile else
          -- Inserting the code here directly always works.
          fReadonly = 0
          attr = NepmdQueryPathInfo( Filename, 'ATTR')
-         parse value attr with 'ERROR:'rc
-         if rc > '' then  -- file doesn't exist
+         if attr <> '' then  -- file doesn't exist
             --sayerror 'Attributes for "'Filename'" can''t be retrieved, rc = 'rc
             return rc
          elseif length(attr) = 5 then
@@ -275,11 +274,7 @@ compile else
          if not fReadonly then
 compile endif
             --sayerror 'Removing REXX EAs with NepmdLib from 'Filename
-            next = NepmdDeleteRexxEa( Filename)
-            parse value next with 'ERROR:'rc
-            if rc = '' then
-               rc = 0
-            endif
+            NepmdDeleteRexxEa( Filename)
          endif
       endif
    endif
@@ -295,9 +290,7 @@ defproc PreloadProcessCodepage( Filename)
    if Codepage = '' then
       return 0
    endif
-   parse value Codepage with 'ERROR:'rc
-   if rc = '' then
-      rc = 0
+   if not rc then
       Codepage = upcase(Codepage)
       if Codepage = 'CP1004' then
          Codepage = 'latin-1'
@@ -325,7 +318,7 @@ defproc PreloadProcessCodepage( Filename)
       quietshell JoinEaCmd
 
       -- Delete EA, because it will not be reset on save yet
-      call NepmdDeleteStringEa( Filename, 'EPM.CODEPAGE')
+      NepmdDeleteStringEa( Filename, 'EPM.CODEPAGE')
    endif
    return rc
 
@@ -873,13 +866,8 @@ defc EditMacroFile
    endif
    if File = '' then return; endif
 
-
    -- Get full pathname if exists
-   next = NepmdQueryFullName(File)
-   parse value next with 'ERROR:'rc
-   if rc = '' then
-       File = next
-   endif
+   File = NepmdQueryFullName(File)
 
    -- Build MacroFileName
    lp1 = lastpos( '\', File)
@@ -1346,11 +1334,7 @@ defproc GetFullName( FileMask)
 
    -- Resolve '.' and '..' in FullName
    if not pos( '/', FullName) then
-      next = NepmdQueryFullname( FullName)
-      parse value next with 'ERROR:'rcx
-      if rcx = '' then
-         FullName = next
-      endif
+      FullName = NepmdQueryFullname( FullName)
    endif
 
    return FullName

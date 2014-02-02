@@ -120,7 +120,7 @@ defc ChangeMenu
 
    'RefreshMenu'
 
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, NewMenu)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, NewMenu)
 
 ; ---------------------------------------------------------------------------
 defc RefreshMenu

@@ -105,13 +105,11 @@ defproc GetGrepVersion
 
       -- Query size, time
       Size = NepmdQueryPathInfo( File, 'SIZE')
-      parse value Size with 'ERROR:'rcx
-      if rcx <> '' then
+      if rc then
          return -1  -- File not found
       endif
       Time = NepmdQueryPathInfo( File, 'MTIME')  -- YYYY/MM/DD HH:MM:SS
-      parse value Time with 'ERROR:'rcx
-      if rcx <> '' then
+      if rc then
          return -1  -- File not found
       endif
       --sayerror '1: 'fInit'-"'File'"-'LastGrepVersion'-'Size'-'Time
@@ -167,7 +165,7 @@ defproc GetGrepVersion
       call EraseTemp( TmpFile)
       -- Write GrepVersion, Size, Time to ini
       KeyValue = GrepVersion\1''Size\1''Time\1
-      next = NepmdWriteConfigValue( nepmd_hini, KeyPath, KeyValue)
+      NepmdWriteConfigValue( nepmd_hini, KeyPath, KeyValue)
       --sayerror '2: 'fInit'-"'File'"-'GrepVersion'-'Size'-'Time
    enddo
    --sayerror fInit'-'GrepVersion
@@ -395,32 +393,32 @@ defc GfcCurrentFile
    fn = .filename
    Params = '"'fn'"'
 
-   RootDir = NepmdScanEnv('NEPMD_ROOTDIR')
-   parse value RootDir with 'ERROR:'rc1
-   if rc1 > '' then
+   RootDir = NepmdScanEnv( 'NEPMD_ROOTDIR')
+   rc1 = rc
+   if rc then
       sayerror 'Environment var NEPMD_ROOTDIR not set.'
    endif
    NetlabsDir = RootDir'\netlabs'
 
-   UserDir = NepmdScanEnv('NEPMD_USERDIR')
-   parse value UserDir with 'ERROR:'rc2
-   if rc2 > '' then
+   UserDir = NepmdScanEnv( 'NEPMD_USERDIR')
+   rc2 = rc
+   if rc then
       sayerror 'Environment var NEPMD_USERPATH not set.'
    endif
 
    NetlabsDir = strip( NetlabsDir, 't', '\')
    UserDir    = strip( UserDir   , 't', '\')
-   if rc1 = '' & rc2 = '' then
-      if abbrev( upcase(fn), upcase(NetlabsDir)'\') then
+   if not rc1 & not rc2 then
+      if abbrev( upcase(fn), upcase( NetlabsDir)'\') then
          rest = substr( fn, length( NetlabsDir) + 1)  -- including leading \
          fn2 = UserDir''rest
-         if NepmdFileExists(fn2) then
+         if NepmdFileExists( fn2) then
             Params = Params' "'fn2'"'
          endif
-      elseif abbrev( upcase(fn), upcase(UserDir)'\') then
+      elseif abbrev( upcase( fn), upcase( UserDir)'\') then
          rest = substr( fn, length( UserDir) + 1)  -- including leading \
          fn2 = NetlabsDir''rest
-         if NepmdFileExists(fn2) then
+         if NepmdFileExists( fn2) then
             Params = Params' "'fn2'"'
          endif
       endif
@@ -438,32 +436,32 @@ defc KDiff3CurrentFile
    fn = .filename
    Params = '"'fn'"'
 
-   RootDir = NepmdScanEnv('NEPMD_ROOTDIR')
-   parse value RootDir with 'ERROR:'rc1
-   if rc1 > '' then
+   RootDir = NepmdScanEnv( 'NEPMD_ROOTDIR')
+   rc1 = rc
+   if rc then
       sayerror 'Environment var NEPMD_ROOTDIR not set.'
    endif
    NetlabsDir = RootDir'\netlabs'
 
-   UserDir = NepmdScanEnv('NEPMD_USERDIR')
-   parse value UserDir with 'ERROR:'rc2
-   if rc2 > '' then
+   UserDir = NepmdScanEnv( 'NEPMD_USERDIR')
+   rc2 = rc
+   if rc then
       sayerror 'Environment var NEPMD_USERPATH not set.'
    endif
 
    NetlabsDir = strip( NetlabsDir, 't', '\')
    UserDir    = strip( UserDir   , 't', '\')
-   if /*rc1 = '' & */ rc2 = '' then
-      if abbrev( upcase(fn), upcase(NetlabsDir)'\') then
+   if not rc2 then
+      if abbrev( upcase( fn), upcase( NetlabsDir)'\') then
          rest = substr( fn, length( NetlabsDir) + 1)  -- including leading \
          fn2 = UserDir''rest
-         if NepmdFileExists(fn2) then
+         if NepmdFileExists( fn2) then
             Params = Params' "'fn2'"'
          endif
-      elseif abbrev( upcase(fn), upcase(UserDir)'\') then
+      elseif abbrev( upcase( fn), upcase( UserDir)'\') then
          rest = substr( fn, length( UserDir) + 1)  -- including leading \
          fn2 = NetlabsDir''rest
-         if NepmdFileExists(fn2) then
+         if NepmdFileExists( fn2) then
             Params = Params' "'fn2'"'
          endif
       endif
@@ -723,7 +721,7 @@ defproc Md5Comp( File1, File2)
          findfile next, 'md5sum.exe', 'PATH'
       endif
       if rc then
-         sayerror 'ERROR: MD5.EXE or MD5SUM.EXE not found in PATH'
+         sayerror 'Error: MD5.EXE or MD5SUM.EXE not found in PATH'
       else
          Md5Exe = next
       endif

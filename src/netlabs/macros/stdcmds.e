@@ -462,9 +462,9 @@ defc margins, ma
       if fSetEa then
          if not fReadonly then
             -- Delete the EA 'EPM.MARGINS' immediately
-            rc = NepmdDeleteStringEa( .filename, 'EPM.MARGINS')
-            if (rc > 0) then
-               sayerror 'EA "EPM.MARGINS" not deleted, rc = 'rc
+            NepmdDeleteStringEa( .filename, 'EPM.MARGINS')
+            if rc then
+               sayerror 'EA "EPM.MARGINS" not deleted, rc = 'rc'.'
             endif
          endif
       endif
@@ -488,9 +488,9 @@ defc margins, ma
          'add_ea EPM.MARGINS' NewMargins
          if not fReadonly then
             -- Set the EA 'EPM.MARGINS' immediately
-            rc = NepmdWriteStringEa( .filename, 'EPM.MARGINS', NewMargins)
-            if (rc > 0) then
-               sayerror 'EA "EPM.MARGINS" not set, rc = 'rc
+            NepmdWriteStringEa( .filename, 'EPM.MARGINS', NewMargins)
+            if rc then
+               sayerror 'EA "EPM.MARGINS" not set, rc = 'rc'.'
             endif
          endif
       endif
@@ -868,9 +868,9 @@ defc tabs
       if fSetEa then
          if not fReadonly then
             -- Delete the EA 'EPM.TABS' immediately
-            rc = NepmdDeleteStringEa( .filename, 'EPM.TABS')
-            if (rc > 0) then
-               sayerror 'EA "EPM.TABS" not deleted, rc = 'rc
+            NepmdDeleteStringEa( .filename, 'EPM.TABS')
+            if rc then
+               sayerror 'EA "EPM.TABS" not deleted, rc = 'rc'.'
             endif
          endif
       endif
@@ -886,9 +886,9 @@ defc tabs
          'add_ea EPM.TABS' NewTabs
          if not fReadonly then
             -- Set the EA 'EPM.TABS' immediately
-            rc = NepmdWriteStringEa( .filename, 'EPM.TABS', NewTabs)
-            if (rc > 0) then
-               sayerror 'EA "EPM.TABS" not set, rc = 'rc
+            NepmdWriteStringEa( .filename, 'EPM.TABS', NewTabs)
+            if rc then
+               sayerror 'EA "EPM.TABS" not set, rc = 'rc'.'
             endif
          endif
       endif
@@ -928,7 +928,7 @@ defc ver
 defc ActivateHighlighting
    universal nepmd_hini
    parse arg on Mode Opt
-   call NepmdActivateHighlight( strip( on), strip( Mode), strip( Opt), nepmd_hini)
+   NepmdActivateHighlight( strip( on), strip( Mode), strip( Opt), nepmd_hini)
 
 ; ---------------------------------------------------------------------------
 defc CheckModeFiles
@@ -938,13 +938,13 @@ defc CheckModeFiles
    if Mode = '' then
       Mode = GetMode()
    endif
-   call NepmdActivateHighlight( '', Mode, '', nepmd_hini)
+   NepmdActivateHighlight( '', Mode, '', nepmd_hini)
 
    Title = 'Checked mode files'
    Text = ''
    Text = Text || 'The mode files for the mode 'Mode' were checked and the highlighting'
    Text = Text || ' file was rebuilt and reloaded, if required.'
-   Style = MB_OK+MB_INFORMATION+MB_MOVEABLE
+   Style = MB_OK + MB_INFORMATION + MB_MOVEABLE
    ret = winmessagebox( Title,
                         Text,
                         Style)

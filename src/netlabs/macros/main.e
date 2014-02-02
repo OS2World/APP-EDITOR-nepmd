@@ -128,9 +128,7 @@ compile endif
       -- REXX profile is not searched anymore. It must be placed in
       -- %NEPMD_USERDIR%\bin with the name PROFILE.ERX now.
       Profile = Get_Env('NEPMD_USERDIR')'\bin\'ProfileName
-      next = NepmdQueryPathInfo( Profile, 'SIZE')
-      parse value next with 'ERROR:'rcx
-      if rcx = '' & next > 0 then
+      if NepmdFileExists( Profile) then
          'rx' Profile EpmArgs
       endif
    endif
@@ -175,7 +173,7 @@ defc main2
    if ChangeWorkDir = 1 then
       KeyPath = '\NEPMD\User\ChangeWorkDir\Last'
       LastWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-      if NepmdDirExists( LastWorkDir) = 1 then
+      if NepmdDirExists( LastWorkDir) then
          call directory( '\')
          call directory( LastWorkDir)
       endif
