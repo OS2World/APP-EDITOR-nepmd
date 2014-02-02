@@ -24,7 +24,7 @@
 
 /*
 @@NepmdWriteConfigValue@PROTOTYPE
-rc = NepmdWriteConfigValue( Handle, ConfPath, ConfValue)
+NepmdWriteConfigValue( Handle, ConfPath, ConfValue)
 
 @@NepmdWriteConfigValue@CATEGORY@CONFIG
 
