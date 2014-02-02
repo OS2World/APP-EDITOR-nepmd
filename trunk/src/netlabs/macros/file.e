@@ -314,7 +314,7 @@ defproc Save
       return -5
    endif
    -- Check if readonly file attrib is set although .readonly field is not
-   Attr = QueryPathInfo('ATTR')  -- show 'ADSHR' or '-----'
+   Attr = NepmdQueryPathInfo('ATTR')  -- show 'ADSHR' or '-----'
    if substr( Attr, 5, 1) = 'R' then
       sayerror READ_ONLY__MSG
       rc = -5  -- Access denied
