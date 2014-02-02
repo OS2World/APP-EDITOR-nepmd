@@ -779,9 +779,9 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
 
        /* reassemble prototype */
        IF ResultPart = '' THEN
-          Prototype = FunctionName'('NewFunctionParms');';
+          Prototype = FunctionName'('NewFunctionParms')';
        ELSE
-          Prototype = ResultPart '='FunctionName'('NewFunctionParms');';
+          Prototype = ResultPart '='FunctionName'('NewFunctionParms')';
 
 
        /* add result to syntax section */
