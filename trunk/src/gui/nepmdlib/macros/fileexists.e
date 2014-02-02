@@ -37,8 +37,8 @@ This parameter specifies the name of the file to be checked.
 @@NepmdFileExists@RETURNS
 *NepmdFileExists* returns either
 .ul compact
-- *0* (zero), if the file does not exist  or
-- *1* , if the file exists
+- *0* (zero), if the file does not exist or
+- *1*, if the file exists
 
 This procedure sets the implicit universal var rc. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.

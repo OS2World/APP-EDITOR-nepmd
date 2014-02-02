@@ -117,8 +117,8 @@ compile endif
 
 defproc NepmdQueryStringEa( Filename, EaName)
 
-    BufLen      = NEPMD_MAXLEN_ESTRING
-    TextMessage = copies( \0, BufLen)
+    BufLen  = NEPMD_MAXLEN_ESTRING
+    EaValue = copies( \0, BufLen)
 
     -- Prepare parameters for C routine
     Filename = Filename\0
@@ -128,9 +128,9 @@ defproc NepmdQueryStringEa( Filename, EaName)
     LibFile = helperNepmdGetlibfile()
     rc = dynalink32( LibFile,
                      "NepmdQueryStringEa",
-                     address( Filename)            ||
-                     address( EaName)              ||
-                     address( TextMessage)         ||
+                     address( Filename)        ||
+                     address( EaName)          ||
+                     address( EaValue)         ||
                      atol( Buflen))
 
     helperNepmdCheckliberror( LibFile, rc)
@@ -138,6 +138,6 @@ defproc NepmdQueryStringEa( Filename, EaName)
     if rc then
        return ''
     else
-       return makerexxstring( TextMessage)
+       return makerexxstring( EaValue)
     endif
 

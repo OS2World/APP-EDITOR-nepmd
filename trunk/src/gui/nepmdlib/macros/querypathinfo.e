@@ -115,7 +115,7 @@ compile endif
 ; E syntax:
 ;    InfoValue = NepmdQueryPathInfo( PathName, ValueTag)
 ;
-;    See valig tags in src\gui\nepmdlib\nepmdlib.h: NEPMD_PATHINFO_*
+;    See valid tags in src\gui\nepmdlib\nepmdlib.h: NEPMD_PATHINFO_*
 ; ---------------------------------------------------------------------------
 ; C prototype:
 ;    APIRET EXPENTRY NepmdQueryPathInfo( PSZ pszPathname,
