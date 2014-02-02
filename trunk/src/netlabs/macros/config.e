@@ -1477,7 +1477,7 @@ defc SaveFont
          do i = 1 to wp
             parse value rest with Val \1 rest
          enddo
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'Key, Val)
+         NepmdWriteConfigValue( nepmd_hini, KeyPath'\'Key, Val)
          --dprintf( 'SAVEFONT', KeyPath'\'word( KeyList, wp)' = 'Val)
          -- Set default_font to take change immediately for the next loaded files
          if Key = 'Text' then
@@ -1540,8 +1540,8 @@ defc SaveColor
       next = word( args, w)
       wp = wordpos( next, upcase( KeyList))
       if wp then
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'word( KeyList, wp),
-                                     word( ValList, wp))
+         NepmdWriteConfigValue( nepmd_hini, KeyPath'\'word( KeyList, wp),
+                                word( ValList, wp))
          --dprintf( 'SAVECOLOR', KeyPath'\'word( KeyList, wp)' = 'word( ValList, wp))
       endif
    enddo
@@ -1703,9 +1703,9 @@ defproc GetMatchtab
 defc DelOldRegKeys
    universal nepmd_hini
    KeyPath = '\NEPMD\User\LastStuff\LastFindDefButton'
-   call NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+   NepmdDeleteConfigValue( nepmd_hini, KeyPath)
    KeyPath = '\NEPMD\User\LastStuff\LastSearchArgs'
-   call NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+   NepmdDeleteConfigValue( nepmd_hini, KeyPath)
    KeyPath = '\NEPMD\User\LastStuff\LastChangeArgs'
-   call NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+   NepmdDeleteConfigValue( nepmd_hini, KeyPath)
 

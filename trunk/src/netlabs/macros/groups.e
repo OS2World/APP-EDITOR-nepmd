@@ -62,11 +62,6 @@ const
 compile if not defined(INCLUDE_DESKTOP_SUPPORT)
    INCLUDE_DESKTOP_SUPPORT = 1
 compile endif
-; Save groups in ini as cluttered as standard EPM does or use NEPMD's
-; registry?
-compile if not defined(GROUPS_USE_STANDARD_INI_DEST)
-   GROUPS_USE_STANDARD_INI_DEST = 0
-compile endif
    CO_FAILIFEXISTS    = 0
    CO_REPLACEIFEXISTS = 1
    CO_UPDATEIFEXISTS  = 2
@@ -122,7 +117,7 @@ compile else
 compile endif
 
 ; ---------------------------------------------------------------------------
-defc savegroup =
+defc SaveGroup
    universal app_hini
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Groups'
@@ -152,15 +147,7 @@ defc savegroup =
    if group_name = '' then
       return
    endif
-compile if GROUPS_USE_STANDARD_INI_DEST
-   tempstr = queryprofile( app_hini,  group_name, 'ENTRIES')
-compile else
    tempstr = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\Entries')
-   parse value tempstr with 'ERROR:'rc
-   if rc > '' then
-      tempstr = ''
-   endif
-compile endif
    if tempstr <> '' then
       if MBID_OK <> winmessagebox( 'Save Group',
                                    'Group already exists.  OK to replace it?',
@@ -179,13 +166,8 @@ compile endif
       Ignore = ((leftstr( .filename, 1) = '.') | (not .visible))
       if not Ignore then
          n = n + 1
-compile if GROUPS_USE_STANDARD_INI_DEST
-         call setprofile( app_hini, group_name, 'FILE'n, .filename)
-         call setprofile( app_hini, group_name, 'POSN'n, .line .col .cursorx .cursory)
-compile else
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\File'n, .filename)
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\Posn'n, .line .col .cursorx .cursory)
-compile endif
+         NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\File'n, .filename)
+         NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\Posn'n, .line .col .cursorx .cursory)
       endif
       next_file
       getfileid curfid
@@ -193,23 +175,14 @@ compile endif
          leave
       endif
    enddo  -- Loop through all files in ring
-compile if GROUPS_USE_STANDARD_INI_DEST
-   call setprofile( app_hini, group_name, 'ENTRIES', n)
-compile else
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\Entries', n)
-compile endif
+   NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\Entries', n)
    activatefile startfid
 
    -- Remove the rest
    if (tempstr <> '') & (tempstr > i) then
       do j = n + 1 to tempstr
-compile if GROUPS_USE_STANDARD_INI_DEST
-         call setprofile( app_hini, group_name, 'FILE'j, '')
-         call setprofile( app_hini, group_name, 'POSN'j, '')
-compile else
-         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'group_name'\File'j)
-         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'group_name'\Posn'j)
-compile endif
+         NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'group_name'\File'j)
+         NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'group_name'\Posn'j)
       enddo
    endif
 
@@ -256,7 +229,7 @@ compile if INCLUDE_DESKTOP_SUPPORT -- Ask whether to include on Desktop?
 compile endif  -- INCLUDE_DESKTOP_SUPPORT
 
 ; ---------------------------------------------------------------------------
-defc loadgroup =
+defc LoadGroup
    universal app_hini
    universal nepmd_hini
    universal CurEditCmd
@@ -285,34 +258,12 @@ defc loadgroup =
       if button = \2 then -- User asked for a list
          bufhndl = buffer( CREATEBUF, 'groups', MAXBUFSIZE, 1)  -- Create a private buffer
 
-compile if GROUPS_USE_STANDARD_INI_DEST
-         -- Get all saved group names
-         retlen = \0\0\0\0
-         l = dynalink32( 'PMSHAPI',
-                         '#115',               -- PRF32QUERYPROFILESTRING
-                         atol(app_hini)    ||  -- HINI_PROFILE
-                         atol(0)           ||  -- Application name is NULL; returns all apps
-                         atol(0)           ||  -- Key name
-                         atol(0)           ||  -- Default return string is NULL
-                         atoi(0) || atoi(bufhndl)  ||  -- pointer to returned string buffer
-                         atol(65535)       ||  -- max length of returned string
-                         address(retlen), 2)   -- length of returned string
-         poke bufhndl, 65535, \0
-
-         if not l then
-            sayerror GR_NONE_FOUND
-            return
-         endif
-compile else
          -- Get first saved group name for testing only
          next = ''
-         next = NepmdGetNextConfigKey( nepmd_hini, KeyPath, next, 'C')
-         parse value next with 'ERROR:'rc
-         if rc > '' then
+         if not NepmdGetNextConfigKey( nepmd_hini, KeyPath, 'C', next) then
             sayerror GR_NONE_FOUND
             return
          endif
-compile endif
 
          -- Create a tmp file
          'xcom e /c /q tempfile'
@@ -327,30 +278,13 @@ compile endif
             call browse(0)
          endif
 
-compile if GROUPS_USE_STANDARD_INI_DEST
-         -- Write all group names to the tmp file
-         buf_ofs = 0
-         do while buf_ofs < l
-            this_group = peekz( bufhndl, buf_ofs)
-            entries = queryprofile( app_hini, this_group, 'ENTRIES')
-            if entries <> '' then
-               insertline this_group, .last + 1
-            endif
-            buf_ofs = buf_ofs + length(this_group) + 1
-         enddo
-         call buffer( FREEBUF, bufhndl)
-compile else
          -- Get all saved group names and write them to the tmp file
          do forever
             insertline next, .last + 1
-            last = next  -- save previous element
-            next = NepmdGetNextConfigKey( nepmd_hini, KeyPath, last, 'C')
-            parse value next with 'ERROR:'rc
-            if rc > '' then
+            if not NepmdGetNextConfigKey( nepmd_hini, KeyPath, 'C', next) then
                leave
             endif
          enddo
-compile endif
 
          if .last > 2 then  -- E always creates a file with an empty line
             getfileid fileid
@@ -387,21 +321,16 @@ compile endif
                                          MB_OKCANCEL + MB_QUERY + MB_MOVEABLE) then
                return
             endif
-compile if GROUPS_USE_STANDARD_INI_DEST
-            call setprofile( app_hini, group_name, '', '')
-compile else
             -- Delete KeyPath'\'group_name from nepmd_hini
-            -- Query all sub-pathes and delete them first
+            -- Query all subpaths and delete them first
             do forever
                next2 = ''  -- always restart the query, since list was changed by the deletion
-               next2 = NepmdGetNextConfigKey( nepmd_hini, KeyPath'\'group_name, next2, 'K')
-               parse value next2 with 'ERROR:'rc1
-               if rc1 > '' then
+               if NepmdGetNextConfigKey( nepmd_hini, KeyPath'\'group_name, 'K', next2) then
+                  NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'group_name'\'next2)
+               else
                   leave
                endif
-               rc2 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'group_name'\'next2)
             enddo
-compile endif
             -- Open list box again
             'postme groups loadgroup ?'
             return
@@ -417,27 +346,18 @@ compile endif
       return
    endif
 
-compile if GROUPS_USE_STANDARD_INI_DEST
-   howmany = queryprofile( app_hini,  group_name, 'ENTRIES')
-compile else
    howmany = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\Entries')
-   parse value howmany with 'ERROR:'rc
-   if rc > '' then
+   if rc then
       sayerror 'Group unknown'
       return
    endif
-compile endif
    if howmany = '' then
       sayerror 'Group unknown'
       return
    endif
    do i = 1 to howmany
       'SayHint Loading file' i 'of' howmany
-compile if GROUPS_USE_STANDARD_INI_DEST
-      this_file = queryprofile( app_hini, group_name, 'FILE'i)
-compile else
       this_file = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\File'i)
-compile endif
 
       if leftstr( this_file, 5) = '.DOS ' then
          subword( this_file, 2)  -- execute the command
@@ -448,49 +368,56 @@ compile endif
          CurEditCmd = 'LOADGROUP'  -- must follow the 'edit' cmd
       endif
       if not rc | rc = sayerror('Lines truncated') then
-compile if GROUPS_USE_STANDARD_INI_DEST
-         this_posn = queryprofile( app_hini, group_name, 'POSN'i)
-compile else
          this_posn = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\Posn'i)
-compile endif
          call prestore_pos(this_posn)
       endif
    enddo
 
 ; ---------------------------------------------------------------------------
-defc listgroups =
-   universal app_hini
-   groups = ''
-compile if GROUPS_USE_STANDARD_INI_DEST
-compile else
-compile endif
-   applications = queryprofile( app_hini, '', '')
-   do while applications <> ''
-      parse value applications with app \0 applications
-compile if GROUPS_USE_STANDARD_INI_DEST
-compile else
-compile endif
-      group_entries =  queryprofile( app_hini, app, 'ENTRIES')
-      if group_entries <> '' then
-         groups = groups app
+defc ListGroups
+   universal nepmd_hini
+
+   KeyPath = '\NEPMD\User\Groups'
+   next   = ''
+   Groups = ''
+   do while NepmdGetNextConfigKey( nepmd_hini, KeyPath, 'C', next)
+      if Groups = '' then
+         Groups = next
+      else
+         Groups = Groups next
       endif
    enddo
    sayerror 'List of groups is:' groups
 
 ; ---------------------------------------------------------------------------
-defc killgroup =
-   universal app_hini
-   parse arg group
-compile if GROUPS_USE_STANDARD_INI_DEST
-compile else
-compile endif
-   group_entries =  queryprofile( app_hini, group, 'ENTRIES')
-   if group_entries = '' then  -- Make sure we don't delete something important!
-      sayerror 'Not a group'
-      return
-   endif
-compile if GROUPS_USE_STANDARD_INI_DEST
-compile else
-compile endif
-   call setprofile( app_hini, group, '', '')  -- Delete the entire application
+defc KillGroup
+   universal nepmd_hini
+
+   do i = 1 to 1
+
+      Group = arg(1)
+      if Group = '' then
+         sayerror "Error: no group name specified."
+         leave
+      endif
+
+      KeyPath = '\NEPMD\User\Groups'
+      next   = ''
+      if not NepmdGetNextConfigKey( nepmd_hini, KeyPath, 'C', next) then
+         sayerror "Error: group "Group" doesn't exist."
+         leave
+      endif
+
+      -- Delete KeyPath'\'group_name from nepmd_hini
+      -- Query all subpaths and delete them first
+      do forever
+         next2 = ''  -- always restart the query, since list was changed by the deletion
+         if NepmdGetNextConfigKey( nepmd_hini, KeyPath'\'Group, 'K', next2) then
+            NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'Group'\'next2)
+         else
+            leave
+         endif
+      enddo
+
+   enddo
 

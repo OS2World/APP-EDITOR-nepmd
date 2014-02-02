@@ -42,11 +42,7 @@ defproc GetMode
 
    if CurMode = '' & not IsATempFile then
       -- Get CurMode from EA EPM.MODE
-      next = NepmdQueryStringEa( Filename, 'EPM.MODE')
-      parse value next with 'ERROR:'ret
-      if ret = '' then
-         CurMode = next
-      endif
+      CurMode = NepmdQueryStringEa( Filename, 'EPM.MODE')
    endif
 
    if CurMode = '' then
@@ -59,14 +55,14 @@ defproc GetMode
       --    -  if file is a command shell
       if (not IsATempFile) or IsAShellFileName() then
          -- Get default mode
+         rc = 0
          if isadefproc('NepmdQueryDefaultMode') then
             DefaultMode = NepmdQueryDefaultMode(Filename)
          else
             DefaultMode = 'TEXT'
          endif
-         parse value DefaultMode with 'ERROR:'ret
-         if ret <> '' then
-            sayerror "Default mode can't be determined. NepmdQueryDefaultMode returned rc = "ret
+         if rc then
+            sayerror "Default mode can't be determined. NepmdQueryDefaultMode returned rc = "rc"."
          else
             CurMode = DefaultMode
          endif
@@ -142,8 +138,8 @@ defc ResetMode
    -- Get current mode
    CurMode = GetMode()
 
-   -- does it differ from old mode ?
-   -- if not, skip
+   -- Does it differ from old mode?
+   -- If not, skip
    if CurMode <> OldMode then
       -- Process all mode dependent settings
       'ResetFileSettings'
@@ -198,9 +194,8 @@ defc Mode
    if NewMode <> '' & wordpos( NewMode, ResetModeArgs) = 0 then
       -- Check if mode exists
       ModeList = NepmdQueryModeList()
-      parse value ModeList with 'ERROR:'rc
-      if (rc > '') then
-         sayerror 'List of EPM modes could not be determined, rc = 'rc
+      if rc then
+         sayerror 'List of EPM modes could not be determined, rc = 'rc'.'
          stop
       elseif wordpos( NewMode, ModeList) = 0 then
          sayerror NewMode' is not a valid mode'
@@ -224,9 +219,8 @@ defc Mode
    elseif wordpos( NewMode, ResetModeArgs) > 0 then
       -- Get the default mode
       NewMode =  NepmdQueryDefaultMode(.filename)
-      parse value NewMode with 'ERROR:'rc
-      if rc > '' then
-         sayerror "Default mode can't be determined. NepmdQueryDefaultMode returned rc = "rc
+      if rc then
+         sayerror "Default mode can't be determined. NepmdQueryDefaultMode returned rc = "rc"."
          NewMode = ''
       endif
 
@@ -236,9 +230,9 @@ defc Mode
       if fSetEa then
          if not fReadonly then
             -- Delete the EA 'EPM.MODE' immediately
-            rc = NepmdDeleteStringEa( .filename, 'EPM.MODE' )
-            if (rc > 0) then
-               sayerror 'EA "EPM.MODE" not deleted, rc = 'rc
+            NepmdDeleteStringEa( .filename, 'EPM.MODE' )
+            if rc then
+               sayerror 'EA "EPM.MODE" not deleted, rc = 'rc'.'
             endif
          endif
       endif
@@ -251,9 +245,9 @@ defc Mode
          'add_ea EPM.MODE' NewMode
          if not fReadonly then
             -- Set the EA 'EPM.MODE' immediately
-            rc = NepmdWriteStringEa( .filename, 'EPM.MODE', NewMode)
-            if (rc > 0) then
-               sayerror 'EA "EPM.MODE" not set, rc = 'rc
+            NepmdWriteStringEa( .filename, 'EPM.MODE', NewMode)
+            if rc then
+               sayerror 'EA "EPM.MODE" not set, rc = 'rc'.'
             endif
          endif
       endif
@@ -271,27 +265,26 @@ defc Mode
 ; Called by defc mode if no arg specified.
 defproc SelectMode()
 
-   -- determine current mode
+   -- Determine current mode
    CurMode = get_EAT_ASCII_value('EPM.MODE')
-   DefMode = NepmdQueryDefaultMode( .filename);
+   DefMode = NepmdQueryDefaultMode( .filename)
 
    if CurMode = '' then
       SelectedMode = DefMode
-      Text = 'Default mode:' SelectedMode;
+      Text = 'Default mode:' SelectedMode
    else
-      SelectedMode = CurMode;
-      Text = 'Selected mode:' SelectedMode;
+      SelectedMode = CurMode
+      Text = 'Selected mode:' SelectedMode
    endif
 
-   -- check mode list and add default entry
+   -- Check mode list and add default entry
    ModeList = NepmdQueryModeList()
-   parse value ModeList with 'ERROR:'rc
-   if (rc > '') then
-      sayerror 'List of EPM modes could not be determined, rc = 'rc
+   if rc then
+      sayerror 'List of EPM modes could not be determined, rc = 'rc'.'
       stop
    endif
 
-   -- determine default selection
+   -- Determine default selection
    Selection = wordpos( SelectedMode, ModeList)
    Title = 'Mode selection'
 
@@ -306,7 +299,7 @@ defproc SelectMode()
                      Text\0 )
    refresh
 
-   -- check result
+   -- Check result
    button = asc(leftstr( select, 1))
    EOS = pos( \0, select, 2)        -- CHR(0) signifies End Of String
    if button = 1 then
@@ -330,8 +323,7 @@ defproc QueryModeKey( Mode, Key)
    PathPrefix = '\NEPMD\User\Mode'
    KeyPath = PathPrefix'\'Mode'\'Key
    next = strip( NepmdQueryConfigValue( nepmd_hini, KeyPath), 'T', \0)
-   parse value next with 'ERROR:'rcx
-   if rcx = '' and next <> '' then
+   if not rc & next <> '' then
       return next
    else
       return default_value
@@ -351,22 +343,21 @@ defc DelAllModeKeys
              ' LineCommentPreferred' ||      -- LineCommentPreferred soon to be obsolete
              ' MultiLineCommentStart MultiLineCommentEnd' ||
              ' MultiLineCommentNested'
-   parse value ModeList with 'ERROR:'rc
-   if (rc > '') then
+   if rc then
       sayerror 'List of EPM modes could not be determined, rc = 'rc
       return rc
    endif
    MainPath = '\NEPMD\User\Mode'
    ErrorModes = ''
    rest = ModeList
-   do while rest > ''
+   do while rest <> ''
       parse value rest with Mode rest
-      if Mode > '' then
+      if Mode <> '' then
          ModePath = MainPath'\'Mode
          do w = 1 to words( KeyList)
             Key = word( KeyList, w)
             KeyPath = ModePath'\'Key
-            rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+            NepmdDeleteConfigValue( nepmd_hini, KeyPath)
          enddo
       else
          iterate

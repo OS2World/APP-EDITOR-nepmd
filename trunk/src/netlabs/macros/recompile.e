@@ -329,25 +329,17 @@ defc RecompileAll
    'RingCheckModify'
 
    Path = NepmdScanEnv('EPMEXPATH')
-   parse value Path with 'ERROR:'ret
-   if (ret <> '') then
-      return
-   endif
-
    ListFiles = ''
    rest = Path
    do while rest <> ''
       parse value rest with next';'rest
       -- Search in every piece of Path for .lst files
       FileMask = next'\*.lst'
-      Handle = GETNEXT_CREATE_NEW_HANDLE    -- always create a new handle!
-      do forever
-         ListFile = NepmdGetNextFile( FileMask, address(Handle))
-         parse value ListFile with 'ERROR:'ret
-         if (ret <> '') then
-            leave
+      Handle   = ''    -- always create a new handle!
+      ListFile = ''
+      do while NepmdGetNextFile( FileMask, Handle, ListFile)
          -- Append if not already in list
-         elseif pos( upcase(ListFile)';', upcase(ListFiles)';') = 0 then
+         if pos( upcase(ListFile)';', upcase(ListFiles)';') = 0 then
             ListFiles = ListFiles''ListFile';'
          endif
       enddo
@@ -537,11 +529,7 @@ defc RecompileNew
 
       -- Get ExFileTime of last check from NEPMD.INI
       -- (Saving LastCheckTime avoids a possible ETPM call, if nothing has changed)
-      next = NepmdQueryConfigValue( nepmd_hini, KeyPath1)
-      parse value next with 'ERROR:'ret
-      if ret = '' then
-         LastCheckTime = next
-      endif
+      LastCheckTime = NepmdQueryConfigValue( nepmd_hini, KeyPath1)
 
       NetlabsExFile = NepmdRootDir'\netlabs\ex\'BaseName'.ex'
       -- Get full pathname, also used for linked() and unlink
@@ -551,9 +539,8 @@ defc RecompileNew
          fReplaceExFile = 1
       else
          -- Get time of ExFile
-         next = NepmdQueryPathInfo( CurExFile, 'MTIME')
-         parse value next with 'ERROR:'ret
-         if ret = '' then
+         CurExFileTime = NepmdQueryPathInfo( CurExFile, 'MTIME')
+         if not rc then
             CurExFileTime = next
             next = NepmdQueryConfigValue( nepmd_hini, KeyPath2)
             if next <> CurExFileTime then
@@ -562,10 +549,8 @@ defc RecompileNew
 
                -- Compare (maybe user's) ExFile with netlabs ExFile to delete it or to give a warning if older
                NetlabsExFile = NepmdRootDir'\netlabs\ex\'BaseName'.ex'
-               next = NepmdQueryPathInfo( NetlabsExFile, 'MTIME')
-               parse value next with 'ERROR:'ret
-               if ret = '' then
-                  NetlabsExFileTime = next
+               NetlabsExFileTime = NepmdQueryPathInfo( NetlabsExFile, 'MTIME')
+               if not rc then
                   if upcase(CurExFile) <> upcase(NetlabsExFile) then  -- if different pathnames
                      fCompCurExFile = 1
                   endif
@@ -628,18 +613,9 @@ defc RecompileNew
       if fReplaceExFile <> 1 then
 
          -- Get list of EFiles from NEPMD.INI
-         next = NepmdQueryConfigValue( nepmd_hini, KeyPath3)
-         parse value next with 'ERROR:'ret
-         if ret = '' & next <> '' then
-            CurEFiles = next
-         else
-         endif
+         CurEFiles = NepmdQueryConfigValue( nepmd_hini, KeyPath3)
          -- Get list of times for EFiles from NEPMD.INI
-         next = NepmdQueryConfigValue( nepmd_hini, KeyPath4)
-         parse value next with 'ERROR:'ret
-         if ret = '' & next <> '' then
-            CurEFileTimes = next
-         endif
+         CurEFileTimes = NepmdQueryConfigValue( nepmd_hini, KeyPath4)
 
          if CurEFiles = '' then
             fCompExFile = 1
@@ -684,10 +660,8 @@ defc RecompileNew
                   endif
                else
                   -- Get time of EFile
-                  next = NepmdQueryPathInfo( FullEFile, 'MTIME')
-                  parse value next with 'ERROR:'ret
-                  if ret = '' then
-                     EFileTime = next
+                  EFileTime = NepmdQueryPathInfo( FullEFile, 'MTIME')
+                  if not rc then
                      -- Compare time of EFile with LastCheckTime and CurExFileTime
                      if not fCheckOnly then
                         if EFileTime > max( LastCheckTime, CurExFileTime) then
@@ -706,10 +680,8 @@ defc RecompileNew
                      endif
                      -- Compare time of (maybe user's) EFile with netlabs EFile to give a warning if older
                      NetlabsEFile = NepmdRootDir'\netlabs\macros\'EFile
-                     next = NepmdQueryPathInfo( NetlabsEFile, 'MTIME')
-                     parse value next with 'ERROR:'rcx
-                     if rcx = '' then
-                        NetlabsEFileTime = next
+                     NetlabsEFileTime = NepmdQueryPathInfo( NetlabsEFile, 'MTIME')
+                     if not rc then
                         if EFileTime < NetlabsEFileTime then
                            WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'W  .E file "'FullEFile'"')
                            WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is older than Netlabs .E file')
@@ -739,21 +711,15 @@ defc RecompileNew
                -- Get full pathname
                FullEFile = FindFileInList( EFile, Get_Env( 'EPMMACROPATH'))
                -- Get time of EFile
-               next = NepmdQueryPathInfo( FullEFile, 'MTIME')
-               parse value next with 'ERROR:'ret
-               if ret = '' then
-                  EFileTime = next
-               endif
+               EFileTime = NepmdQueryPathInfo( FullEFile, 'MTIME')
                NewEFileTimes = NewEFileTimes''EFileTime';'
                -- Check E files here (after etpm) if not already done above
                if CurEFiles = '' then
                   -- Compare time of (maybe user's) EFile with netlabs EFile to give a warning if older
                   NetlabsEFile = NepmdRootDir'\netlabs\macros\'EFile
                   if upcase( NetlabsEFile) <> upcase( EFile) then
-                     next = NepmdQueryPathInfo( NetlabsEFile, 'MTIME')
-                     parse value next with 'ERROR:'ret
-                     if ret = '' then
-                        NetlabsEFileTime = next
+                     NetlabsEFileTime = NepmdQueryPathInfo( NetlabsEFile, 'MTIME')
+                     if not rc then
                         if EFileTime < NetlabsEFileTime then
                            WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'W  .E file "'FullEFile'"')
                            WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is older than Netlabs .E file')
@@ -770,11 +736,7 @@ defc RecompileNew
             return rc
          endif
          -- Get time of new ExFile
-         next = NepmdQueryPathInfo( ExFile, 'MTIME')
-         parse value next with 'ERROR:'ret
-         if ret = '' then
-            NewExFileTime = next
-         endif
+         NewExFileTime = NepmdQueryPathInfo( ExFile, 'MTIME')
       endif
 
       if fCompExFile = 1 then
@@ -895,22 +857,22 @@ defc RecompileNew
       -- Don't write new times and files if ExFile needs to be replaced,
       -- but Checkonly is active
       if not fCheckOnly | not fReplaceExFile then
-         if NewExFileTime > '' then
-            call NepmdDeleteConfigValue( nepmd_hini, KeyPath1)
-            call NepmdWriteConfigValue( nepmd_hini, KeyPath1, NewExFileTime)
+         if NewExFileTime <> '' then
+            NepmdDeleteConfigValue( nepmd_hini, KeyPath1)
+            NepmdWriteConfigValue( nepmd_hini, KeyPath1, NewExFileTime)
             if fCopiedExFile = 1 then
-               call NepmdDeleteConfigValue( nepmd_hini, KeyPath2)
-               call NepmdWriteConfigValue( nepmd_hini, KeyPath2, NewExFileTime)
+               NepmdDeleteConfigValue( nepmd_hini, KeyPath2)
+               NepmdWriteConfigValue( nepmd_hini, KeyPath2, NewExFileTime)
             elseif fCompExFile = 1 & not fCheckOnly then
-               call NepmdDeleteConfigValue( nepmd_hini, KeyPath2)
-               call NepmdWriteConfigValue( nepmd_hini, KeyPath2, CurExFileTime)
+               NepmdDeleteConfigValue( nepmd_hini, KeyPath2)
+               NepmdWriteConfigValue( nepmd_hini, KeyPath2, CurExFileTime)
             endif
          endif
-         if NewEFiles > '' then
-            call NepmdDeleteConfigValue( nepmd_hini, KeyPath3)
-            call NepmdDeleteConfigValue( nepmd_hini, KeyPath4)
-            call NepmdWriteConfigValue( nepmd_hini, KeyPath3, NewEFiles)
-            call NepmdWriteConfigValue( nepmd_hini, KeyPath4, NewEFileTimes)
+         if NewEFiles <> '' then
+            NepmdDeleteConfigValue( nepmd_hini, KeyPath3)
+            NepmdDeleteConfigValue( nepmd_hini, KeyPath4)
+            NepmdWriteConfigValue( nepmd_hini, KeyPath3, NewEFiles)
+            NepmdWriteConfigValue( nepmd_hini, KeyPath4, NewEFileTimes)
          endif
       endif
 
@@ -1017,20 +979,15 @@ defproc ReadMacroLstFiles( Path, var ListFiles)
       parse value rest with next';'rest
       -- Search in every piece of Path for .lst files
       FileMask = next'\*.lst'
-      Handle = GETNEXT_CREATE_NEW_HANDLE    -- always create a new handle!
-      do forever
-         ListFile = NepmdGetNextFile( FileMask, address( Handle))
-         parse value ListFile with 'ERROR:'ret
-         if (ret <> '') then
-            leave
+      Handle   = ''  -- always create a new handle!
+      ListFile = ''
+      do while NepmdGetNextFile( FileMask, Handle, ListFile)
          -- Append if not already in list
-         else
-            -- Ignore if filename (without path) exists in list
-            lp = lastpos( '\', ListFile)
-            Name = substr( ListFile, lp + 1)
-            if pos( '\'upcase( Name)';', upcase( ListFiles)) = 0 then
-               ListFiles = ListFiles''ListFile';'
-            endif
+         -- Ignore if filename (without path) exists in list
+         lp = lastpos( '\', ListFile)
+         Name = substr( ListFile, lp + 1)
+         if pos( '\'upcase( Name)';', upcase( ListFiles)) = 0 then
+            ListFiles = ListFiles''ListFile';'
          endif
       enddo
    enddo
@@ -1142,15 +1099,9 @@ defproc AutoAddToMacroLstFile
    do while Rest <> ''
       parse value Rest with NextDir';'Rest
 
-      Handle          = GETNEXT_CREATE_NEW_HANDLE    -- always create a new handle!
-      AddressOfHandle = address( Handle)
-      do forever
-         next = NepmdGetNextFile( NextDir'\*.ex', AddressOfHandle)
-         parse value next with 'ERROR:'rcx
-         if rcx <> '' then
-            leave
-         endif
-
+      Handle = ''  -- always create a new handle!
+      next   = ''
+      do while NepmdGetNextFile( NextDir'\*.ex', Handle, next)
          -- Strip path and extension
          lp1 = lastpos( '\', next)
          next = substr( next, lp1 + 1)
@@ -1281,8 +1232,7 @@ defproc FindExFile( ExFile)
       FullExFile = FindFileInList( ExFile, Get_Env( 'EPMEXPATH'))
    endif
    next = NepmdQueryFullName( FullExFile)
-   parse value next with 'ERROR:'ret
-   if ret = '' then
+   if rc then
       FullExFile = next
    endif
    return FullExFile

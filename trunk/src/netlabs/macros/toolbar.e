@@ -284,7 +284,7 @@ defproc SetDefaultToolbar
       BarName = ''  -- delete ini key for default toolbar
    endif
    KeyPath = '\NEPMD\User\Toolbar\Name'
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, BarName)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, BarName)
    return
 
 ; ---------------------------------------------------------------------------
@@ -358,7 +358,7 @@ defc deletetemplate, DeleteToolbar
                       app_hini,
                       put_in_buffer( BarName))
    if BarName = toolbar_loaded then  -- delete the selected name, too
-      call NepmdWriteConfigValue( nepmd_hini, KeyPath, StandardName)
+      NepmdWriteConfigValue( nepmd_hini, KeyPath, StandardName)
    endif
 
 ; ---------------------------------------------------------------------------
@@ -605,7 +605,7 @@ defc load_toolbar, LoadToolbar
    endif
 
    if fSave then
-      call NepmdWriteConfigValue( nepmd_hini, KeyPath, BarName)
+      NepmdWriteConfigValue( nepmd_hini, KeyPath, BarName)
       -- Save toolbar activation bit
       old = queryprofile( app_hini, appname, INI_OPTFLAGS)
       new = subword( old, 1, 15)' 1 'subword( old, 17)
@@ -776,7 +776,8 @@ defc ImportToolbarSelect
    RootDir = strip( Get_Env( 'NEPMD_ROOTDIR'), 't', '\')
    UserDir = strip( Get_Env( 'NEPMD_USERDIR'), 't', '\')
    do i = 1 to 3
-      handle = GETNEXT_CREATE_NEW_HANDLE    -- handle must be reset before the search
+      Handle = ''  -- handle must be reset before the search
+      next   = ''
       if i = 1 then
          UserFileMask = UserDir'\bar\*.bar'
          FileMask = UserFileMask
@@ -785,14 +786,8 @@ defc ImportToolbarSelect
       elseif i = 3 then
          FileMask = RootDir'\epmbbs\bar\*.bar'
       endif
-      do forever
-         next = NepmdGetNextFile( FileMask, address(handle))
-         parse value next with 'ERROR:'rc1
-         if rc1 = '' then
-            insertline next, .last + 1
-         else
-            leave
-         endif
+      do while NepmdGetNextFile( FileMask, Handle, next)
+         insertline next, .last + 1
       enddo
    enddo
 
@@ -858,8 +853,7 @@ defc ImportToolbar
       -- Since a REXX macro is used, no check for size is required anymore.
 /*
       next = NepmdQueryPathInfo( BarFile, 'SIZE')
-      parse value next with 'ERROR:'rc
-      if rc = '' then
+      if not rc then
          Size = next
          if Size > 1599 then
             sayerror 'File longer than 1599 chars. Cannot import toolbar with this defc. Use the settings dialog instead.'

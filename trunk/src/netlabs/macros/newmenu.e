@@ -432,7 +432,7 @@ defc HideMenuItems
    MenuItemsHidden = new
 
    -- Save new value to ini
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, MenuItemsHidden)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, MenuItemsHidden)
 
    if MenuItemsHidden then
       -- Delete some menu items
@@ -3831,7 +3831,7 @@ defc menuinit_backup
 
    KeyPath = '\NEPMD\User\AutoSave'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    SetMenuAttribute( GetAVar('mid_autosaveenabled'),  MIA_CHECKED, not on)
    new = GetAutoSaveNum()
    parse value GetAVar('mtxt_autosavenumdialog') with next'['x']'rest
@@ -3840,7 +3840,7 @@ defc menuinit_backup
 
    KeyPath = '\NEPMD\User\Backup'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) = 1)
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    SetMenuAttribute( GetAVar('mid_backupenabled'),  MIA_CHECKED, not on)
    new = GetBackupNum()
    parse value GetAVar('mtxt_backupnumdialog') with next'['x']'rest
@@ -4301,7 +4301,7 @@ defc toggle_restore_pos
    KeyPath = '\NEPMD\User\AutoRestore\CursorPos'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    SetMenuAttribute( GetAVar('mid_restorecursorpos'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
@@ -4310,7 +4310,7 @@ defc toggle_history
    KeyPath = '\NEPMD\User\History'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    SetMenuAttribute( GetAVar('mid_trackhistorylists'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
@@ -4319,7 +4319,7 @@ defc toggle_save_ring
    KeyPath = '\NEPMD\User\AutoRestore\Ring\SaveLast'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_autosavelastring'), MIA_CHECKED, not on)
 
@@ -4329,7 +4329,7 @@ defc toggle_restore_ring
    KeyPath = '\NEPMD\User\AutoRestore\Ring\LoadLast'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_autoloadlastring'), MIA_CHECKED, not on)
 
@@ -4339,7 +4339,7 @@ defc toggle_two_spaces
    universal twospaces
    KeyPath = '\NEPMD\User\Reflow\TwoSpaces'
    twospaces = not twospaces
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, twospaces)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, twospaces)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_twospaces'), MIA_CHECKED, not twospaces)
 
@@ -4354,7 +4354,7 @@ defc toggle_highlight
    on = GetHighlight()
    on = not on
    'SetHighlight' on
-   --call NepmdActivateHighlight(on)
+   --NepmdActivateHighlight(on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_keywordhighlighting'), MIA_CHECKED, not on)
 
@@ -4364,7 +4364,7 @@ defc toggle_default_highlight
    KeyPath = '\NEPMD\User\KeywordHighlighting'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_defaultkeywordhighlighting'), MIA_CHECKED, not on)
    opt = 'N'  -- 'N' = don't check for changed .hil and .ini files to make it more stable for a huge ring
@@ -4381,7 +4381,7 @@ defc toggle_default_match_chars
    KeyPath = '\NEPMD\User\MatchChars'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_defaultmatchchars'), MIA_CHECKED, not on)
 
@@ -4391,7 +4391,7 @@ defc toggle_default_balance
    KeyPath = '\NEPMD\User\Balance'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_defaultbalance'), MIA_CHECKED, not on)
 
@@ -4415,7 +4415,7 @@ defc toggle_default_expand
    KeyPath = '\NEPMD\User\SyntaxExpansion'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Change expand for current file if it has default expand setting
    getfileid fid
    next = GetAVar('expand.'fid)  -- query file setting
@@ -4435,7 +4435,7 @@ defc toggle_modefiles_autorefresh
    KeyPath = '\NEPMD\User\KeywordHighlighting\AutoRefresh'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_autorefreshmodefiles'), MIA_CHECKED, not on)
 
@@ -4469,7 +4469,7 @@ defc toggle_mousestyle
    else
       style = 1
    endif
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, style)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, style)
    new = word( 'block char', style)
    parse value GetAVar('mtxt_mousestyle') with next'['x']'rest
    SetMenuText( GetAVar('mid_mousestyle'), next'['new']'rest)
@@ -4491,7 +4491,7 @@ defc toggle_default_paste
       style = 'B'
       new = 'block'
    endif
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, style)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, style)
    parse value GetAVar('mtxt_defaultpaste') with next'['x']'rest
    SetMenuText( GetAVar('mid_defaultpaste'), next'['new']'rest)
    --call update_paste_menu_text()  -- append Sh+Ins, Ctrl+Sh+Ins or nothing  -- handled by menuinit
@@ -4505,7 +4505,7 @@ defc toggle_shift_mark_extends
    KeyPath = '\NEPMD\User\Mark\ShiftMarkExtends'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    SetMenuAttribute( GetAVar('mid_shiftmarkextends'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
@@ -4514,7 +4514,7 @@ defc toggle_unmark_after_move
    KeyPath = '\NEPMD\User\Mark\UnmarkAfterMove'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    SetMenuAttribute( GetAVar('mid_unmarkaftermove'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
@@ -4523,7 +4523,7 @@ defc toggle_drag_always_marks
    KeyPath = '\NEPMD\User\Mark\DragAlwaysMarks'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    SetMenuAttribute( GetAVar('mid_dragalwaysmarks'), MIA_CHECKED, not on)
   'mouse_init'  -- refresh the register_mousehandler defs
 
@@ -4534,7 +4534,7 @@ defc toggle_cursor_everywhere
    KeyPath = '\NEPMD\User\Scroll\CursorEverywhere'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_cursoreverywhere'), MIA_CHECKED, not on)
    cursoreverywhere = on
@@ -4545,7 +4545,7 @@ defc toggle_keep_cursor_on_screen
    KeyPath = '\NEPMD\User\Scroll\KeepCursorOnScreen'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_keepcursoronscreen'), MIA_CHECKED, not on)
 
@@ -4555,7 +4555,7 @@ defc toggle_block_left_alt_key
    KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockLeftAltKey'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_blockleftaltkey'), MIA_CHECKED, not on)
 ;   deleteaccel 'defaccel'  -- refresh the buildacceltable defs
@@ -4568,7 +4568,7 @@ defc toggle_block_right_alt_key
    KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockRightAltKey'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_blockrightaltkey'), MIA_CHECKED, not on)
 ;   deleteaccel 'defaccel'  -- refresh the buildacceltable defs
@@ -4615,7 +4615,7 @@ defc toggle_default_tabkey
    KeyPath = '\NEPMD\User\Keys\Tab\TabKey'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
 */
 
 ; ---------------------------------------------------------------------------
@@ -4639,7 +4639,7 @@ defc toggle_default_matchtab
    KeyPath = '\NEPMD\User\Keys\Tab\MatchTab'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Change match_tab for current file if it's default
    getfileid fid
    next = GetAVar('matchtab.'fid)  -- query file setting
@@ -4659,7 +4659,7 @@ defc toggle_tabglyph
    on = not on
    call tabglyph(on)
    KeyPath = '\NEPMD\User\Keys\Tab\TabGlyph'
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_showtabs'), MIA_CHECKED, not on)
 
@@ -4678,7 +4678,7 @@ defc toggle_join_after_wrap
    universal join_after_wrap
    join_after_wrap = not join_after_wrap
    KeyPath = '\NEPMD\User\Reflow\JoinAfterWrap'
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, join_after_wrap)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, join_after_wrap)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_joinafterwrap'), MIA_CHECKED, not join_after_wrap)
 
@@ -4688,7 +4688,7 @@ defc toggle_mail_indented
    KeyPath = '\NEPMD\User\Reflow\Mail\IndentedLines'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_mailindentedlines'), MIA_CHECKED, not on)
 
@@ -4708,7 +4708,7 @@ defc toggle_reflow_next
    KeyPath = '\NEPMD\User\Reflow\Next'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_reflownext'), MIA_CHECKED, not on)
 
@@ -4718,7 +4718,7 @@ defc toggle_respect_readonly
    KeyPath = '\NEPMD\User\Readonly'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_respectreadonly'), MIA_CHECKED, not on)
    'ring enable_readonly 'on
@@ -4729,7 +4729,7 @@ defc toggle_lock_on_modify
    KeyPath = '\NEPMD\User\Lock\OnModify'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_lockonmodify'), MIA_CHECKED, not on)
    'ring lock_on_modify 'on
@@ -4741,7 +4741,7 @@ defc toggle_nodismiss
    universal defaultmenu
    KeyPath = '\NEPMD\User\Menu\NoDismiss'
    on = not (nodismiss = 32)
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    nodismiss = on*32
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_nodismiss'), MIA_CHECKED, not on)
@@ -4914,7 +4914,7 @@ defc toggle_use_newview
    KeyPath = '\NEPMD\User\KeywordHelp\NewView\UseIfFound'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    if menuloaded then
       SetMenuAttribute( GetAVar('mid_usenewview'),        MIA_CHECKED, not on)
       SetMenuAttribute( GetAVar('mid_usenewviewxsearch'), MIA_DISABLED, on)
@@ -4927,7 +4927,7 @@ defc toggle_newview_xsearch
    KeyPath = '\NEPMD\User\KeywordHelp\NewView\ExtendedSearch'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    if menuloaded then
       SetMenuAttribute( GetAVar('mid_usenewviewxsearch'), MIA_CHECKED, not on)
    endif
@@ -4951,7 +4951,7 @@ defc toggle_autosave
    KeyPath = '\NEPMD\User\AutoSave'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    if menuloaded then
       SetMenuAttribute( GetAVar('mid_autosaveenabled'),   MIA_CHECKED, not on)
       SetMenuAttribute( GetAVar('mid_autosavenumdialog'), MIA_DISABLED, on)
@@ -4964,7 +4964,7 @@ defc toggle_backup
    KeyPath = '\NEPMD\User\Backup'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    if menuloaded then
       SetMenuAttribute( GetAVar('mid_backupenabled'),   MIA_CHECKED, not on)
       SetMenuAttribute( GetAVar('mid_backupnumdialog'), MIA_DISABLED, on)
@@ -4979,7 +4979,7 @@ defc toggle_filename_completion
    KeyPath = '\NEPMD\User\Shell\FilenameCompletion'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    if menuloaded then
       SetMenuAttribute( GetAVar('mid_filenamecompletion'), MIA_CHECKED, not on)
    endif
@@ -4991,7 +4991,7 @@ defc toggle_alias
    KeyPath = '\NEPMD\User\Shell\Alias'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
    on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    if menuloaded then
       SetMenuAttribute( GetAVar('mid_alias'), MIA_CHECKED, not on)
    endif
@@ -5015,7 +5015,7 @@ defc set_ChangeWorkDir
       return
    endif
    KeyPath = '\NEPMD\User\StartDir\WorkDir\Type'
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, opt)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, opt)
    Filename = .filename
    if opt = 2 & pos( ':\', Filename) then
       call directory( '\')
@@ -5041,7 +5041,7 @@ defc set_OpenDlgDir
       return
    endif
    KeyPath = '\NEPMD\User\StartDir\OpenDlg\Type'
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, opt)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, opt)
    new = -1
    Filename = .filename
    if opt = 1 then  -- use workdir
@@ -5066,7 +5066,7 @@ defc set_SaveasDlgDir
       return
    endif
    KeyPath = '\NEPMD\User\StartDir\SaveasDlg\Type'
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, opt)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, opt)
    SetMenuAttribute( GetAVar('mid_saveasdlgdirprev'), MIA_CHECKED, (opt = 1))
    SetMenuAttribute( GetAVar('mid_saveasdlgdirwork'), MIA_CHECKED, not (opt = 1))
 
@@ -5102,7 +5102,7 @@ defc set_ReflowMargins
          'commandline set_ReflowMargins' old  -- Open command line with current value
          return
       endif
-      call NepmdWriteConfigValue( nepmd_hini, KeyPath, new)
+      NepmdWriteConfigValue( nepmd_hini, KeyPath, new)
       reflowmargins = new
    endif
    parse value GetAVar('mtxt_reflowmargins'i) with next'['x']'rest
@@ -5117,7 +5117,7 @@ defc ReflowmarginsSelect
    universal reflowmargins
    i = strip( arg(1))
    KeyPath = '\NEPMD\User\Reflow\MarginsItem'
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, i)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, i)
    if i = 3 then
       reflowmargins = .margins
    else
@@ -5141,16 +5141,16 @@ defc seteditoptions
    KeyPath = '\NEPMD\User\Edit\DefaultOptions'
    if opt = 'SAVE' then
       ConfigValue = default_edit_options
-      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, ConfigValue)
-      if rc = 0 then
+      NepmdWriteConfigValue( nepmd_hini, KeyPath, ConfigValue)
+      if not rc then
          sayerror 'default_edit_options = 'default_edit_options' saved.'
       endif
       return
    elseif opt = 'RESET' then
-      rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+      NepmdDeleteConfigValue( nepmd_hini, KeyPath)
       ConfigValue = NepmdQueryConfigValue( nepmd_hini, KeyPath)
       default_edit_options = ConfigValue
-      if rc = 0 then
+      if not rc then
          sayerror 'default_edit_options = 'default_edit_options' saved.'
       endif
       return
@@ -5217,16 +5217,16 @@ defc setsaveoptions
    KeyPath = '\NEPMD\User\Save\DefaultOptions'
    if opt = 'SAVE' then
       ConfigValue = default_save_options
-      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, ConfigValue)
-      if rc = 0 then
+      NepmdWriteConfigValue( nepmd_hini, KeyPath, ConfigValue)
+      if not rc then
          sayerror 'default_save_options = 'default_save_options' saved.'
       endif
       return
    elseif opt = 'RESET' then
-      rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+      NepmdDeleteConfigValue( nepmd_hini, KeyPath)
       ConfigValue = NepmdQueryConfigValue( nepmd_hini, KeyPath)
       default_save_options = ConfigValue
-      if rc = 0 then
+      if not rc then
          sayerror 'default_save_options = 'default_save_options' saved.'
       endif
       return
@@ -5310,16 +5310,16 @@ defc setsearchoptions
    KeyPath = '\NEPMD\User\Search\DefaultOptions'
    if opt = 'SAVE' then
       ConfigValue = default_search_options
-      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, ConfigValue)
-      if rc = 0 then
+      NepmdWriteConfigValue( nepmd_hini, KeyPath, ConfigValue)
+      if not rc then
           sayerror 'default_search_options = 'default_search_options' saved.'
       endif
       return
    elseif opt = 'RESET' then
-      rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+      NepmdDeleteConfigValue( nepmd_hini, KeyPath)
       ConfigValue = NepmdQueryConfigValue( nepmd_hini, KeyPath)
       default_search_options = ConfigValue
-      if rc = 0 then
+      if not rc then
           sayerror 'default_search_options = 'default_search_options' saved.'
       endif
       return

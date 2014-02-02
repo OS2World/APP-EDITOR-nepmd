@@ -302,8 +302,7 @@ defc Kwhelp
                   -- If NewView was installed as View replacement, then
                   -- IBMVIEW.EXE exists
                   next = NepmdSearchPath( 'ibmview.exe')
-                  parse value next with 'ERROR:' rcx
-                  if rcx = '' then
+                  if next <> '' then
                      -- Better don't change 'VIEW', because NewView can re-use a file,
                      -- that is already loaded, when its stub (renamed to VIEW.EXE)
                      -- is used. Otherwise a new window is opened on every KwHelp.
@@ -313,8 +312,7 @@ defc Kwhelp
                      -- If NewView was not installed as View replacement, then
                      -- search for NEWVIEW.EXE in PATH
                      next = NepmdSearchPath( 'newview.exe')
-                     parse value next with 'ERROR:' rcx
-                     if rcx = '' then
+                     if next <> '' then
                         fUseNewView = 1
                         cmd = 'newview'
                      endif
@@ -483,13 +481,9 @@ defproc pBuild_Helpfile(ft)
 
       -- Search all ndx files in this directory of the Ndx shelf path
       Filemask = NepmdQueryFullname( NdxDir'\*.ndx')
-      Handle = GETNEXT_CREATE_NEW_HANDLE  -- Always create a new handle!
-      do forever
-         Filename = NepmdGetNextFile( FileMask, address( Handle))
-         parse value Filename with 'ERROR:'ret
-         if (ret <> '') then
-            leave
-         endif
+      Handle   = ''  -- Always create a new handle!
+      Filename = ''
+      do while NepmdGetNextFile( FileMask, Handle, Filename)
          dprintf( 'kwhelp', 'Found .ndx file = 'Filename)
 
          -- Add filename only to HelpList, if not already in

@@ -29,25 +29,17 @@ defproc Autolink
 
     -- determine autolink directory
     UserDir = NepmdQueryInstValue( 'USERDIR')
-    parse value UserDir with 'ERROR:'rc
-    if (rc > '') then
+    if rc then
        return rc
     endif
     AutoLinkDir = UserDir'\autolink'
 
     -- loop through all .ex files
 
-    Handle          = GETNEXT_CREATE_NEW_HANDLE    -- always create a new handle!
-    AddressOfHandle = address( Handle)
-    FileMask        = AutoLinkDir'\*.ex'
-
-    do while (1)
-       Filename = NepmdGetNextFile( FileMask, AddressOfHandle)
-       parse value Filename with 'ERROR:'rc
-       if (rc > '') then
-          leave
-       endif
-
+    FileMask = AutoLinkDir'\*.ex'
+    Handle   = ''    -- always create a new handle!
+    Filename = ''
+    do while NepmdGetNextFile( FileMask, Handle, Filename)
        -- Use Link command to also handle EPM's menu item limit
        'Link quiet' Filename  -- quiet because message would slow startup down
     enddo

@@ -290,25 +290,22 @@ defproc listbox( title, listbuf)
       -- or 10.System Monospaced). row and .cursory are counted in number of
       -- lines from the top.
       desktop_cy = NepmdQuerySysInfo('CYSCREEN')
-      parse value desktop_cy with 'ERROR:'errcode
-      if errcode <> '' then
-         sayerror 'Error query system screen resolution: 'errcode
-         return   'Error query system screen resolution: 'errcode
+      if rc then
+         sayerror 'Error query system screen resolution, rc = 'rc'.'
+         return   'Error query system screen resolution, rc = 'rc'.'
       endif
       call dprintf('listbox', 'Desktop height /2 = 'desktop_cy (desktop_cy/2))
       win_data = NepmdQueryWindowPos(EPMINFO_EDITFRAME)
-      parse value win_data with 'ERROR:'errcode
-      if errcode <> '' then
-         sayerror 'Error query frame position: 'errcode
-         return   'Error query frame position: 'errcode
+      if rc then
+         sayerror 'Error query frame position, rc = 'rc'.'
+         return   'Error query frame position, rc = 'rc'.'
       endif
       parse value win_data with fwindowx fwindowy fwindowcx fwindowcy
       call dprintf("listbox", 'SWP F: 'fwindowx fwindowy fwindowcx fwindowcy)
       win_data = NepmdQueryWindowPos(EPMINFO_EDITCLIENT)
-      parse value win_data with 'ERROR:'errcode
-      if errcode <> '' then
-         sayerror 'Error query client position: 'errcode
-         return   'Error query client position: 'errcode
+      if rc then
+         sayerror 'Error query client position, rc = 'rc'.'
+         return   'Error query client position, rc = 'rc'.'
       endif
       parse value win_data with cwindowx cwindowy cwindowcx cwindowcy  -- the x and y are relative to the frame
       windowx = cwindowx + fwindowx     -- so add in the frame x to get absolute client x

@@ -37,10 +37,14 @@ defproc RingAutoSavePos
    universal RingSavePosMaxFilesReached  -- used only here, maybe set by a previous call
 
    -- Don't overwrite old ring if Disabled flag set (e.g. by RestoreRing)
-   if RingSavePosDisabled = 1 then return; endif
+   if RingSavePosDisabled = 1 then
+      return
+   endif
 
    -- Don't overwrite old ring if only .Untitled added
-   if CurEditCmd = '' then return; endif
+   if CurEditCmd = '' then
+      return
+   endif
 
    -- The CurEditCmd check avoids that situation already, but it won't hurt:
    -- Don't overwite old ring if only .Untitled in ring
@@ -50,7 +54,9 @@ defproc RingAutoSavePos
    -- Check if Enabled
    KeyPath = '\NEPMD\User\AutoRestore\Ring\SaveLast'
    Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Enabled <> 1 then return; endif
+   if Enabled <> 1 then
+      return
+   endif
 
    -- Handle upper limit for amount of files to save in ini
    KeyPath = '\NEPMD\User\AutoRestore\Ring\MaxFiles'
@@ -88,7 +94,9 @@ defproc RingSavePos
       MaxRings = 1
    endif
    -- Handle MaxRings = 0
-   if MaxRings = 0 then return; endif
+   if MaxRings = 0 then
+      return
+   endif
 
    -- Get EPM EFrame window handle
    hwnd = '0x'ltoa( gethwndc(6), 16)   -- EPMINFO_EDITFRAME
@@ -103,8 +111,7 @@ defproc RingSavePos
       ThisNumber = r
       KeyPath = '\NEPMD\User\SavedRings\'ThisNumber
       next = NepmdQueryConfigValue( nepmd_hini, KeyPath'\hwnd')
-      parse value next with 'ERROR:'rc
-      if rc > '' then
+      if next = '' then
          iterate
       endif
       if next = hwnd then
@@ -118,10 +125,7 @@ defproc RingSavePos
       -- Get ThisNumber
       KeyPath = '\NEPMD\User\SavedRings\LastNumber'
       LastNumber = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-      parse value LastNumber with 'ERROR:'rc
-      if rc > '' then  -- if error
-         ThisNumber = 1
-      elseif LastNumber = '' or LastNumber >= MaxRings then  -- if no value or MaxRings reached
+      if LastNumber = '' or LastNumber >= MaxRings then  -- if no value or MaxRings reached
          ThisNumber = 1
       else
          -- Check if LastNumber has 0 Entries
@@ -142,8 +146,10 @@ defproc RingSavePos
    -- Delete old 'File'i and 'Posn'i
    -- This is always required.
    do i = 1 to 1000  -- just an upper limit to prevent looping forever
-      rc1 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\File'i)
-      rc2 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Posn'i)
+      NepmdDeleteConfigValue( nepmd_hini, KeyPath'\File'i)
+      rc1 = rc
+      NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Posn'i)
+      rc2 = rc
       if (rc1 <> 0 & rc2 <> 0) then
          leave
       endif
@@ -152,17 +158,17 @@ defproc RingSavePos
    if ThisNumber <> LastNumber then
       -- Write LastNumber
       KeyPath = '\NEPMD\User\SavedRings\LastNumber'
-      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, ThisNumber)
+      NepmdWriteConfigValue( nepmd_hini, KeyPath, ThisNumber)
    endif
 
    KeyPath = '\NEPMD\User\SavedRings\'ThisNumber
 
    if FoundRing = 0 then
       -- Set KeyPath and write hwnd
-      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\hwnd', hwnd)
+      NepmdWriteConfigValue( nepmd_hini, KeyPath'\hwnd', hwnd)
    endif
    -- Write WorkDir
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\WorkDir', WorkDir)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath'\WorkDir', WorkDir)
 
    -- Write new 'File'i and 'Posn'i
    getfileid startfid
@@ -178,8 +184,8 @@ defproc RingSavePos
       if not fIgnore then
          -- Write 'File'i and 'Posn'i for every file
          i = i + 1
-         rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\File'i, .filename)
-         rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Posn'i, .line .col .cursorx .cursory)
+         NepmdWriteConfigValue( nepmd_hini, KeyPath'\File'i, .filename)
+         NepmdWriteConfigValue( nepmd_hini, KeyPath'\Posn'i, .line .col .cursorx .cursory)
       endif
       next_file
       getfileid fid
@@ -187,7 +193,7 @@ defproc RingSavePos
    enddo
 
    -- Write 'Entries' (ammount of 'File'i and 'Posn'i)
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Entries', i)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath'\Entries', i)
 
    -- Check if file to be activated is still in ring
    if wordpos( ValidateFileid( startfid), '1 2') then
@@ -229,8 +235,7 @@ defc RestoreRing
          do r = MaxRings to 1 by -1
             KeyPath = '\NEPMD\User\SavedRings\'r
             Entries = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries')
-            parse value Entries with 'ERROR:'rc
-            if rc > '' then
+            if Entries = '' then
                iterate
             else
                LastNumber = r
@@ -306,18 +311,23 @@ defc DelSavedRings
    universal nepmd_hini
 
    KeyPath = '\NEPMD\User\SavedRings'
-   next = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\LastNumber')
+   NepmdDeleteConfigValue( nepmd_hini, KeyPath'\LastNumber')
 
    do r = 1 to 1000  -- just an upper limit to prevent looping forever
-      rc1 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\Entries')
-      rc2 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\hwnd')
-      rc3 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\WorkDir')
+      NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\Entries')
+      rc1 = rc
+      NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\hwnd')
+      rc2 = rc
+      NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\WorkDir')
+      rc3 = rc
       if (rc1 <> 0) & (rc2 <> 0) & (rc3 <> 0) then
          iterate
       endif
       do i = 1 to 1000  -- just an upper limit to prevent looping forever
-         rc1 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\File'i)
-         rc2 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\Posn'i)
+         NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\File'i)
+         rc1 = rc
+         NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\Posn'i)
+         rc2 = rc
          if (rc1 <> 0 & rc2 <> 0) then
             leave
          endif
@@ -330,7 +340,7 @@ defc RingMaxFiles
    KeyPath = '\NEPMD\User\AutoRestore\Ring\MaxFiles'
    -- if executed with a num as arg
    if arg(1) <> '' & isnum(arg(1)) then
-      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, arg(1))
+      NepmdWriteConfigValue( nepmd_hini, KeyPath, arg(1))
       return
    endif
    -- else open entrybox
@@ -352,7 +362,7 @@ defc RingMaxFiles
       'RingMaxFiles' NewValue
       return
    elseif Button = \2 then
-      rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+      NepmdDeleteConfigValue( nepmd_hini, KeyPath)
       return
    elseif Button = \3 then
       return
@@ -497,7 +507,7 @@ defproc AddToHistory( Listname, NewItem)
       endif
    enddo  -- while
 
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, History)
+   NepmdWriteConfigValue( nepmd_hini, KeyPath, History)
    return
 
 ; ---------------------------------------------------------------------------

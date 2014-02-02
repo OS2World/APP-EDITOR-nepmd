@@ -72,18 +72,10 @@ defc DictLang
    FirstName = ''
    fGetNext  = 0
    fGetFirst = 1
-   do forever
-      CurName = NepmdGetNextConfigKey( nepmd_hini, KeyPath'\Language', CurName, SearchOption)
-      parse value CurName with 'ERROR:'ret
-      if ret <> '' then
-         if FirstName <> '' then
-            Select = FirstName
-         endif
-         leave
-      endif
+   do while NepmdGetNextConfigKey( nepmd_hini, KeyPath'\Language', SearchOption, CurName)
       if Opt = 'DELETE' then
-         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Language\'CurName'\Dictionary')
-         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Language\'CurName'\Addenda')
+         NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Language\'CurName'\Dictionary')
+         NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Language\'CurName'\Addenda')
          Select = 'DELETE'
       elseif Opt = 'SWITCH' then
          if fGetFirst then
@@ -111,7 +103,7 @@ defc DictLang
    elseif Select = '' then
       sayerror 'Language "'args'" not found.'
    else
-      call NepmdWriteConfigValue( nepmd_hini, KeyPath'\SelectedLanguage', Select)
+      NepmdWriteConfigValue( nepmd_hini, KeyPath'\SelectedLanguage', Select)
       dictionary_filename = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Language\'Select'\Dictionary')
       addenda_filename    = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Language\'Select'\Addenda')
       -- Toggle dynaspell off and on to activate the new dicts
@@ -142,13 +134,8 @@ defc SelectDictLang
    SearchOption = 'C'
    i = 0
    Delim = \1
-   do forever
+   do while NepmdGetNextConfigKey( nepmd_hini, KeyPath'\Language', SearchOption, Container)
       i = i + 1
-      Container = NepmdGetNextConfigKey( nepmd_hini, KeyPath'\Language', Container, SearchOption)
-      parse value Container with 'ERROR:'ret
-      if (ret <> '') then
-         leave
-      endif
       LangList = LangList''Delim''Container
       if upcase(Container) = upcase(CurLang) then
          Selection = i
@@ -161,7 +148,7 @@ defc SelectDictLang
    -- Open Listbox
    -- No Linebreak allowed in Text
    Title = 'Select a dictionary language'
-   Text = 'Current language: 'CurLang
+   Text  = 'Current language: 'CurLang
    if CurLang = '' then
       DefButton = 2  -- New
    else
@@ -204,10 +191,10 @@ defc SelectDictLang
    elseif Button = 4 then  -- Delete
       --sayerror 'Delete 'Select
       if Select <> '' then
-         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Language\'Select'\Dictionary')
-         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Language\'Select'\Addenda')
+         NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Language\'Select'\Dictionary')
+         NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Language\'Select'\Addenda')
          if Select = CurLang then
-            call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\SelectedLanguage')
+            NepmdDeleteConfigValue( nepmd_hini, KeyPath'\SelectedLanguage')
             dictionary_filename = ''
             addenda_filename = ''
          endif
@@ -233,9 +220,8 @@ defc ConfigDictLang
    KeyPath = '\NEPMD\User\Spellcheck'
    NoName = '-untitled-'
    UserDir = NepmdQueryInstValue( 'USERDIR')
-   parse value UserDir with 'ERROR:'rcx
-   if rcx <> '' then
-      sayerror 'Error: UserDir not set'
+   if UserDir = '' then
+      sayerror 'Error: UserDir not set.'
       return
    endif
    DefDir = UserDir'\spellchk'
@@ -361,14 +347,14 @@ defc ConfigDictLang
          if Name = '' then
             Name = NoName
          endif
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\Language\'Name'\Dictionary', Dict)
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\Language\'Name'\Addenda', Add)
+         NepmdWriteConfigValue( nepmd_hini, KeyPath'\Language\'Name'\Dictionary', Dict)
+         NepmdWriteConfigValue( nepmd_hini, KeyPath'\Language\'Name'\Addenda', Add)
          -- Automatically make the new language the selected one, if named and if none selected before
          CurLang = NepmdQueryConfigValue( nepmd_hini, KeyPath'\SelectedLanguage')
          if CurLang = '' and Name <> NoName then
             dictionary_filename = Dict
             addenda_filename = Add
-            call NepmdWriteConfigValue( nepmd_hini, KeyPath'\SelectedLanguage', Name)
+            NepmdWriteConfigValue( nepmd_hini, KeyPath'\SelectedLanguage', Name)
          endif
          'SelectDictLang'
          return

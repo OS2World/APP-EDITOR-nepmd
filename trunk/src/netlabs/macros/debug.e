@@ -57,12 +57,12 @@ compile if NEPMD_DEBUG
    Msg  = arg(2)
    if Msg == '' then
       Msg  = arg(1)
-      call NepmdPmPrintf( Msg)
+      NepmdPmPrintf( Msg)
    else
       Type = upcase( Type)
       DebugList = GetAVar( 'debuglist')
       if wordpos( upcase( Type), upcase( DebugList)) then
-         call NepmdPmPrintf( Type': 'Msg)
+         NepmdPmPrintf( Type': 'Msg)
       endif
    endif
 compile endif
@@ -74,6 +74,6 @@ compile endif
 defc dprintf
 compile if NEPMD_DEBUG
    Msg  = arg(1)
-   call NepmdPmPrintf( Msg)
+   NepmdPmPrintf( Msg)
 compile endif
 

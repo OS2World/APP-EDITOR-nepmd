@@ -125,7 +125,7 @@ defc AutosaveNum
    endif
    if NewNum <> CurNum then
       if isnum( NewNum) then
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath, NewNum)
+         NepmdWriteConfigValue( nepmd_hini, KeyPath, NewNum)
          -- Set new .autosave value for all files
          getfileid startfid
          -- Loop through all files in ring

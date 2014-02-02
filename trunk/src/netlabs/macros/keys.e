@@ -1061,7 +1061,7 @@ defc DefAccel, DefKeyset
       if Name = 'std' then
          AddKeyDefs = word( KeysetCmds, 2)  -- empty for 'std' = 'std'
          KeyPathSelected = '\NEPMD\User\Keys\AddKeyDefs\Selected'
-         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathSelected, AddKeyDefs)
+         NepmdWriteConfigValue( nepmd_hini, KeyPathSelected, AddKeyDefs)
       endif
 
    endif
@@ -1330,7 +1330,7 @@ definit
    if rightstr( CurAddKeyDefs, 4) = 'keys' then
       parse value CurAddKeyDefs with CurAddKeyDefs'keys'
       --dprintf( 'definit: Write to NEPMD.INI: CurAddKeyDefs = 'CurAddKeyDefs)
-      rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathSelected, CurAddKeyDefs)
+      NepmdWriteConfigValue( nepmd_hini, KeyPathSelected, CurAddKeyDefs)
    endif
 
    -- Remove 'keys' from every word of AddKeyDefsList
@@ -1341,7 +1341,7 @@ definit
       List = strip( List Next)
    enddo
    if AddKeyDefsList <> List then
-      rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathList, List)
+      NepmdWriteConfigValue( nepmd_hini, KeyPathList, List)
    endif
 
    -- Maybe add every item of DefaultNameList to AddKeyDefsList
@@ -1353,7 +1353,7 @@ definit
       endif
    enddo
    if List <> AddKeyDefsList then
-      rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathList, List)
+      NepmdWriteConfigValue( nepmd_hini, KeyPathList, List)
    endif
 
 ; ---------------------------------------------------------------------------
@@ -1383,7 +1383,7 @@ defc RemoveAddKeyDefs
    wp = wordpos( AddKeyDefs, AddKeyDefsList)
    if wp > 0 then
       AddKeyDefsList = DelWord( AddKeyDefsList, wp, 1)
-      rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathList, AddKeyDefsList)
+      NepmdWriteConfigValue( nepmd_hini, KeyPathList, AddKeyDefsList)
    endif
 
    if AddKeyDefs = CurAddKeyDefs then
@@ -1480,7 +1480,7 @@ defc SelectKeyDefs
       parse value Basename with NextAddKeyDefs'keys'
       if not wordpos( NextAddKeyDefs, AddKeyDefsList) then
          AddKeyDefsList = strip( AddKeyDefsList NextAddKeyDefs)
-         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPathList, AddKeyDefsList)
+         NepmdWriteConfigValue( nepmd_hini, KeyPathList, AddKeyDefsList)
       endif
 
       Path = Get_Env('EPMEXPATH')
