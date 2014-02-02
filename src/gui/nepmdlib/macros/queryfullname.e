@@ -47,7 +47,8 @@ The only requirement is that the resulting file or directory entry
 
 @@NepmdQueryFullname@RETURNS
 *NepmdQueryFullname* returns the fully qualified filename.
-In case of an error an empty string is returned.
+In case of an error the parameter
+[.IDPNL_EFUNC_NEPMDQUERYFULLNAME_PARM_FILENAME filename] is returned.
 
 This procedure sets the implicit universal var rc. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
@@ -139,7 +140,7 @@ defproc NepmdQueryFullname( Filename)
    helperNepmdCheckliberror( LibFile, rc)
 
    if rc then
-      return ''
+      return arg(1)
    else
       return makerexxstring( FullName)
    endif
