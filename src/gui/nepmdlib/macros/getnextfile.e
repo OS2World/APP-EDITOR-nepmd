@@ -54,7 +54,7 @@ The next found filename is stored in this parameter.
 @@NepmdGetNextFile@EXAMPLE
 The following code searches all files within the directory C:\OS2:
 .fo text
- FileMask     = 'C:\OS2\**'
+ FileMask     = 'C:\OS2\*'
  Handle       = ''  -- always create a new handle
  NextFilename = ''
 
@@ -103,7 +103,7 @@ write all found files into it.
 
 *Example:*
 .fo text
- GetNextFile c:\os2\**
+ GetNextFile c:\os2\*
 .fo on
 
 @@

@@ -55,7 +55,7 @@ The next found dirname is stored in this parameter.
 @@NepmdGetNextDir@EXAMPLE
 The following code searches all subdirectories within the directory C:\OS2:
 .fo text
- DirMask     = 'C:\OS2\**'
+ DirMask     = 'C:\OS2\*'
  Handle       = ''  -- always create a new handle
  NextDirname = ''
 
@@ -104,7 +104,7 @@ write all found directories into it.
 
 *Example:*
 .fo text
- GetNextDir c:\os2\**
+ GetNextDir c:\os2\*
 .fo on
 
 @@
