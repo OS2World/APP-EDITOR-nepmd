@@ -77,6 +77,7 @@ $(CMPEXDIR)\locate.ex\
 $(CMPEXDIR)\maketags.ex\
 $(CMPEXDIR)\modecnf.ex\
 $(CMPEXDIR)\modeexec.ex\
+$(CMPEXDIR)\mouse.ex\
 $(CMPEXDIR)\newmenu.ex\
 $(CMPEXDIR)\ovshmenu.ex\
 $(CMPEXDIR)\popup.ex\
