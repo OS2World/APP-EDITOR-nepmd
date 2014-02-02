@@ -37,7 +37,7 @@ This parameter specifies the name of the file to be deleted.
 @@NepmdFileDelete@RETURNS
 *NepmdFileDelete* returns nothing.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdFileDelete@REMARKS
@@ -59,7 +59,7 @@ delete the specified file
 and display the result within the status area.
 
 *Example:*
-.fo off
+.fo text
  FileDelete d:\myscript.txt
 .fo on
 

@@ -48,7 +48,7 @@ specified bye the environment variable *PATH*.
 *NepmdSearchPath* returns the full qualified filename.
 In case of an error an empty string is returned.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdSearchPath@TESTCASE
@@ -69,7 +69,7 @@ search the specified file in the path given by the content of the specified envi
 and display the result within the status area.
 
 _*Examples:*_
-.fo off
+.fo text
  SearchPath epm.exe
  SearchPath cmdref.inf BOOKSHELF
 .fo on

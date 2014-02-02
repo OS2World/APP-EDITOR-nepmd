@@ -55,7 +55,7 @@ attribute to be deleted.
 @@NepmdDeleteStringEa@RETURNS
 *NepmdDeleteStringEa* returns nothing.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdDeleteStringEa@TESTCASE
@@ -77,7 +77,7 @@ from the specified file
 and display the result within the status area.
 
 *Example:*
-.fo off
+.fo text
   DeleteStringEa d:\myscript.txt
 .fo on
 

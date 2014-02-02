@@ -47,7 +47,7 @@ the configuration value is to be deleted.
 @@NepmdDeleteConfigValue@RETURNS
 *NepmdDeleteConfigValue* returns nothing.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdDeleteConfigValue@TESTCASE

@@ -53,7 +53,7 @@ The next found filename is stored in this parameter.
 
 @@NepmdGetNextFile@EXAMPLE
 The following code searches all files within the directory C:\OS2:
-.fo off
+.fo text
  FileMask     = 'C:\OS2\**'
  Handle       = ''  -- always create a new handle
  NextFilename = ''
@@ -85,7 +85,7 @@ The next filename returned by the search is stored in the
 The search handle returned by the search is stored in the
 [.IDPNL_EFUNC_NEPMDGETNEXTFILE_PARM_HANDLE Handle] parameter.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 rc is set to 18 = ERROR__NO__MORE__FILES if no filename was found.
 
@@ -102,7 +102,7 @@ open up a virtual file and
 write all found files into it.
 
 *Example:*
-.fo off
+.fo text
  GetNextFile c:\os2\**
 .fo on
 

@@ -40,7 +40,7 @@ This parameter specifies the name of the file to be checked.
 - *0* (zero), if the file does not exist or
 - *1*, if the file exists
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdFileExists@REMARKS
@@ -62,7 +62,7 @@ check, wether the specified file exists or not,
 and display the result within the status area.
 
 *Example:*
-.fo off
+.fo text
  FileExists c:\os2\cmd.exe
 .fo on
 

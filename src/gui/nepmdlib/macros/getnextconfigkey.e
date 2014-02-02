@@ -72,7 +72,7 @@ The next found key is stored in this parameter.
 
 @@NepmdGetNextConfigKey@EXAMPLE
 The following code searches both keys and subcontainers within the container *\NEPMD*:
-.fo off
+.fo text
  universal nepmd_hini
 
  Handle        = nepmd_hini
@@ -96,7 +96,7 @@ The following code searches both keys and subcontainers within the container *\N
 The next key returned by the key search is stored in the
 [.IDPNL_EFUNC_NEPMDGETNEXTCONFIGKEY_PARM_NEXTKEY NextKey] parameter.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 rc is set to 18 = ERROR__NO__MORE__FILES if key was not found.
 

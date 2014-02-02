@@ -91,7 +91,7 @@ set the window position of the *EPM* frame window
 and display the result within the status area.
 
 *Example:*
-.fo off
+.fo text
  SetFrameWindowPos 100 100 800 800 3
 .fo on
 

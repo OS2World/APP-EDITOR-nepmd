@@ -48,7 +48,7 @@ configuration is to be read.
 *NepmdQueryConfigValue* returns the configuration value.
 In case of an error an empty string is returned.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdQueryConfigValue@TESTCASE

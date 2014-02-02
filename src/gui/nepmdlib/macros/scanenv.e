@@ -39,7 +39,7 @@ of which the value is to be retrieved.
 *NepmdScanEnv* returns the value of the requested extended attribute.
 In case of an error an empty string is returned.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdScanEnv@TESTCASE
@@ -55,7 +55,7 @@ query the value of the specified environment variable
 and display the result within the status area.
 
 _*Examples:*_
-.fo off
+.fo text
   ScanEnv PATH
 .fo on
 

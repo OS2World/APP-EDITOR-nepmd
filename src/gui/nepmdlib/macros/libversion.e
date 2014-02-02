@@ -36,7 +36,7 @@ of the [=TITLE].
 *NepmdLibVersion* returns the version number of the runtime library
 of the [=TITLE]. In case of an error an empty string is returned.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdLibVersion@TESTCASE
