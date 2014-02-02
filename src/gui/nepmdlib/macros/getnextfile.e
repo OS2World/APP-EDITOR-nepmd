@@ -42,11 +42,11 @@ This parameter specifies the handle used for the search.
 
 Note that on the first call to NepmdGetNextFile() the value
 of the variable holding the handle must be set to '' or to
-GETNEXT_CREATE_NEW_HANDLE in order to initiate a new search.
+GETNEXT__CREATE__NEW__HANDLE in order to initiate a new search.
 
 The used handle is stored in this parameter.
 
-@@NepmdGetNextFile@PARM@FileName
+@@NepmdGetNextFile@PARM@NextFilename
 This parameter should be set to '' when specified.
 
 The next found filename is stored in this parameter.
