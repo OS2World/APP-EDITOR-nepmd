@@ -66,12 +66,12 @@ The following example reads the message *MSG__DRIVE__NOT__READY* from the
 text message file *myproject.tmf* and inserts the string *A:*, where
 the message text includes the palceholder *%1*.
 
-.fo off
+.fo text
  TextMessage = NepmdGetTextMessage( "myproject.tmf", "MSG__DRIVE__NOT__READY",  "A:")
 .fo on
 .
 Taken that the file *myproject.tmf* contains a message like this one
-.fo off
+.fo text
  <--MSG__DRIVE__NOT__READY-->:Drive %1 is not ready, please insert a diskette and press any key!
 .fo on
 .
@@ -83,7 +83,7 @@ Drive A: is not ready, please insert a diskette and press any key!
 *NepmdGetTextMessage* returns the text message with the supplied parameters
 inserted. In case of an error, an empty string is returned.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdGetTextMessage@TESTCASE
@@ -106,7 +106,7 @@ You can also use an alternate text message file by specifying its
 pathname with the environment variable *NEPMD__TMFTESTFILE*.
 
 *Example:*
-.fo off
+.fo text
  GetTextMessage INSERTTEST parm1 parm2 parm3
 .fo on
 

@@ -54,7 +54,7 @@ the cleanup code must close the open handle by a call to *NepmdGetNextClose*.
 @@NepmdGetNextClose@RETURNS
 *NepmdGetNextClose* returns nothing.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdGetNextClose@TESTCASE
@@ -74,7 +74,7 @@ the related testcases will not do so, you will not truly be able to test a succe
 call to this function by this testcase.
 
 *Example:*
-.fo off
+.fo text
  GetNextClose 5
 .fo on
 

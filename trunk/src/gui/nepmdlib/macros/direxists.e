@@ -40,7 +40,7 @@ This parameter specifies the name of the directory to be checked.
 - *0* (zero), if the directory does not exist or
 - *1*, if the directory exists.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdDirExists@TESTCASE
@@ -55,7 +55,7 @@ Executing this command will check, wether the specified directory exists
 or not and display the result within the status area.
 
 *Example:*
-.fo off
+.fo text
   DirExists c:\os2
 .fo on
 

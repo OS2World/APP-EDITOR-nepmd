@@ -47,7 +47,7 @@ the value of the specified extended attribute.
 @@NepmdWriteStringEa@RETURNS
 *NepmdWriteStringEa* returns nothing.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdWriteStringEa@TESTCASE
@@ -73,7 +73,7 @@ to the specified file
 and display the result within the status area.
 
 *Example:*
-.fo off
+.fo text
   WriteStringEa d:\myscript.txt
 .fo on
 

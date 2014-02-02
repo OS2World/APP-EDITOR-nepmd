@@ -50,7 +50,7 @@ The only requirement is that the resulting file or directory entry
 In case of an error the parameter
 [.IDPNL_EFUNC_NEPMDQUERYFULLNAME_PARM_FILENAME filename] is returned.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdQueryFullname@REMARKS
@@ -73,7 +73,7 @@ return the fully qualified pathname specification for the given filename
 and display the result within the status area.
 
 _*Examples:*_
-.fo off
+.fo text
  QueryFullname myscript.txt
  QueryFullname ..\*.cmd
 .fo on

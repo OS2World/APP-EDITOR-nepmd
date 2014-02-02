@@ -41,7 +41,7 @@ the default *EPM* mode is to be determined.
 - the name of the default *EPM* mode or
 - *TEXT*, if no mode could be determined or if in case of an error.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 rc is set to 3 = ERROR__PATH__NOT__FOUND if no mode could be determined.
 
@@ -58,7 +58,7 @@ Executing this command will determine the default mode of the
 the specified file.
 
 *Example:*
-.fo off
+.fo text
  QueryDefaultMode d:\test.cmd
 .fo on
 

@@ -44,7 +44,7 @@ If no style is specified, the alarm for *NOTE* is generated.
 @@NepmdAlarm@RETURNS
 *NepmdAlarm* returns nothing.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdAlarm@TESTCASE
@@ -60,7 +60,7 @@ generate the apropriate alarm sound, if the related system setting is set to on,
 and display the result within the status area.
 
 *Example:*
-.fo off
+.fo text
  Alarm ERROR
 .fo on
 

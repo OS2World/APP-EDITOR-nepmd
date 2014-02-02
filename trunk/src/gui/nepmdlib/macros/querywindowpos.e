@@ -53,7 +53,7 @@ instead of using the numeric values.
 *NepmdQueryWindowPos* returns the window position in pixels as a string
 like *x y cx cy*. In case of an error an empty string is returned.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdQueryWindowPos@TESTCASE
@@ -72,7 +72,7 @@ query the window position of the specified *EPM* window or control window
 and display the result within the status area.
 
 *Example:*
-.fo off
+.fo text
   QueryWindowPos
   QueryWindowPos 5
 .fo on

@@ -43,7 +43,7 @@ the configuration repository before and after this call.
 @@NepmdInitConfig@RETURNS
 *NepmdInitConfig* returns nothing.
 
-This procedure sets the implicit universal var rc. rc is set to an
+This procedure sets the implicit universal var *rc*. rc is set to an
 [inf:cp2 "Errors" OS/2 error code] or to zero for no error.
 
 @@NepmdInitConfig@TESTCASE
