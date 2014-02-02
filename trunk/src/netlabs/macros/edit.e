@@ -264,7 +264,7 @@ compile else
          -- Inserting the code here directly always works.
          fReadonly = 0
          attr = NepmdQueryPathInfo( Filename, 'ATTR')
-         if attr <> '' then  -- file doesn't exist
+         if attr = '' then  -- file doesn't exist
             --sayerror 'Attributes for "'Filename'" can''t be retrieved, rc = 'rc
             return rc
          elseif length(attr) = 5 then
