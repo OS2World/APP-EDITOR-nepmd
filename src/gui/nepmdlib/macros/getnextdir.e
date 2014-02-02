@@ -186,15 +186,15 @@ defproc NepmdGetNextDir( DirMask, var Handle, var NextDirname)
    DirMask = DirMask\0
 
    -- Call C routine
-   LibDir = helperNepmdGetlibdir()
-   rc = dynalink32( LibDir,
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
                     "NepmdGetNextDir",
                     address( DirMask)            ||
                     address( Handle)             ||
                     address( NextDirname)        ||
                     atol( Buflen))
 
-   helperNepmdCheckliberror( LibDir, rc)
+   helperNepmdCheckliberror( LibFile, rc)
    if rc then
       Flag = 0
       NextDirname = ''
