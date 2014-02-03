@@ -1444,13 +1444,13 @@ compile endif -- EPM_SHELL_PROMPT
 ; Difference in sorting order: dirs come first and executables are sorted
 ; according to their appearance in EXE_MASK_LIST
 const
-compile if not defined(FNC_EXE_MASK_LIST)
+compile if not defined( FNC_EXE_MASK_LIST)
    FNC_EXE_MASK_LIST      = '*.cmd *.exe *.com *.bat'
 compile endif
-compile if not defined(FNC_DIR_ONLY_CMD_LIST)
+compile if not defined( FNC_DIR_ONLY_CMD_LIST)
    FNC_DIR_ONLY_CMD_LIST  = 'CD'
 compile endif
-compile if not defined(FNC_FILE_ONLY_CMD_LIST)
+compile if not defined( FNC_FILE_ONLY_CMD_LIST)
    FNC_FILE_ONLY_CMD_LIST = ''
 compile endif
 
@@ -1470,6 +1470,7 @@ defc ShellFncInit
    PromptChar = substr( Prompt, p, 1)
    parse value Prompt with 'epm:' ShellDir (PromptChar)
    ShellDir = strip( ShellDir)
+
    -- Get the part of the line between prompt and cursor
    Text = substr( Line, p + 1, .col - 1 - p)
    -- Strip leading spaces only, because a trailing space identifies the word before
@@ -1479,16 +1480,15 @@ defc ShellFncInit
    Text = strip( Text, 'L')
 
    -- Todo:
-   -- Find expression starting with ':\' or '\\' (FilePart may be part of a parameter,
-   -- e.g. -dd:\os2\apps or -d:d:\os2\apps)
+   -- o  Find expression starting with ':\' or '\\' (FilePart may be part of a parameter,
+   --    e.g.: Text = -dd:\os2\apps or Text = -d:d:\os2\apps)
+   -- o  Make options with filenames, not followed by a space, work,
+   --    e.g.: Text = app.exe -d*  -> CmdPart = 'app.exe -d', FilePart = '*'
 
+   -- Parse Text into CmdPart and FilePart
    CmdPart  = ''
    CmdWord  = ''
    FilePart = ''
-   -- Parse into CmdPart and FilePart
-; Todo:
-; Make options with filenames, not followed by a space, work
-; app.exe -d*  -> CmdPart = 'app.exe -d', FilePart = '*'
    if rightstr( Text, 1) == ' ' then
       -- No FilePart
       if words( Text) > 0 then
@@ -1519,33 +1519,39 @@ defc ShellFncInit
          CmdPart  = leftstr( Text, lp - 1)
       endif
    endif
-   --dprintf( 'TabComplete', 'CmdWord = ['CmdWord'], CmdPart = ['CmdPart'], FilePart = ['FilePart']')
+   --dprintf( 'FNC: CmdWord = ['CmdWord'], CmdPart = ['CmdPart'], FilePart = ['FilePart']')
 
    -- Construct fully qualified dirname to avoid change of directories, that
    -- doesn't work for UNC names.
-   FileMask = FilePart
-   PrepMask = ''
-   if not (substr( FilePart, 2, 2) = ':\' | leftstr( FilePart, 2) = '\\') then
-      if leftstr( FilePart, 1) = '\' then
-         -- Prepend drive
-         if substr( ShellDir, 2, 2) = ':\' then
-            PrepMask = leftstr( ShellDir, 2)
-            FileMask = PrepMask''FilePart
-;          -- Prepend host
-;          elseif leftstr( ShellDir, 2) = '\\' then  -- not possible
-;             parse value ShellDir with '\\'Server'\'Resource
-;             if pos( '\', Resource) then
-;                parse value Resource with Resource'\'rest
-;             endif
-;             PrepMask = '\\'Server'\'Resource
-;             FileMask = PrepMask''FilePart
-         endif
+   do i = 1 to 1
+      FileMask = FilePart
+      PrepMask = ''
+      if substr( FilePart, 2, 2) = ':\' then
+         leave
+      elseif leftstr( FilePart, 2) = '\\' then
+         leave
       else
-         -- Prepend ShellDir
-         PrepMask = strip( ShellDir, 't', '\')'\'
-         FileMask = PrepMask''FilePart
+         if leftstr( FilePart, 1) = '\' then
+            -- Prepend drive
+            if substr( ShellDir, 2, 2) = ':\' then
+               PrepMask = leftstr( ShellDir, 2)
+               FileMask = PrepMask''FilePart
+            -- -- Prepend host
+            -- elseif leftstr( ShellDir, 2) = '\\' then  -- not possible
+            --    parse value ShellDir with '\\'Server'\'Resource
+            --    if pos( '\', Resource) then
+            --       parse value Resource with Resource'\'rest
+            --    endif
+            --    PrepMask = '\\'Server'\'Resource
+            --    FileMask = PrepMask''FilePart
+            endif
+         else
+            -- Prepend ShellDir
+            PrepMask = strip( ShellDir, 't', '\')'\'
+            FileMask = PrepMask''FilePart
+         endif
       endif
-   endif
+   enddo
 
    -- Resolve FileMask to valid names for DosFind*
    FileMask = NepmdQueryFullName( FileMask)
@@ -1553,10 +1559,11 @@ defc ShellFncInit
    -- The here fully qualified filemask must be changed to a relative path later,
    -- if FilePart was relative before.
 
+   -- Append * to FileMask only, if no * or ? is present in last dir segment.
+   -- Determine if ExeMasks should be appended to FileMask.
    fAppendExeMask = 0
    fAppendAllMask = 0
-   -- Append * to FileMask only, if no * or ? is present in last dir segment.
-   UnAppFileMask = FileMask
+   UnAppendedFileMask = FileMask
    lp = lastpos( '\', FileMask)
    LastSegment = substr( FileMask, lp + 1)
    --dprintf( 'TabComplete', 'LastSegment = ['LastSegment']')
@@ -1583,90 +1590,68 @@ defc ShellFncInit
    call SetAVar( 'FncFound.0', '')
    call SetAVar( 'FncFound.last', '')
 
-   -- Find dirs and files
-   Handle = ''  -- handle must be reset before the search
    c = 0  -- number of found names
-   m = 0  -- item number of ExeMaskList
-   f = 0  -- number of found items per FileMask, only used for debugging
    -- Should dirs be found?
    fFindDirs = (wordpos( upcase( CmdWord), FNC_FILE_ONLY_CMD_LIST) = 0)
    -- Should files be found?
    fFindFiles = (wordpos( upcase( CmdWord), FNC_DIR_ONLY_CMD_LIST) = 0)
-   fGetNextFileMask = 1
-   do forever
-      Name = ''
+   --dprintf( 'FNC: fAppendExeMask = 'fAppendExeMask', fAppendAllMask = 'fAppendAllMask', fFindDirs = 'fFindDirs', fFindFiles = 'fFindFiles)
 
-      -- Find dirs first
-      if fFindDirs then
+   -- Find dirs
+   Handle = ''
+   Name   = ''
+   --dprintf( 'FNC: find dirs:  FileMask = 'FileMask)
+   do while fFindDirs & NepmdGetNextDir( FileMask, Handle, Name)
+      -- Append \ for dirs
+      Name = Name'\'
 
-         --if f = 0 then
-         --   dprintf( 'TabComplete', 'Dir: FileMask = ['FileMask']')
-         --endif
-
-         if NepmdGetNextDir( FileMask, Handle, Name) then
-            -- Append \ for dirs
-            Name = Name'\'
-            f = f + 1
-         else
-            --dprintf( 'TabComplete', 'Dir: FileMask = ['FileMask'], Found 'f' filenames.')
-            -- No more dirs, so reset flag, handle and counter
-            fFindDirs = 0
-            Handle = ''  -- handle must be reset before the next search
-            Name   = ''
-            f = 0
+      -- Remove maybe previously added PrepMask if FilePart was relative
+      l = length( PrepMask)
+      if l > 0 then
+         if leftstr( upcase(Name), l) == upcase( PrepMask) then
+            Name = substr( Name, l + 1)
          endif
       endif
 
-      if not fFindDirs then
-         if fFindFiles then
+      -- Add it
+      c = c + 1
+      call SetAVar( 'FncFound.'c, Name)
+   enddo
 
-            if fAppendExeMask then
-               if fGetNextFileMask then
-                  -- Append executable masks
-                  if words( FNC_EXE_MASK_LIST) > m then
-                     m = m + 1
-                     FileMask = UnAppFileMask''word( FNC_EXE_MASK_LIST, m)
-                  endif
-               endif
-            endif
+   -- Find files
+   if fAppendExeMask then
+      mMax = words( FNC_EXE_MASK_LIST)
+   else
+      mMax = 1
+   endif
+   do m = 1 to mMax
 
-            --if f = 0 then
-            --   dprintf( 'TabComplete', 'File 'm': FileMask = ['FileMask']')
-            --endif
+      -- Reset FileMask
+      FileMask = UnAppendedFileMask
 
-            -- Find files
-            if NepmdGetNextFile( FileMask, Handle, Name) then
-               f = f + 1
-               fGetNextFileMask = 0
-            else
-               ---dprintf( 'TabComplete', 'File 'm': FileMask = ['FileMask'], Found 'f' filenames.')
-               f = 0
-               if fAppendExeMask & words( FNC_EXE_MASK_LIST) > m then
-                  -- Initiate a new search with the next ExeMask
-                  fGetNextFileMask = 1
-                  Handle = ''  -- handle must be reset before the next search
-                  iterate
-               endif
-            endif
-
-         endif
+      -- Append next ExeMask to FileMask
+      if fAppendExeMask then
+         NextExeMask = word( FNC_EXE_MASK_LIST, m)
+         FileMask = FileMask''NextExeMask
       endif
 
-      -- Store name in array
-      if Name <> '' then
+      Handle = ''
+      Name   = ''
+      --dprintf( 'FNC: find files: FileMask = 'FileMask)
+      do while fFindFiles & NepmdGetNextFile( FileMask, Handle, Name)
+
          -- Remove maybe previously added PrepMask if FilePart was relative
          l = length( PrepMask)
          if l > 0 then
-            if leftstr( upcase(Name), l) == upcase(PrepMask) then
+            if leftstr( upcase(Name), l) == upcase( PrepMask) then
                Name = substr( Name, l + 1)
             endif
          endif
+
          -- Add it
          c = c + 1
          call SetAVar( 'FncFound.'c, Name)
-      else
-         leave
-      endif
+      enddo
 
    enddo
 
