@@ -541,7 +541,6 @@ defc RecompileNew
          -- Get time of ExFile
          CurExFileTime = NepmdQueryPathInfo( CurExFile, 'MTIME')
          if not rc then
-            CurExFileTime = next
             next = NepmdQueryConfigValue( nepmd_hini, KeyPath2)
             if next <> CurExFileTime then
                fCompExFile = 1
@@ -1232,9 +1231,6 @@ defproc FindExFile( ExFile)
       FullExFile = FindFileInList( ExFile, Get_Env( 'EPMEXPATH'))
    endif
    next = NepmdQueryFullName( FullExFile)
-   if rc then
-      FullExFile = next
-   endif
    return FullExFile
 
 ; ---------------------------------------------------------------------------
@@ -1308,6 +1304,23 @@ defc RecompileNewMsgBox
    UserDirName = substr( NepmdUserDir, lastpos( '\', NepmdUserDir) + 1)
    LogFile = NepmdUserDir'\ex\recompilenew.log'
    parse arg cWarning cRecompile cDelete cRelink fRestart fCheckOnly
+
+   -- Build RestartList for fRestart
+   RestartList = 'EPM.EX'
+   do w = 1 to words( RECOMPILE_RESTART_NAMES)
+      next = upcase( word( RECOMPILE_RESTART_NAMES, w))
+      parse value next with next'.'ext
+      next = next'.EX'
+      if wordpos( next, RestartList) > 0 then
+         iterate
+      endif
+      if w = words( RECOMPILE_RESTART_NAMES) then
+         RestartList = RestartList\n\9'or' next
+      else
+         RestartList = RestartList','\n\9''next
+      endif
+   enddo
+
    Bul = \7
    Text = ''
    if fCheckOnly then
@@ -1318,7 +1331,7 @@ defc RecompileNewMsgBox
       Text = Text || '       'Bul\9''cDelete'  file(s) deleted'\n
       if fRestart then
          Text = Text || '       'Bul\9'EPM restarted because'\n
-         Text = Text ||             \9'recompilation of EPM.EX'\n\n
+         Text = Text ||             \9'recompilation of 'RestartList\n\n
       else
          -- EPM/PM? bug: the doubled \n at the end adds 1 additional space after cRelink:
          Text = Text || '       'Bul\9''cRelink' file(s) relinked'\n\n
