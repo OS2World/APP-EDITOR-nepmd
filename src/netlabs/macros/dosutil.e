@@ -579,7 +579,7 @@ defproc QueryCodepage
    endif
 
 ; ---------------------------------------------------------------------------
-; Search file or dir in a path specification, pathes separated by ";".
+; Search file or dir in a path specification, paths separated by ";".
 ; This can be used instead of findfile to avoid a search in the current dir.
 ; Example: FullExName = FindFileInList( 'fold.ex', Get_Env( 'EPMEXPATH'))
 ; Returns '' if File not found in PathList, otherwise fully qualified name.
@@ -595,6 +595,9 @@ defproc FindFileInList( File, PathList)
       next = Path'\'File
       if Exist( next) then  -- find files and dirs
          FullName = NepmdQueryFullname( next)
+         if not rc then
+            leave
+         endif
       endif
    enddo
    return FullName
