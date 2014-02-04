@@ -1230,7 +1230,7 @@ defproc FindExFile( ExFile)
    else
       FullExFile = FindFileInList( ExFile, Get_Env( 'EPMEXPATH'))
    endif
-   next = NepmdQueryFullName( FullExFile)
+   FullExFile = NepmdQueryFullName( FullExFile)
    return FullExFile
 
 ; ---------------------------------------------------------------------------
