@@ -478,6 +478,7 @@ defc RepeatChange, C, Change
    sayerror 0  -- delete previous message from messageline
    LastChangeArgs = GetLastChangeArgs()
    LastSearchArgs = GetLastSearchArgs()
+   call NextCmdAltersText()
 
    args = strip( arg(1), 'L')
    if args = '' then   -- If no args, query lastchangeargs
