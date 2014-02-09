@@ -357,26 +357,47 @@ defproc c_proc_search( var ProcName, fFindFirst, Ext)
 
          -- Todo: handle multi-line comments
          -- Find ( before
-         'xcom l (r-'
+         do forever
+            'xcom l (r-'
+            if rc then
+               leave
+            endif
+            getline line
+            line = translate( line, ' ', \t)
+            -- Ignore single-line-commented part
+            p1 = pos( '//', line)
+            if p1 > 0 & p1 < .col then   -- find next if char at cursor is commented
+               -- Go one char left, xcom l (r- would lead to an endless loop otherwise
+               if .col = 1 then
+                  .line = .line - 1
+                  end_line
+               else
+                  .col = .col - 1
+               endif
+               iterate
+            else
+               leave           -- continue if uncommented
+            endif
+         enddo
          if rc then
             iterate
          endif
 
-         -- Todo: handle multi-line comments
          -- Find ProcName before
-         --'xcom l ^:o[A-Za-z_$].*exr-'
-         'xcom l :o[A-Za-z_$].*exr-'
+         -- Bug of backward searching: 'xcom l :o:c:oexr-' matches only the
+         -- last char, not the entire word as the foreward searching
+         'xcom l :o:c:oexr-'
          if rc then
             iterate
          endif
 
+         StartCol = 0
+         EndCol   = 0
+         SeparatorList = ' ~`!%^&*()-+=][{}|\;?/><,''"'\t
+         call find_token( StartCol, EndCol, SeparatorList, '')
          getline line
-         line = translate( line, ' ', \t)
          dprintf( 'TAG', 'Found line' .line '= "'line'"')
-
-         parse value strip( line) with line '('
-         -- Get rightmost word
-         ProcName = word( line, words( line))
+         ProcName = substr( line, StartCol, EndCol - StartCol + 1)
          rc = 0
 
       endif
