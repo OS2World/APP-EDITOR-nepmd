@@ -3511,9 +3511,9 @@ defc menuinit_search
    LastSearchArgs = GetLastSearchArgs()
 
    SetMenuAttribute( GetAVar('mid_findnext'),         MIA_DISABLED, LastSearchArgs <> '')
-   SetMenuAttribute( GetAVar('mid_changenext'),       MIA_DISABLED, ReplaceString <> '')
+   SetMenuAttribute( GetAVar('mid_changenext'),       MIA_DISABLED, LastChangeArgs <> '')
    SetMenuAttribute( GetAVar('mid_globalfindnext'),   MIA_DISABLED, LastSearchArgs <> '')
-   SetMenuAttribute( GetAVar('mid_globalchangenext'), MIA_DISABLED, ReplaceString <> '')
+   SetMenuAttribute( GetAVar('mid_globalchangenext'), MIA_DISABLED, LastChangeArgs <> '')
    if GetAddKeyDefs() = '' then  -- stdkeys
       -- Menu for CUA keys doesn't have a Backward item
       on = (GetSearchDirection() = '-')
@@ -3521,7 +3521,7 @@ defc menuinit_search
    else  -- cuakeys
       -- Menu for std keys doesn't have the following items
       SetMenuAttribute( GetAVar('mid_findprev'),       MIA_DISABLED, LastSearchArgs <> '')
-      SetMenuAttribute( GetAVar('mid_changeprev'),     MIA_DISABLED, ReplaceString <> '')
+      SetMenuAttribute( GetAVar('mid_changeprev'),     MIA_DISABLED, LastChangeArgs <> '')
       SetMenuAttribute( GetAVar('mid_globalfindprev'), MIA_DISABLED, LastSearchArgs <> '')
    endif
    on = FileIsMarked()
