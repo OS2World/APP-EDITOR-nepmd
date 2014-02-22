@@ -2413,7 +2413,10 @@ defc BackSpace
       mt = marktype()
       if mt = 'CHAR' then
          getmark first_line, last_line, first_col, last_col, fid
-         if ((old_col > 1) & (first_line = old_line) & (first_line = last_line) & (first_col = old_col)) then
+         getfileid thisfid
+         if fid <> thisfid then
+            -- nop
+         elseif ((old_col > 1) & (first_line = old_line) & (first_line = last_line) & (first_col = old_col)) then
             -- Cursor is on mark begin and first_line = last_line
             CorrectMarkBegin = 1
             CorrectMarkEnd   = 1
