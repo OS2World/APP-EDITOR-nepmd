@@ -1641,6 +1641,7 @@ defproc inside_comment2(mode, var comment_data)
       comment_data = BestMLCStartLine BestMLCStartCol BestMLCStartLen BestMLCEndLine BestMLCEndCol BestMLCEndLen
    endif
    setsearch search_command2 -- Restores user's command so Ctrl-F works.
+   call prestore_pos(savepos2)
    display 2
    call dprintf( "comm", "MLC rc: "retval comment_data)
    return retval
