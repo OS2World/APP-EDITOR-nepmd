@@ -206,7 +206,8 @@ as it supports the "deflated" method used for some text files, this is not suppo
 .an IDPNL_REQUIREMENTS_HTEXT
 .
 For compilation of the online help the preprocessor *HyperText/2* is used.
-.p
+.
+.
 Version 2.0 or later is required.
 
 [=NOTE]
