@@ -239,6 +239,7 @@ defc Kwhelp
             ViewFileList =  arg1
             rest = ViewFileList
             CheckedFileList = ''
+            ExpandedEnvVarList = ';'
             do while rest <> ''
 
                parse value rest with ViewFile'+'rest section
@@ -246,15 +247,19 @@ defc Kwhelp
                -- EnvVars are already resolved at this point!
 
                -- Check if ViewFile specifies an EnvVar (e.g. PMREF)
-               next = Get_Env(ViewFile)
-               if next <> '' then
-                  -- If found, add next to rest and re-parse it
-                  rest = next'+'rest
-                  iterate
+               -- Expand each env var only once to omit an infinite loop (ticket #17)
+               if pos( ';'upcase( ViewFile)';', ExpandedEnvVarList) = 0 then
+                  next = Get_Env( ViewFile)
+                  if next <> '' then
+                     -- If found, add next to rest and re-parse it
+                     ExpandedEnvVarList = ExpandedEnvVarList''upcase( ViewFile)';'
+                     rest = next'+'rest
+                     iterate
+                  endif
                endif
 
                if (pos( '.', ViewFile) = 0) then
-                  ViewFile = ViewFile'.inf';
+                  ViewFile = ViewFile'.inf'
                endif
                dprintf( 'kwhelp', 'ViewFile = 'ViewFile)
                -- Search the file
