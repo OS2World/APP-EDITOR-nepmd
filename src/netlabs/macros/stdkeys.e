@@ -83,6 +83,8 @@ DefKey( 'c_s_pageup'   , 'MarkBeginScreen' )    -- Mark from cursor to first lin
 DefKey( 'c_s_pagedown' , 'MarkEndScreen'   )    -- Mark from cursor to last line on screen
 DefKey( 'c_s_up'       , 'PopMark'         )    -- Restore last mark from stack (and remove it from stack)
 DefKey( 'c_s_down'     , 'PushMark'        )    -- Save current mark to mark stack
+DefKey( 'c_s_left'     , 'MarkPrevWord'    )    -- Mark from cursor to previous word begin
+DefKey( 'c_s_right'    , 'MarkNextWord'    )    -- Mark from cursor to next word begin
 DefKey( 'c_s_-'        , 'SwapMark'        )    -- Exchange current mark with last mark from stack
 DefKey( 'c_s_+'        , 'SwapMark'        )    -- Exchange current mark with last mark from stack
 
