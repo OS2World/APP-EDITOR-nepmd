@@ -175,9 +175,10 @@ compile if WANT_EBOOKIE
 compile endif  -- WANT_EBOOKIE
 
    -- Change to dir of current file
-   KeyPath = '\NEPMD\User\ChangeWorkDir'
-   ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if ChangeWorkDir = 2 then
+   KeyPath = '\NEPMD\User\StartDir\WorkDir\Type'
+   WorkDirType = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   fChangeWorkDir = (WorkDirType = 2)
+   if fChangeWorkDir then
       Filename = .filename
       if substr( Filename, 2, 2) = ':\' then
          call directory( '\')
