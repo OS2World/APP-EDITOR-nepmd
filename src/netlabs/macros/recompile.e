@@ -805,13 +805,6 @@ defc RecompileNew
          DestDir = GetExFileDestDir( ExFile)
          fRelinkDeleted = 0
          if fDeleteExFile = 1 then
-            if fRestartEpm = 0 then
-               if linked( CurExFile) then
-                  -- unlink works only if EX file exists
-                  'unlink' CurExFile
-                  fRelinkDeleted = 1
-               endif
-            endif
             rc = EraseTemp( CurExFile)
             if rc then
                cWarning = cWarning + 1
@@ -819,6 +812,14 @@ defc RecompileNew
             else
                WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'D  deleted .EX file "'CurExFile'"')
                cDelete = cDelete + 1
+            endif
+            -- For the file that defines EraseTemp unlinking must come after erasing
+            if fRestartEpm = 0 then
+               if linked( CurExFile) then
+                  -- unlink works only if EX file exists
+                  'unlink' CurExFile
+                  fRelinkDeleted = 1
+               endif
             endif
          else
             quietshell 'copy' ExFile DestDir
