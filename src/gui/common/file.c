@@ -138,7 +138,7 @@ return _entryExists( pszName, TRUE);
 
 // -----------------------------------------------------------------------------
 
-ULONG FileDate( PSZ pszName)
+ULONG QueryFileDate( PSZ pszName)
 {
          ULONG          ulTimeStamp = (ULONG) -1;
          APIRET         rc = NO_ERROR;
