@@ -29,7 +29,7 @@ APIRET GetTempFilename( PSZ pszBuffer, ULONG ulBuflen);
 BOOL FileExists( PSZ pszName);
 BOOL DirExists( PSZ pszName);
 
-ULONG FileDate( PSZ pszName);
+ULONG QueryFileDate( PSZ pszName);
 
 APIRET FileInPath( PSZ pszEnvName, PSZ pszName, PSZ pszBuffer, ULONG ulBuflen);
 

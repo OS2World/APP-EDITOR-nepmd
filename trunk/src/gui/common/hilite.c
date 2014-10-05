@@ -373,7 +373,7 @@ do
          ulTotalSize += QueryFileSize( szFile);
 
          // check filedate
-         if (FileDate( szFile) > ulKeywordFileDate)
+         if (QueryFileDate( szFile) > ulKeywordFileDate)
             fOutdated = TRUE;
 
          }
@@ -1003,7 +1003,7 @@ do
 //    DPRINTF(( "Regpath. Key '%s' Full path '%s'\n", apszKeys[i+1], szRegPath));
       rc = WriteConfigValue( hconfig, szRegPath, szFileBuffer);
 //    DPRINTF(( "Regupd rc %d Value '%s'\n", rc, szFileBuffer));
-      if (!strcmp( apszKeys[i],  KEY_CASESENSITIVE))
+      if (!strcmp( apszKeys[i], KEY_CASESENSITIVE))
          {
          fCaseSensitive = atol( szFileBuffer);
 //       DPRINTF(( "Case sensitive: %d\n", fCaseSensitive));
@@ -1087,7 +1087,7 @@ do
 
    // check for the file date - if not exists, will return -1,
    // then reset to zero to force a rebuild
-   ulKeywordFileDate = FileDate( szKeywordFile);
+   ulKeywordFileDate = QueryFileDate( szKeywordFile);
    if (ulKeywordFileDate == - 1)
       ulKeywordFileDate  = 0;
 
@@ -1125,13 +1125,13 @@ do
 
    QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_HILCOMMENTCHAR, szHilCommentChar, STR_KWDSCOMMENT);   // first of all add info of init files to file list
    pszSourceFile = szInitGlobalFilename;
-   sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+   sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), QueryFileDate( pszSourceFile));
    pszSourceFile = szInitDefaultFilename;
-   sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+   sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), QueryFileDate( pszSourceFile));
    if (hinitCustom)
       {
       pszSourceFile = szInitCustomFilename;
-      sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+      sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), QueryFileDate( pszSourceFile));
       }
 
    // loop thru all files
@@ -1140,7 +1140,7 @@ do
            ulCurrentFile++, pszSourceFile += _MAX_PATH)
       {
       // add file to the info list
-      sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+      sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), QueryFileDate( pszSourceFile));
       }
 
    // now check the file list, if old one is present
