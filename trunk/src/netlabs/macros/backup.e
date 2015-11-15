@@ -252,6 +252,27 @@ defc ListBackupDir
    'tree_dir' Dir
 
 ; ---------------------------------------------------------------------------
+defc ListBackupDirCurrentFile
+   universal nepmd_hini
+
+   lp = lastpos( '\', .filename)
+   Name = substr( .filename, lp + 1)
+
+   KeyPath = '\NEPMD\User\Backup\Directory'
+   Dir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Dir = '=' then
+      if leftstr( .filename, 1) = '.' then
+         Dir = directory()
+      else
+         Dir = leftstr( .filename, lp - 1)
+         if substr( Dir, 2, 1) = ':' then
+            Dir = Dir'\'
+         endif
+      endif
+   endif
+   'tree_dir' strip( Dir, 'T', '\')'\'Name'~*'
+
+; ---------------------------------------------------------------------------
 ; Procedure to pick a filename for backup purposes, like STDPROCS.E~.
 defproc MakeBakName
    universal nepmd_hini
