@@ -3145,11 +3145,6 @@ defproc add_help_menu(menuname)
                                    EXT_HELP_MENUP__MSG,
                                    0, mpfrom2short(HP_HELP_EXTENDED, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, HELP_HELP_MENU__MSG,                                            -- Using help
-                                   'helpmenu 0'/*64027*/ ||
-                                   HELP_HELP_MENUP__MSG,
-                                   0, mpfrom2short(HP_HELP_HELP, 0)
-   i = i + 1;
    buildmenuitem menuname, mid, i, KEYS_HELP_MENU__MSG,                                            -- Keys help
                                    'helpmenu 1000' ||
                                    KEYS_HELP_MENUP__MSG,
@@ -3160,6 +3155,11 @@ defproc add_help_menu(menuname)
                                    COMMANDS_HELP_MENUP__MSG,
                                    0, mpfrom2short(HP_HELP_COMMANDS, 0)
    i = i + 1;
+   buildmenuitem menuname, mid, i, HELP_HELP_MENU__MSG,                                            -- Using help
+                                   'helpmenu 0'/*64027*/ ||
+                                   HELP_HELP_MENUP__MSG,
+                                   0, mpfrom2short(HP_HELP_HELP, 0)
+   i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
@@ -3168,22 +3168,6 @@ defproc add_help_menu(menuname)
                                    'help' ||
                                    HELP_BROWSER_MENUP__MSG,
                                    0, mpfrom2short(HP_HELP_BROWSE, 0)
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-/*
-   i = i + 1;
-   buildmenuitem menuname, mid, i, HELP_PROD_MENU__MSG,
-                                   'IBMmsg' ||                                                     -- Product information
-                                   HELP_PROD_MENUP__MSG,
-                                   0, mpfrom2short(HP_HELP_PROD, 0)
-*/
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'NEPMD ~runtime information',                                   -- NEPMD runtime information
-                                   'nepmdinfo' ||
-                                   \1'Lists used DLLs and NEPMD''s dynamic configuration',
-                                   0, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -3290,6 +3274,22 @@ compile endif
                                    'toggle_newview_xsearch' ||
                                    \1'Search in text instead of just a topic search',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+/*
+   i = i + 1;
+   buildmenuitem menuname, mid, i, HELP_PROD_MENU__MSG,
+                                   'IBMmsg' ||                                                     -- Product information
+                                   HELP_PROD_MENUP__MSG,
+                                   0, mpfrom2short(HP_HELP_PROD, 0)
+*/
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'NEPMD ~runtime information',                                   -- NEPMD runtime information
+                                   'nepmdinfo' ||
+                                   \1'Lists used DLLs and NEPMD''s dynamic configuration',
+                                   0, 0
    return
 
 ; ---------------------------------------------------------------------------
