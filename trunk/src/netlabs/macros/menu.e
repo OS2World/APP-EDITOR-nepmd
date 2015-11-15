@@ -248,6 +248,7 @@ defproc ExecMenuItem
    Cmd = strip( Cmd, 'T', \0)
    call SaveKeyCmd( \1''Cmd)
    Cmd
+   --dprintf( 'ExecMenuItem: Cmd = 'Cmd)
    return
 
 ; ---------------------------------------------------------------------------
