@@ -86,6 +86,9 @@
 ; History
 "\NEPMD\User\History" = "1"
 
+; Keyset additions
+"\NEPMD\User\Keys\AddKeyDefs\Selected" = "cua"
+
 ; AccelKeys
 "\NEPMD\User\Keys\AccelKeys\BlockLeftAltKey" = "0"
 "\NEPMD\User\Keys\AccelKeys\BlockRightAltKey" = "0"
