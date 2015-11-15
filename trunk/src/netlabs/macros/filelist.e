@@ -784,6 +784,24 @@ defc Ring_More
                        5141,               -- EPM_POPRINGDIALOG
                        0,
                        0)
+   -- At this point the dialog window is about to open.
+   -- Everything else is handled by the dialog window itself.
+   -- E code here would be processed before the dialog window
+   -- is closed, even when its a app modal dialog.
+   -- This is relevant, because canceling the dialog always makes
+   -- the window scroll to the cursor. This can't be fixed here.
+   -- Moreover, after scrolling the window the cursor becomes invisible
+   -- until it is moved.
+   --
+   -- Idea for a workaround to avoid window scrolling:
+   -- If the cursor is not visible, place it on the middle line of current
+   -- window for all files. This might be useful for all cases before file
+   -- switching takes places.
+   --
+   -- Note that window scolling (with the mouse wheel) is not automatically
+   -- recognized by callback E commands. But It can be queried if the
+   -- cursor is visible by comparing .cursory:
+   -- visble if: (top line = 1) >= .cursory >= (bottom line = .windowheight)
 
 ; ---------------------------------------------------------------------------
 ; Syntax: Ring <cmd>
