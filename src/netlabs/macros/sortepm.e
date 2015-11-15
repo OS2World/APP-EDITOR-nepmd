@@ -21,6 +21,7 @@
 
 ; ---------------------------------------------------------------------------
 defproc Sort( firstline, lastline, firstcol, lastcol, fileid)
+   'NextCmdAltersText'
 
    flags = (not verify( 'R', upcase( arg(6)))) bitor    -- Reverse
            (not verify( 'D', upcase( arg(6)))) bitor    -- Descending
@@ -78,7 +79,6 @@ defc Sort2
    if rc then
       sayerror 'Error. Sort returned with rc = 'rc
    else
-      call NewUndoRec()
       sayerror 0
    endif
 
@@ -130,6 +130,5 @@ defc SortCols
       endif
 
    enddo
-   call NewUndoRec()
    sayerror 0
 
