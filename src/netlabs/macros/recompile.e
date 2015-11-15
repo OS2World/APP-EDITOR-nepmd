@@ -68,6 +68,11 @@ defc PostRelink
       'ReloadKeyset'
    endif
 
+   -- Refresh coding style definitions if modecnf.ex is linked
+   if upcase( BaseName) = 'MODECNF' then
+      'InitModeCnf'
+   endif
+
 ; ---------------------------------------------------------------------------
 ; Syntax: relink [IFLINKED] [[<path>]<modulename>[.e]]
 ;

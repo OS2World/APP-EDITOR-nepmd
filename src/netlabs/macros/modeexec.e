@@ -1497,6 +1497,19 @@ defc SetClosingBraceAutoIndent
 ; ---------------------------------------------------------------------------
 ; Commands for coding styles
 ; ---------------------------------------------------------------------------
+; Delete all coding style hooks
+; Syntax: DelAllCodingStyles
+defc DelAllCodingStyles
+   CodingStyles = GetAVar( 'CodingStyles')
+   -- Remove definitions for all coding style names
+   do c = 1 to words( CodingStyles)
+      ThisCodingStyle = word( CodingStyles, c)
+      'HookDelAll codingstyle.'ThisCodingStyle
+   enddo
+   -- Remove list of coding style names
+   call DropAVar( 'CodingStyles')
+
+; ---------------------------------------------------------------------------
 ; Delete the hook (to be executed before overwriting an entire hook instead
 ; of changing the values).
 ; Syntax: DelCodingStyle <name>

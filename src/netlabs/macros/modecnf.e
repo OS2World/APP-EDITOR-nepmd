@@ -77,10 +77,14 @@ compile endif
 defc InitModeCnf
 ; The rest of the file is valid REXX and E code.
 
+/* Clear previous coding style definitions */
+'DelAllCodingStyles'
 
 /* ----------------------------------------------------------------------- */
 /* Coding styles                                                           */
 /* ----------------------------------------------------------------------- */
+
+/* Note: Spaces within the coding style name are not allowed. */
 
 /* K&R */
 'AddCodingStyle K&R SetIndent 4'
