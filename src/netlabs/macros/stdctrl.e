@@ -1216,8 +1216,21 @@ defc Monofont
 � who and when    : Larry M.   9/12/91                                       �
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
-; This should be used instead of any 'do_array 3' to avoid the error msg if
-; it doesn't exist.
+; This should be used instead of any 'do_array 3' to avoid the error msg
+; 'Invalid third parameter' of so_array 3, if it doesn't exist.
+;
+; Additionally, before removing an array var, it should be queried with
+; get_array_value if it exists, e.g.:
+;
+;   defc RmArrayVar
+;      universal EPM_utility_array_ID
+;      varname = arg(1)
+;      -- Always call get_array_value with a 3rd parameter.
+;      -- varvalue doesn't have to be defined before using it as a
+;      -- call by reference variable.
+;      if not get_array_value( EPM_utility_array_ID, varname, varvalue) then
+;         do_array 4, EPM_utility_array_ID, varname
+;      endif
 defproc get_array_value( array_ID, array_index, var array_value)
    rc = 0
    array_value = ''
@@ -1316,7 +1329,9 @@ defc DelAVar
 defproc DropAVar( varname)
    universal EPM_utility_array_ID
    varname = lowcase( varname)
-   do_array 4, EPM_utility_array_ID, varname  -- delete entry
+   if not get_array_value( EPM_utility_array_ID, varname, varvalue) then
+      do_array 4, EPM_utility_array_ID, varname  -- delete entry
+   endif
    return
 
 defc DropAVar
