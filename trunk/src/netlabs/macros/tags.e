@@ -219,8 +219,8 @@ defproc c_proc_search( var ProcName, fFindFirst, Ext)
             -- Ignore rc from here
          endif
 
-         -- Find { in col 1
-         'xcom l ^{g'
+         -- Find { in any col
+         'xcom l ^.*{g'
          if rc then
             leave
          endif
