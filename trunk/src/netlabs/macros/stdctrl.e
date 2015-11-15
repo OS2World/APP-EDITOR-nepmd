@@ -2030,35 +2030,6 @@ defproc SetCurrentHLPFiles(newlist)
 
 compile endif
 
-;compile if KEEP_CURSOR_ON_SCREEN
--- This should move the cursor at the end of every scroll bar action.  The
--- position to which it is moved should correspond to the location of the
--- cursor (relative to the window) at the time when the scroll began.
-
-defc ProcessEndScroll
-   universal beginscroll_x, beginscroll_y;
-   universal nepmd_hini
-   KeyPath = '\NEPMD\User\Scroll\KeepCursorOnScreen'
-   Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Enabled = 1 then
-      .cursorx = beginscroll_x;
-      .cursory = beginscroll_y;
-      if not .line & .last then
-         .lineg = 1
-      endif
-   endif
-
-defc ProcessBeginScroll
-   universal beginscroll_x, beginscroll_y;
-   universal nepmd_hini
-   KeyPath = '\NEPMD\User\Scroll\KeepCursorOnScreen'
-   Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Enabled = 1 then
-      beginscroll_x = .cursorx;
-      beginscroll_y = .cursory;
-   endif
-;compile endif  -- KEEP_CURSOR_ON_SCREEN
-
 ; ---------------------------------------------------------------------------
 ; Internally called when a color or a font is dropped on a window.
 ; This is always followed by a SaveFont or SaveColor command. The internally
