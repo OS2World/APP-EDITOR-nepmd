@@ -76,6 +76,7 @@ defproc pdelete_mark
    delete_mark
    return
 
+; Return 1 if cursor is in mark or just after it. Else return 0.
 defproc cursor_in_mark
    rc = 0
    getmark first_line, last_line, first_col, last_col, mark_fid
@@ -91,14 +92,19 @@ defproc cursor_in_mark
       elseif mark_type = 'CHAR' then
          if cur_line > first_line and cur_line < last_line then
             rc = 1
-         elseif cur_line = first_line and cur_col >= first_col then
+         elseif first_line <> last_line and cur_line = first_line and
+            cur_col >= first_col then
             rc = 1
-         elseif cur_line = last_line and cur_col <= first_col then
+         elseif first_line <> last_line and cur_line = last_line and
+            cur_col <= last_col + 1 then
+            rc = 1
+         elseif first_line = last_line and cur_line = first_line and
+            cur_col >= first_col and cur_col <= last_col + 1 then
             rc = 1
          endif
       elseif mark_type = 'BLOCK' then
          if cur_line >= first_line and cur_line <= last_line then
-            if cur_col >= first_col and cur_col <= last_col then
+            if cur_col >= first_col and cur_col <= last_col + 1 then
                rc = 1
             endif
          endif
