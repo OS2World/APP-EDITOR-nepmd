@@ -1006,11 +1006,7 @@ compile endif
    .margins = next
    vdefault_margins = next
 
-   next = queryprofile( app_hini, appname, INI_AUTOSAVE)
-   if next = '' then
-      next = 100
-      call setprofile( app_hini, appname, INI_AUTOSAVE, next)
-   endif
+   next = GetAutoSaveNum()
    .autosave = next
    vdefault_autosave = next
 
