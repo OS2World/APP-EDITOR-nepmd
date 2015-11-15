@@ -2703,6 +2703,11 @@ if not MenuItemsHidden then
    buildmenuitem menuname, mid, i, '~List directory',                                                    -- List directory
                                    'ListBackupDir' ||
                                    \1'',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_backuplistfiles', i);
+   buildmenuitem menuname, mid, i, 'List backups for current ~file',                                     -- List backups for current file
+                                   'ListBackupDirCurrentFile' ||
+                                   \1'',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
 
    i = i + 1; call SetAVar( 'mid_directories', i);
