@@ -1634,6 +1634,7 @@ defc TagScan
    call psave_pos( savepos)
    0
    getfileid sourcefid
+
    'xcom e /c .tagslist'
    if rc <> -282 then  -- -282 = sayerror("New file")
       sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
@@ -1646,17 +1647,37 @@ defc TagScan
    endif
    .autosave = 0
    .visible = 0
+
    activatefile sourcefid
-   ProcName = ''
    mouse_setpointer WAIT_POINTER
    'SayHint Searching for procedures...'
-   rc = proc_search( ProcName, 1, Mode, FType)
-   while not rc do
+
+   parse value savepos with svline .
+   DefaultItem = 1
+   searchrc = 0
+   i = 0
+   do forever
+      ProcName = ''
+      if i = 0 then
+         fFindFirst = 1
+      else
+         fFindFirst = 0
+      endif
+      searchrc = proc_search( ProcName, fFindFirst, Mode, FType)
+      if searchrc then
+         leave
+      endif
+
+      i = i + 1
       insertline ProcName '('.line')', lb_fid.last + 1, lb_fid
-      ProcName=''
       end_line
-      rc = proc_search( ProcName, 0, Mode, FType)
-   endwhile
+
+      -- Store item number for cursor pos
+      if .line <= svline then
+         DefaultItem = i
+      endif
+   enddo
+
    call prune_assist_array()
    call prestore_pos( savepos)
    if browse_mode then
@@ -1682,11 +1703,12 @@ defc TagScan
                         0, 0,  -- 25, 15        -- top (0 = at cursor), left (0 = at cursor)
                         min( noflines, 20), 0,  -- height, width (0 = auto)
                         gethwndc(APP_HANDLE) ||
-                        atoi(1) ||              -- default item
-                        atoi(1) ||              -- default button
+                        atoi( DefaultItem)   ||              -- default item
+                        atoi(1)              ||              -- default button
                         atoi(6012)) with button 2 ProcName \0  -- help panel id
    call buffer( FREEBUF, bufhndl)
    if button <> \1 then
+      call prestore_pos( savepos)  -- required after listbox to keep scroll pos
       return
    endif
    -- Determine procname from list item, strip indent and linenum
