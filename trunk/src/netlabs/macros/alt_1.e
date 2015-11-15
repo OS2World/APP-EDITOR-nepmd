@@ -728,11 +728,11 @@ compile endif  -- HOST_SUPPORT
    endif
 
    -------------------------------------------------------------------------- word under cursor
-   -- todo: support spaces in filenames and pathes
+   -- todo: support spaces in filenames and paths
 
    StartCol = 0
    EndCol   = 0
-   SeparatorList = '"'||"'"||'(){}[]<>,;|+ '\9'#='
+   SeparatorList = '"'||"'"||'(){}[]<>,;|+ '\9'#'
 -- call find_token( StartCol, EndCol, SeparatorList, '')
 -- fWordFound = (StartCol <> 0 & EndCol >= StartCol)
 -- Checking the return code is better in the case the cursor is
