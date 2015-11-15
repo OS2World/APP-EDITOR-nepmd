@@ -491,7 +491,9 @@ defc StartBrowser
       -- Get word under cursor, separated by any char of SeparatorList
       StartCol = 0
       EndCol   = 0
-      SeparatorList = '"'||"'"||'(){}[]<>,! '\9;
+      -- Todo: Remove trailing chars of ',;|+#=' only if a space follows:
+      -- Sync this with alt_1.e
+      SeparatorList = '"'||"'"||'(){}[]<>,;|+ '\9'#'
       call find_token( StartCol, EndCol, SeparatorList, '')
       getline line
 
