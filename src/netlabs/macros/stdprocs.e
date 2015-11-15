@@ -38,11 +38,6 @@ defproc askyesno
                                                       16388) - 5,
                                                       1)  -- YESNO + MOVEABLE
 
-; Does an atol of its argument, then a word reversal and returns the result.
-defproc atol_swap( num)
-   hwnd = atol( num)
-   return rightstr( hwnd, 2) || leftstr( hwnd, 2)
-
 ; Common routine, save space.  from Jim Hurley.
 ; Check if current file is marked. If not, stop further processing of
 ; calling command or procedure. (Changed from any to current file.)
@@ -109,66 +104,6 @@ defproc OnScreen
 
    return fOnScreen
 
-; Tests whether the "filename" is actually a printer
-; device, so we'll know whether to test printer readiness first.
-; Called by savefile() in SAVELOAD.E.  Returns 0 if not, else printer number.
-defproc check_for_printer( name)
-   if not name then return 0; endif
-   if leftstr( name, 1) = '"' & rightstr( name, 1) = '"' then
-      name = substr( name, 2, length( name) - 2)
-   endif
-   if rightstr( name, 1) = ':' then  -- a device
-      name = leftstr( name, length( name) - 1)
-   else       -- Might be a full pathspec, C:\EDIT\PRN, and still go to a device!
-      indx = lastpos( '\',name)
-      if not indx then
-         indx = lastpos( ':', name)
-      endif
-      if indx then
-         name = substr( name, indx + 1)
-      endif
-      indx = pos( '.',name)
-      if indx then
-         name = substr( name, 1, indx - 1)
-      endif
-   endif
-   if upcase(name) = 'PRN' then
-      return 1
-   endif
-   ports = '.LPT1.LPT2.LPT3.LPT4.LPT5.LPT6.LPT7.LPT8.LPT9.COM1.COM2.COM3.COM4.'
-   return (4 + pos( '.'upcase(name)'.', ports))%5
-
-defproc dec_to_string( string)    -- for dynalink usage
-   line = ''
-   for i = 1 to length( string)
-     line= line''asc( substr( string, i, 1))' '
-   endfor
-   return line
-
-defproc default_printer
-compile if defined( my_printer)
-   return MY_PRINTER
-compile else
-   parse value queryprofile(HINI_PROFILE, 'PM_SPOOLER', 'PRINTER') with printername ';'
-   if printername <> '' then
-      parse value queryprofile(HINI_PROFILE, 'PM_SPOOLER_PRINTER', printername) with dev ';'
-      if dev <> '' then
-         return dev
-      endif
-   endif
-compile endif
-   return 'LPT1'
-
-; Moved defproc ec_position_on_error to LINCMDS.E
-; Moved defproc einsert_line to ENTER.E
-; Moved defproc enter_common(action) to ENTER.E
-; Moved defproc enter_common(action) to ENTER.E
-
-defproc fixup_cursor()
-   universal cursordimensions
-   parse value word( cursordimensions, insert_state() + 1) with cursorw '.' cursorh
-   cursor_dimensions cursorw, cursorh
-
 ; ---------------------------------------------------------------------------
 ; Replace all UNNAMED_FILE_NAME consts with GetUnnamedFileName()
 ; The universal var is set in MAIN.E.
@@ -176,7 +111,18 @@ defproc GetUnnamedFileName
    universal unnamedfilename
    return unnamedfilename
 
-; Moved defproc highlight_match(search_len) to LOCATE.E
+; ---------------------------------------------------------------------------
+; Does an atol of its argument, then a word reversal and returns the result.
+defproc atol_swap( num)
+   hwnd = atol( num)
+   return rightstr( hwnd, 2) || leftstr( hwnd, 2)
+
+defproc dec_to_string( string)    -- for dynalink usage
+   line = ''
+   for i = 1 to length( string)
+     line= line''asc( substr( string, i, 1))' '
+   endfor
+   return line
 
 ; Returns true if parameter given is a number.
 ; Leading and trailing spaces are ignored.
@@ -197,6 +143,25 @@ defproc isnum
    endif
    return not verify( zz, '0123456789'DECIMAL)  -- Max. of one decimal point.
 
+defproc min( a, b)  -- Support as many arguments as E3 will allow.
+   minimum = a
+   do i = 2 to arg()
+      if minimum > arg(i) then
+         minimum = arg(i)
+      endif
+   end
+   return minimum
+
+defproc max( a, b)  -- Support as many arguments as E3 will allow.
+   maximum = a
+   do i = 2 to arg()
+      if maximum < arg(i) then
+         maximum = arg(i)
+      endif
+   end
+   return maximum
+
+; ---------------------------------------------------------------------------
 defproc isoption( var cmdline, optionletter)
    i = pos( argsep''upcase( optionletter), upcase( cmdline))
    if i then
@@ -232,48 +197,7 @@ defproc joinlines()
       join
    endif
 
-; Moved file defs to FILE.E.
-
-defproc max( a, b)  -- Support as many arguments as E3 will allow.
-   maximum = a
-   do i = 2 to arg()
-      if maximum < arg(i) then
-         maximum = arg(i)
-      endif
-   end
-   return maximum
-
-defproc message
-   getfileid fileid
-   sayerror arg(1)
-   activatefile fileid
-
-; Print message and wait for a key press.
-; Preserve active file and activate ring.
-; Note:  There is no need to use "call" to invoke this procedure,  since it
-; returns the null string.  Execution of a null string does nothing
-defproc messageNwait
-   getfileid zzfileid
-   display -4                    -- Force a messagebox popup from the SAYERROR
-   display 32                    -- Force a messagebox popup from the SAYERROR
-   sayerror arg(1)
-   display -32
-   display 4
-   activatefile zzfileid
-
-defproc min( a, b)  -- Support as many arguments as E3 will allow.
-   minimum = a
-   do i = 2 to arg()
-      if minimum > arg(i) then
-         minimum = arg(i)
-      endif
-   end
-   return minimum
-
-; Moved defproc my_c_enter to ENTER.E
-; Moved defproc my_enter to ENTER.E
-; Moved parse defs to EDIT.E
-
+; ---------------------------------------------------------------------------
 ; PBEGIN_MARK: this procedure moves the cursor to the first character of the
 ; mark area.  If the mark area is not in the active file, the marked file is
 ; activated.
@@ -289,6 +213,30 @@ defproc pbegin_mark
    if marktype() <> 'LINE' then
       .col = firstcol
    endif
+
+; PEND_MARK: moves the cursor to the end of the marked area
+defproc pend_mark
+compile if WANT_DBCS_SUPPORT
+   universal ondbcs
+compile endif
+   if marktype() = '' then
+      sayerror NO_MARK_HERE__MSG
+      stop
+   endif
+   getmark firstline, lastline, firstcol, lastcol, fileid
+   activatefile fileid
+   if marktype() <> 'LINE' then
+      .col = lastcol
+compile if WANT_DBCS_SUPPORT
+      if ondbcs then
+         if .col > lastcol then -- Must have been in the middle of a DBC.
+            .col = lastcol - 1
+         endif
+      endif
+compile endif
+   endif
+   --lastline
+   .lineg = lastline  -- .lineg suppresses scrolling, if cursor is in window
 
 ; PBEGIN_WORD: moves the cursor to the beginning of the word if the cursor is on
 ; this word.  If it's not on a word, it's moved to the beginning of the first
@@ -324,6 +272,40 @@ defproc pbegin_word
       endif
    endif
 
+; PEND_WORD: moves the cursor to the end of the word if the cursor is on this
+; word.  If it's not on a word, it's moved to the end of the first word on the
+; right.  If there is no word on the right it's moved to the end of the word on
+; the left.  If the line is empty the cursor doesn't move.
+defproc pend_word
+   getline line, .line
+   line = translate( line, ' ', \9)  -- handle tabs correctly
+   if  substr( line, .col, 1) = ' ' then
+      if substr( line, .col) = ' ' then
+         if  line <> ' ' then
+            for i = .col to 2 by -1
+               if substr( line, i - 1, 1) <> ' ' then
+                  leave
+               endif
+            endfor
+           .col = i - 1
+         endif
+      else
+         p = verify( line,    ' ', '', .col)
+         p = verify( line' ', ' ', 'M', p)
+         .col = p - 1
+      endif
+   else
+      if .col <> MAXCOL then
+         i = pos( ' ', line, .col)
+         if i then
+            .col = i - 1
+         else
+            .col = length( line)
+         endif
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
 ; PBLOCK_REFLOW: reflow the text in the marked area.  Then the destination block
 ; area must be selected and a second call to this procedure reflow the source
 ; block in the destination block.  The source block is fill with spaces.
@@ -479,63 +461,6 @@ defproc pdisplay_tabs()
    return 0
 compile endif
 
-; PEND_MARK: moves the cursor to the end of the marked area
-defproc pend_mark
-compile if WANT_DBCS_SUPPORT
-   universal ondbcs
-compile endif
-   if marktype() = '' then
-      sayerror NO_MARK_HERE__MSG
-      stop
-   endif
-   getmark firstline, lastline, firstcol, lastcol, fileid
-   activatefile fileid
-   if marktype() <> 'LINE' then
-      .col = lastcol
-compile if WANT_DBCS_SUPPORT
-      if ondbcs then
-         if .col > lastcol then -- Must have been in the middle of a DBC.
-            .col = lastcol - 1
-         endif
-      endif
-compile endif
-   endif
-   --lastline
-   .lineg = lastline  -- .lineg suppresses scrolling, if cursor is in window
-
-; PEND_WORD: moves the cursor to the end of the word if the cursor is on this
-; word.  If it's not on a word, it's moved to the end of the first word on the
-; right.  If there is no word on the right it's moved to the end of the word on
-; the left.  If the line is empty the cursor doesn't move.
-defproc pend_word
-   getline line, .line
-   line = translate( line, ' ', \9)  -- handle tabs correctly
-   if  substr( line, .col, 1) = ' ' then
-      if substr( line, .col) = ' ' then
-         if  line <> ' ' then
-            for i = .col to 2 by -1
-               if substr( line, i - 1, 1) <> ' ' then
-                  leave
-               endif
-            endfor
-           .col = i - 1
-         endif
-      else
-         p = verify( line,    ' ', '', .col)
-         p = verify( line' ', ' ', 'M', p)
-         .col = p - 1
-      endif
-   else
-      if .col <> MAXCOL then
-         i = pos( ' ', line, .col)
-         if i then
-            .col = i - 1
-         else
-            .col = length( line)
-         endif
-      endif
-   endif
-
 ; Check if file already exists in ring
 defproc pfile_exists
    if substr( arg(1), 2, 1) = ':' then
@@ -575,6 +500,7 @@ defproc pEnd_Line
    line = translate( line, ' ', \9)  -- handle tabs correctly
    .col = length( strip( line, 't')) + 1
 
+; ---------------------------------------------------------------------------
 ; PLOWERCASE: force to lowercase the marked area
 defproc plowercase
    call checkmark()
@@ -591,9 +517,21 @@ defproc plowercase
    end
    call prestore_pos( save_pos)
 
-; PMARGINS: return the current margins setting. (Uses pcommon_tab_margin)
-defproc pmargins
-   return .margins
+; PUPPERCASE: force to uppercase the marked area
+defproc puppercase
+   call checkmark()
+   -- invoke pinit_extract, pextract_string, pput_string_back to do the job
+   call psave_pos( save_pos)
+   call pinit_extract()
+   do forever
+      code = pextract_string( string)
+      if code = 1 then leave endif
+      if code = 0 then
+         string = upcase( string)
+         call pput_string_back( string)
+      endif
+   end
+   call prestore_pos( save_pos)
 
 ; ---------------------------------------------------------------------------
 ; Check if current file or a specified filename is marked. Return 1 or 0.
@@ -682,53 +620,9 @@ compile else
 compile endif
   'Copy2SharBuff'  -- Copy mark to shared text buffer
 
-; PRESTORE_MARK: restore the current marks (cannot be used as a stack) See also
-; psave_mark
-defproc prestore_mark( savemark)
-   unmark
-   parse value savemark with savefirstline savelastline savefirstcol savelastcol savemkfileid savemt
-   if savemt <> '' then
-      call pset_mark( savefirstline, savelastline, savefirstcol, savelastcol, savemt, savemkfileid)
-   endif
-
-; PRESTORE_POS: restore the cursor position (cannot be used as a stack) See
-; also psave_pos()
-defproc prestore_pos( save_pos)
-   universal loadstate
-   universal lastscrollx
-
-   parse value save_pos with svline svcol svcx svcy
-   .cursory = svcy                          -- set .cursory
-   min( svline, .last)                      -- set .line
-   .col = MAXCOL; .col = svcol - svcx + 1   -- set left edge of window
-   .col = svcol                             -- set .col
-
-   -- Workaround for avoiding additional .scrollx offset
-   -- (see also defload):
-   -- Restore .scrollx, if not processed during file loading
-   if loadstate = 0 then
-      if lastscrollx <> '' then
-         .scrollx = lastscrollx   -- set hidden pixels at the left
-      endif
-      -- .scrolly is always 0
-   endif
-
-;  Printer_ready( printer_number ) tests whether printer is ready.
-;
-;  Enter with printer_number = 1 for the first printer (LPT1), 2 for LPT2.
-;  No argument at all defaults to LPT1.
-;
-;  Returns 1 (true)  for printer attached and ready.
-;  Returns 0 (false) for printer not attached or not ready.
-;
-;  Note:  Assumes the standard BIOS responses for an IBM PC.
-;  The BIOS responds with AH=90 hex for printer ready.
-;  Might not work on clones and other strange machines.
-;
-;  If we're on OS/2 we don't check because the spooler protects us from
-;  a hang if the printer's off-line.  We always return "ready" on OS/2.
-defproc printer_ready
-   return 1
+defproc pset_mark( firstline, lastline, firstcol, lastcol, mt, fileid)
+   mtnum = wordpos( mt, 'LINE CHAR BLOCK CHARG BLOCKG') - 1
+   setmark firstline, lastline, firstcol, lastcol, mtnum, fileid
 
 ; PSAVE_MARK: save the current marks (cannot be used as a stack) See also
 ; prestore_pos()
@@ -742,6 +636,16 @@ defproc psave_mark( var savemark)
       savemark = ''
    endif
 
+; PRESTORE_MARK: restore the current marks (cannot be used as a stack) See also
+; psave_mark
+defproc prestore_mark( savemark)
+   unmark
+   parse value savemark with savefirstline savelastline savefirstcol savelastcol savemkfileid savemt
+   if savemt <> '' then
+      call pset_mark( savefirstline, savelastline, savefirstcol, savelastcol, savemt, savemkfileid)
+   endif
+
+; ---------------------------------------------------------------------------
 ; PSAVE_POS: save the cursor position (cannot be used as a stack) See also
 ; prestore_pos()
 defproc psave_pos( var save_pos)
@@ -769,77 +673,85 @@ defproc psave_pos( var save_pos)
    -- because the window scrolls one page or so up. After that, the
    -- cursor would be off the visible area.
 
-defproc pset_mark( firstline, lastline, firstcol, lastcol, mt, fileid)
-   mtnum = wordpos( mt, 'LINE CHAR BLOCK CHARG BLOCKG') - 1
-   setmark firstline, lastline, firstcol, lastcol, mtnum, fileid
+; PRESTORE_POS: restore the cursor position (cannot be used as a stack) See
+; also psave_pos()
+defproc prestore_pos( save_pos)
+   universal loadstate
+   universal lastscrollx
+
+   parse value save_pos with svline svcol svcx svcy
+   .cursory = svcy                          -- set .cursory
+   min( svline, .last)                      -- set .line
+   .col = MAXCOL; .col = svcol - svcx + 1   -- set left edge of window
+   .col = svcol                             -- set .col
+
+   -- Workaround for avoiding additional .scrollx offset
+   -- (see also defload):
+   -- Restore .scrollx, if not processed during file loading
+   if loadstate = 0 then
+      if lastscrollx <> '' then
+         .scrollx = lastscrollx   -- set hidden pixels at the left
+      endif
+      -- .scrolly is always 0
+   endif
+
+; ---------------------------------------------------------------------------
+;compile if KEEP_CURSOR_ON_SCREEN
+-- This should move the cursor at the end of every scroll bar action.  The
+-- position to which it is moved should correspond to the location of the
+-- cursor (relative to the window) at the time when the scroll began.
+
+; ProcessBeginScroll is called when the scroll bar slider is pressed with
+; the pointer.
+; The call at other window scroll messages (e.g. by a mouse wheel) is buggy:
+; It is also called at the first scroll message in any direction. To make
+; it called again for a direction, a scroll message in another direction has
+; to come before that. ProcessEndScroll is not called.
+defc ProcessBeginScroll
+   universal beginscroll_x
+   universal beginscroll_y
+   universal nepmd_hini
+;dprintf( 'ProcessBeginScroll')
+   KeyPath = '\NEPMD\User\Scroll\KeepCursorOnScreen'
+   Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Enabled = 1 then
+      beginscroll_x = .cursorx
+      beginscroll_y = .cursory
+   endif
+
+; ProcessEndScroll is called when the scroll bar slider is released with
+; the pointer.
+defc ProcessEndScroll
+   universal beginscroll_x
+   universal beginscroll_y
+   universal nepmd_hini
+;dprintf( 'ProcessEndScroll')
+   KeyPath = '\NEPMD\User\Scroll\KeepCursorOnScreen'
+   Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Enabled = 1 then
+      .cursorx = beginscroll_x
+      .cursory = beginscroll_y
+      if not .line & .last then
+         .lineg = 1
+      endif
+   endif
+;compile endif  -- KEEP_CURSOR_ON_SCREEN
+
+; ---------------------------------------------------------------------------
+; PMARGINS: return the current margins setting. (Uses pcommon_tab_margin)
+defproc pmargins
+   return .margins
 
 ; PTABS: return the current tabs setting. (Uses pcommon_tab_margin)
 defproc ptabs
    return .tabs
-
-; PUPPERCASE: force to uppercase the marked area
-defproc puppercase
-   call checkmark()
-   -- invoke pinit_extract, pextract_string, pput_string_back to do the job
-   call psave_pos( save_pos)
-   call pinit_extract()
-   do forever
-      code = pextract_string( string)
-      if code = 1 then leave endif
-      if code = 0 then
-         string = upcase( string)
-         call pput_string_back( string)
-      endif
-   end
-   call prestore_pos( save_pos)
 
 ; This is no longer used by any file in standard E.  Use strip()
 ; instead.  But left here for compatibility with older procs. -> No.
 ;defproc remove_trailing_spaces
 ;   return strip( arg(1), 'T')
 
-; Moved resolve_key to KEYS.E.
-
-define
-   MSGC = 'color'
-
-; Paste up a message in a box, using SAYAT's.  Useful for "Processing..." msgs.
-defproc sayatbox
-   universal vMESSAGECOLOR
-compile if WANT_DBCS_SUPPORT
-   universal ondbcs
-compile endif
-
-   color = sayat_color()
-compile if WANT_DBCS_SUPPORT
-   if ondbcs then
-      middle = substr( '', 1, length( arg(1)), \x06)
-      sayat '  '\x01\x06||middle||\x06\x02'  ', 1, 2, $MSGC
-      sayat '  '\x05' 'arg(1)' '\x05'  ', 2, 2, $MSGC
-      sayat '  '\x03\x06||middle\x06\x04'  ', 3, 2, $MSGC
-   else
-compile endif
-      middle = substr( '', 1, length( arg(1)), 'Õ')
-      sayat '  …Õ'middle'Õª  ', 1, 2, $MSGC
-      sayat '  ∫ 'arg(1)' ∫  ', 2, 2, $MSGC
-      sayat '  »Õ'middle'Õº  ', 3, 2, $MSGC
-compile if WANT_DBCS_SUPPORT
-   endif
-compile endif
-
-defproc sayat_color =          -- Pick a color for SAYAT that doesn't conflict w/ foreground or background color.
-   universal vMESSAGECOLOR
-   if vMESSAGECOLOR // 16 <> .textcolor // 16 & vMESSAGECOLOR // 16 <> .textcolor % 16 then
-      return vMESSAGECOLOR       -- Preference is the message color.
-   endif
-   if vMESSAGECOLOR // 16 <> LIGHT_RED then
-      return LIGHT_RED           -- Second choice is light red.
-   endif
-   if .textcolor // 16 <> LIGHT_BLUE & .textcolor % 16 <> LIGHT_BLUE then
-      return LIGHT_BLUE          -- If that's used, then how about light blue
-   endif
-   return GREEN                  -- Final fallback is green.
-
+; ---------------------------------------------------------------------------
 defproc splitlines()
    if .line then
       split
@@ -933,4 +845,130 @@ defproc IsString( LeftLine)
    enddo
 
    return fString
+
+; ---------------------------------------------------------------------------
+; Tests whether the "filename" is actually a printer
+; device, so we'll know whether to test printer readiness first.
+; Called by savefile() in SAVELOAD.E.  Returns 0 if not, else printer number.
+defproc check_for_printer( name)
+   if not name then return 0; endif
+   if leftstr( name, 1) = '"' & rightstr( name, 1) = '"' then
+      name = substr( name, 2, length( name) - 2)
+   endif
+   if rightstr( name, 1) = ':' then  -- a device
+      name = leftstr( name, length( name) - 1)
+   else       -- Might be a full pathspec, C:\EDIT\PRN, and still go to a device!
+      indx = lastpos( '\',name)
+      if not indx then
+         indx = lastpos( ':', name)
+      endif
+      if indx then
+         name = substr( name, indx + 1)
+      endif
+      indx = pos( '.',name)
+      if indx then
+         name = substr( name, 1, indx - 1)
+      endif
+   endif
+   if upcase(name) = 'PRN' then
+      return 1
+   endif
+   ports = '.LPT1.LPT2.LPT3.LPT4.LPT5.LPT6.LPT7.LPT8.LPT9.COM1.COM2.COM3.COM4.'
+   return (4 + pos( '.'upcase(name)'.', ports))%5
+
+;  Printer_ready( printer_number ) tests whether printer is ready.
+;
+;  Enter with printer_number = 1 for the first printer (LPT1), 2 for LPT2.
+;  No argument at all defaults to LPT1.
+;
+;  Returns 1 (true)  for printer attached and ready.
+;  Returns 0 (false) for printer not attached or not ready.
+;
+;  Note:  Assumes the standard BIOS responses for an IBM PC.
+;  The BIOS responds with AH=90 hex for printer ready.
+;  Might not work on clones and other strange machines.
+;
+;  If we're on OS/2 we don't check because the spooler protects us from
+;  a hang if the printer's off-line.  We always return "ready" on OS/2.
+defproc printer_ready
+   return 1
+
+defproc default_printer
+compile if defined( my_printer)
+   return MY_PRINTER
+compile else
+   parse value queryprofile(HINI_PROFILE, 'PM_SPOOLER', 'PRINTER') with printername ';'
+   if printername <> '' then
+      parse value queryprofile(HINI_PROFILE, 'PM_SPOOLER_PRINTER', printername) with dev ';'
+      if dev <> '' then
+         return dev
+      endif
+   endif
+compile endif
+   return 'LPT1'
+
+defproc fixup_cursor()
+   universal cursordimensions
+   parse value word( cursordimensions, insert_state() + 1) with cursorw '.' cursorh
+   cursor_dimensions cursorw, cursorh
+
+; ---------------------------------------------------------------------------
+defproc message
+   getfileid fileid
+   sayerror arg(1)
+   activatefile fileid
+
+; Print message and wait for a key press.
+; Preserve active file and activate ring.
+; Note:  There is no need to use "call" to invoke this procedure,  since it
+; returns the null string.  Execution of a null string does nothing
+defproc messageNwait
+   getfileid zzfileid
+   display -4                    -- Force a messagebox popup from the SAYERROR
+   display 32                    -- Force a messagebox popup from the SAYERROR
+   sayerror arg(1)
+   display -32
+   display 4
+   activatefile zzfileid
+
+; ---------------------------------------------------------------------------
+define
+   MSGC = 'color'
+
+; Paste up a message in a box, using SAYAT's.  Useful for "Processing..." msgs.
+defproc sayatbox
+   universal vMESSAGECOLOR
+compile if WANT_DBCS_SUPPORT
+   universal ondbcs
+compile endif
+
+   color = sayat_color()
+compile if WANT_DBCS_SUPPORT
+   if ondbcs then
+      middle = substr( '', 1, length( arg(1)), \x06)
+      sayat '  '\x01\x06||middle||\x06\x02'  ', 1, 2, $MSGC
+      sayat '  '\x05' 'arg(1)' '\x05'  ', 2, 2, $MSGC
+      sayat '  '\x03\x06||middle\x06\x04'  ', 3, 2, $MSGC
+   else
+compile endif
+      middle = substr( '', 1, length( arg(1)), 'Õ')
+      sayat '  …Õ'middle'Õª  ', 1, 2, $MSGC
+      sayat '  ∫ 'arg(1)' ∫  ', 2, 2, $MSGC
+      sayat '  »Õ'middle'Õº  ', 3, 2, $MSGC
+compile if WANT_DBCS_SUPPORT
+   endif
+compile endif
+
+defproc sayat_color =          -- Pick a color for SAYAT that doesn't conflict w/ foreground or background color.
+   universal vMESSAGECOLOR
+   if vMESSAGECOLOR // 16 <> .textcolor // 16 & vMESSAGECOLOR // 16 <> .textcolor % 16 then
+      return vMESSAGECOLOR       -- Preference is the message color.
+   endif
+   if vMESSAGECOLOR // 16 <> LIGHT_RED then
+      return LIGHT_RED           -- Second choice is light red.
+   endif
+   if .textcolor // 16 <> LIGHT_BLUE & .textcolor % 16 <> LIGHT_BLUE then
+      return LIGHT_BLUE          -- If that's used, then how about light blue
+   endif
+   return GREEN                  -- Final fallback is green.
 
