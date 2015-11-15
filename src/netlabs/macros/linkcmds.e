@@ -73,7 +73,7 @@ defc linkverify
    ErrorText = link_common( modulename)  -- sets rc
 
    if rc < 0 then
-      call winmessagebox( UNABLE_TO_LINK__MSG '"'modulename'", rc = 'rc,
+      call winmessagebox( UNABLE_TO_LINK__MSG '"'modulename'", rc = 'rc'.',
                           ErrorText,
                           16416)  -- OK + ICON_EXCLAMATION + MB+MOVEABLE
    endif
@@ -91,7 +91,7 @@ defproc link_common( modulename)
 
    waslinkedrc = linked( modulename)
    if waslinkedrc >= 0 then  -- >= 0, then it's the number in the link history
-      ErrorText = 'Module "'modulename'" already linked as module #'waslinkedrc
+      ErrorText = 'Module "'modulename'" already linked as module #'waslinkedrc'.'
       xrc = 0        -- if already linked
 
    else
@@ -115,13 +115,13 @@ defproc link_common( modulename)
       -- Link returns rc >= 0 if successful, like linked(). But
       -- sometimes also rc = (null) is returned on success.
       if linkedrc = -307 then
-         ErrorText = 'Module "'modulename'" not linked, file not found'
+         ErrorText = 'Module "'modulename'" not linked, file not found.'
       elseif linkedrc = -308 then
-         ErrorText = 'Module "'modulename'" not linked, invalid filename'
+         ErrorText = 'Module "'modulename'" not linked, invalid filename.'
       elseif linkedrc < 0 then
          -- Use linkrc, because it's more detailed. linked() returns only
          -- >=0, -1, -307, -308, while link returns some more like -290.
-         ErrorText = 'Module "'modulename'" not linked, 'sayerrortext(linkrc)
+         ErrorText = 'Module "'modulename'" not linked, 'sayerrortext(linkrc)'.'
       else
          ErrorText = LINK_COMPLETED__MSG''linkedrc' "'modulename'"'
       endif
@@ -218,14 +218,16 @@ defc unlink
    display 2
    if unlinkrc then
       if unlinkrc = -310 then
-         sayerror 'Module "'FullPathName'" not unlinked, unknown module'
+         sayerror 'Module "'FullPathName'" not unlinked, unknown module.'
       elseif unlinkrc = -301 then
-         sayerror 'Module "'FullPathName'" not unlinked, module in use (better restart EPM)'
+         sayerror 'Module "'FullPathName'" not unlinked, module in use (better restart EPM).'
       elseif unlinkrc = -302 then
-         sayerror 'Module "'FullPathName'" not unlinked, defined keyset in use (better restart EPM)'
+         sayerror 'Module "'FullPathName'" not unlinked, defined keyset in use (better restart EPM).'
       else
-         sayerror 'Module "'FullPathName'" not unlinked, rc = 'unlinkrc
+         sayerror 'Module "'FullPathName'" not unlinked, rc = 'unlinkrc'.'
       endif
+   else
+      sayerror 'Module "'FullPathName'" successfully unlinked.'
    endif
 
 ; ---------------------------------------------------------------------------
