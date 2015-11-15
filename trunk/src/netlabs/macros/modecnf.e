@@ -191,6 +191,15 @@ defc InitModeCnf
 'AddCodingStyle REXX_aschn SetIndent 3'
 'AddCodingStyle REXX_aschn SetFunctionSpacing CS'
 
+/* REXX style with DoStyle = APPEND, Case = UPPER, Indent = 4 */
+'AddCodingStyle REXX_au4 SetRexxDoStyle APPEND'
+'AddCodingStyle REXX_au4 SetRexxIfStyle ADDELSE'
+'AddCodingStyle REXX_au4 SetRexxCase UPPER'
+'AddCodingStyle REXX_au4 SetRexxForceCase 1'
+'AddCodingStyle REXX_au4 SetTabs 4'
+'AddCodingStyle REXX_au4 SetIndent 4'
+'AddCodingStyle REXX_au4 SetFunctionSpacing C'
+
 
 /* ----------------------------------------------------------------------- */
 /* Settings for all modes, if no ModeExecute command exists.               */
