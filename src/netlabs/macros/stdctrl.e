@@ -1464,12 +1464,13 @@ defproc setfont( width, height)
 � who and when    : Jerry C.   2/27/89                                       �
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
-defc commandline  -- The application will free the buffer allocated by this macro !!!
-   call windowmessage( 0, getpminfo(APP_HANDLE),
+
+defc commandline  -- The application will free the buffer allocated by this macro
+   parse arg cmd  -- try to keep trailing spaces
+   call windowmessage( 0, getpminfo( APP_HANDLE),
                        5124,               -- EPM_POPCMDLINE
                        0,
-                       put_in_buffer(arg(1)))
-
+                       put_in_buffer( cmd))  -- trailing spaces are always stripped before execution
 
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
