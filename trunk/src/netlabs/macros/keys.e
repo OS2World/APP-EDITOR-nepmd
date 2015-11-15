@@ -262,12 +262,8 @@ defc ExecKeyCmd
 ; This ignores modifier key combinations. Therefore it can be used for single
 ; chars only.
 defproc Process_Key( char)
-   universal cua_marking_switch
-
    if IsSingleKey( char) & char <> \0 then
-
       call Process_Keys( char)
-
    endif
 
 ; ---------------------------------------------------------------------------
@@ -303,7 +299,8 @@ defproc TypeChars( chars)
 ; ---------------------------------------------------------------------------
 ; Defined as command for use in key definition files.
 defc TypeChars
-   call Process_Keys( arg(1))
+   parse arg chars
+   call Process_Keys( chars)
 
 ; ---------------------------------------------------------------------------
 ; This takes ascii values of one or multiple chars. Multiple chars can be
@@ -342,10 +339,12 @@ defc ExecuteKey
 
 ; ---------------------------------------------------------------------------
 defc Keyin
-   if arg(1) = '' then
+   parse arg chars
+   --sayerror 'chars = "'chars'"'
+   if chars == '' then
       keyin ' '
    else
-      keyin arg(1)
+      keyin chars
    endif
 
 ; ---------------------------------------------------------------------------
@@ -2413,10 +2412,7 @@ defc BackSpace
       mt = marktype()
       if mt = 'CHAR' then
          getmark first_line, last_line, first_col, last_col, fid
-         getfileid thisfid
-         if fid <> thisfid then
-            -- nop
-         elseif ((old_col > 1) & (first_line = old_line) & (first_line = last_line) & (first_col = old_col)) then
+         if ((old_col > 1) & (first_line = old_line) & (first_line = last_line) & (first_col = old_col)) then
             -- Cursor is on mark begin and first_line = last_line
             CorrectMarkBegin = 1
             CorrectMarkEnd   = 1
