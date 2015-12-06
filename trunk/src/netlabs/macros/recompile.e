@@ -813,7 +813,7 @@ defc RecompileNew
             -- Unlink works only for an existing .ex file. Therefore unlink
             -- must come before delete.
             if fRestartEpm = 0 then
-               if linked( CurExFile) then
+               if linked( CurExFile) >= 0 then
                   -- unlink works only if EX file exists
                   'unlink' CurExFile
                   fRelinkDeleted = 1
