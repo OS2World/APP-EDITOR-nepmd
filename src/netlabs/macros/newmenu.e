@@ -4445,6 +4445,7 @@ defc toggle_modefiles_autorefresh
    SetMenuAttribute( GetAVar('mid_autorefreshmodefiles'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
+; This switches between Advanced and CUA marking
 defc toggle_cua_mark, cua_mark_toggle
    universal cua_marking_switch
    universal menuloaded
@@ -4478,7 +4479,6 @@ defc toggle_mousestyle
    new = word( 'block char', style)
    parse value GetAVar('mtxt_mousestyle') with next'['x']'rest
    SetMenuText( GetAVar('mid_mousestyle'), next'['new']'rest)
-   --call MH_set_mouse()
   'mouse_init'  -- refresh the register_mousehandler defs
 
 ; ---------------------------------------------------------------------------
@@ -4499,10 +4499,7 @@ defc toggle_default_paste
    NepmdWriteConfigValue( nepmd_hini, KeyPath, style)
    parse value GetAVar('mtxt_defaultpaste') with next'['x']'rest
    SetMenuText( GetAVar('mid_defaultpaste'), next'['new']'rest)
-   --call update_paste_menu_text()  -- append Sh+Ins, Ctrl+Sh+Ins or nothing  -- handled by menuinit
-  'mouse_init'                    -- refresh the register_mousehandler defs
-   deleteaccel 'defaccel'         -- refresh the buildacceltable defs
-   'loadaccel'
+   'mouse_init'                    -- refresh the register_mousehandler defs
 
 ; ---------------------------------------------------------------------------
 defc toggle_shift_mark_extends
@@ -4563,8 +4560,6 @@ defc toggle_block_left_alt_key
    NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_blockleftaltkey'), MIA_CHECKED, not on)
-;   deleteaccel 'defaccel'  -- refresh the buildacceltable defs
-;   'loadaccel'
    'RefreshBlockAlt'
 
 ; ---------------------------------------------------------------------------
@@ -4576,8 +4571,6 @@ defc toggle_block_right_alt_key
    NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_blockrightaltkey'), MIA_CHECKED, not on)
-;   deleteaccel 'defaccel'  -- refresh the buildacceltable defs
-;   'loadaccel'
    'RefreshBlockAlt'
 
 ; ---------------------------------------------------------------------------
@@ -4615,13 +4608,6 @@ defc toggle_default_tabkey
       new = subword( old, 1, 13)' 'default_tab_key' 'subword( old, 15)
       call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
-/*
-   universal nepmd_hini
-   KeyPath = '\NEPMD\User\Keys\Tab\TabKey'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   on = not on
-   NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
-*/
 
 ; ---------------------------------------------------------------------------
 defc toggle_matchtab
@@ -4869,6 +4855,12 @@ defc stack_toggle
 */
 
 ; ---------------------------------------------------------------------------
+; This changes the behavior of Alt+<letter> keys. When Advanced marking is
+; activated, it's useful to diable them to activate the menu items, because
+; their definitions are used for Advanced marking operations.
+; Note: Even when Alt+<letter> is configured to block jumping to the menu,
+; Sh+Alt+<letter> and Ctrl+Alt+<letter> keys still work as accelerator
+; keys for the menu items.
 defc toggle_accel, accel_toggle
    universal cua_menu_accel
    universal activemenu, defaultmenu
@@ -4877,7 +4869,7 @@ defc toggle_accel, accel_toggle
    universal appname
 
    cua_menu_accel = not cua_menu_accel
-   'ReloadKeyset'
+   'ReloadKeyset'  -- Diadvantage: this closes the menu
 /*
    deletemenu defaultmenu, GetAVar('mid_edit'), 0, 1           -- Delete the edit menu
    call add_edit_menu(defaultmenu)

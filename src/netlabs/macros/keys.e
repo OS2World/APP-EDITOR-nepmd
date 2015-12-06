@@ -1180,7 +1180,7 @@ defc RefreshBlockAlt
 ; ---------------------------------------------------------------------------
 defc LoadAccel
    parse arg args
-   'SetKeyset' args  -- defined in MODEXEC.E
+   'SetKeyset' args  -- defined in MODEEXEC.E
 
 ; ---------------------------------------------------------------------------
 ; SetKeyset: defined in MODEEXEC.E, contains mode-specific part, calls:
@@ -1293,6 +1293,10 @@ defc ReloadKeyset
    'SetKeyset2' activeaccel KeyDefs
 
 ; ---------------------------------------------------------------------------
+; This must be used instead of the internally defined deleteaccel statement.
+; Disadvantage: This closes the menu, even if nodismiss is set for a menu
+; item. This is caused by the array var procs, because they switch
+; temporarily to a hidden file.
 defc DeleteAccel, DelKeyset
    universal activeaccel
    if arg(1) = '' | lowcase( arg(1)) = 'defaccel' then

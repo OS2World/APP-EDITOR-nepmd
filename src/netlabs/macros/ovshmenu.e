@@ -780,8 +780,7 @@ defc accel_toggle
    universal CUA_MENU_ACCEL
    universal activemenu, defaultmenu
    CUA_MENU_ACCEL = not CUA_MENU_ACCEL
-   deleteaccel 'defaccel'
-   'loadaccel'
+   'ReloadKeyset'
    deletemenu defaultmenu, 3, 0, 1                  -- Delete the selected menu
    call add_selected_menu(defaultmenu)
    if activemenu = defaultmenu  then
