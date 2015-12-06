@@ -994,8 +994,7 @@ defc accel_toggle
    universal CUA_MENU_ACCEL
    universal activemenu, defaultmenu
    CUA_MENU_ACCEL = not CUA_MENU_ACCEL
-   deleteaccel 'defaccel'
-   'loadaccel'
+   'ReloadKeyset'
    deletemenu defaultmenu, 8, 0, 1                  -- Delete the edit menu
    call add_edit_menu(defaultmenu)
    if activemenu = defaultmenu  then

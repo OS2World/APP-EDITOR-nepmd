@@ -797,7 +797,6 @@ defc accel_toggle
    universal CUA_MENU_ACCEL
    universal activemenu, defaultmenu
    CUA_MENU_ACCEL = not CUA_MENU_ACCEL
-   deleteaccel 'defaccel'
-   'loadaccel'
+   'ReloadKeyset'
 compile endif
 
